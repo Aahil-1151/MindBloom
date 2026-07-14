@@ -32,7 +32,7 @@
   // steps in the project notes). It must be the FULL https:// URL, not a
   // relative path — this same file runs both in a browser tab and inside
   // an app wrapper later, and only an absolute URL works in both.
-  const BACKEND_URL = "https://YOUR-PROJECT-NAME.vercel.app/api/chat";
+  const BACKEND_URL = "https://mind-bloom-kp7y.vercel.app/api/chat";
 
   // ---- Crisis safety net -------------------------------------------------
   // Checked BEFORE any provider runs, regardless of which one is active.
