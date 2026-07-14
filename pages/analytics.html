@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Analytics — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/shell.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/analytics.css" />
+</head>
+<body>
+  <div id="app" class="analytics-shell">
+
+    <!-- ============ SIDEBAR (tablet/desktop) ============ -->
+    <aside class="sidebar hide-mobile" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="auth-brand__mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-leaf"></use></svg></div>
+        <span class="sidebar__brand-name">MindBloom</span>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="dashboard.html" class="sidebar__link" data-nav="home">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg></span> Home
+        </a>
+        <a href="physical.html" class="sidebar__link" data-nav="wellbeing">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg></span> Wellbeing
+        </a>
+        <a href="planner.html" class="sidebar__link" data-nav="academic">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg></span> Academic
+        </a>
+        <a href="chat.html" class="sidebar__link" data-nav="bloom">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg></span> Bloom AI
+        </a>
+        <a href="analytics.html" class="sidebar__link" data-nav="insights">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg></span> Insights
+        </a>
+        <a href="settings.html" class="sidebar__link" data-nav="settings">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-settings"></use></svg></span> Settings
+        </a>
+      </nav>
+
+      <button class="sidebar__logout" id="sidebar-logout">
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logout"></use></svg> Log out
+      </button>
+    </aside>
+
+    <div class="main-area">
+
+    <header class="top-header">
+      <h1 class="page-header__title">Analytics</h1>
+    </header>
+
+    <main class="page analytics-page">
+
+      <!-- OFFLINE NOTICE (hidden unless Chart.js failed to load) -->
+      <section class="section" id="charts-offline-notice" hidden>
+        <div class="offline-notice" role="alert">
+          Charts need an internet connection to load the first time. Your data is saved locally and charts will appear once you're back online.
+        </div>
+      </section>
+
+      <!-- RANGE TOGGLE -->
+      <section class="section">
+        <div class="range-toggle" id="range-toggle">
+          <button type="button" class="chip chip--selectable" data-range="7" aria-pressed="true">7 days</button>
+          <button type="button" class="chip chip--selectable" data-range="30" aria-pressed="false">30 days</button>
+          <button type="button" class="chip chip--selectable" data-range="90" aria-pressed="false">90 days</button>
+        </div>
+        <p class="period-label" id="period-label">Last 7 days</p>
+      </section>
+
+      <!-- WEEKLY SUMMARY -->
+      <section class="section">
+        <div class="summary-card card card--glass anim-fade-up">
+          <span class="summary-card__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-sparkle"></use></svg></span>
+          <p class="summary-card__text" id="summary-text">Putting together your summary…</p>
+        </div>
+      </section>
+
+      <!-- BURNOUT GAUGE -->
+      <section class="section">
+        <div class="burnout-card card card--elevated">
+          <div class="burnout-card__gauge-wrap">
+            <canvas id="chart-burnout" role="img" aria-label="Burnout risk gauge"></canvas>
+            <div class="burnout-card__value">
+              <span class="stat-number" id="burnout-score-value">--</span>
+              <span class="burnout-card__unit">/ 100</span>
+            </div>
+          </div>
+          <div class="burnout-card__details">
+            <p class="burnout-card__level" id="burnout-level">Calculating…</p>
+            <p class="burnout-card__message" id="burnout-message"></p>
+            <ul class="burnout-factors" id="burnout-factors"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- MOOD TREND -->
+      <section class="section">
+        <div class="chart-card card">
+          <div class="chart-card__header"><h2>Mood Trend</h2></div>
+          <div class="chart-card__canvas-wrap">
+            <canvas id="chart-mood" role="img" aria-label="Mood trend line chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- PILLARS + TASKS -->
+      <section class="section chart-grid">
+        <div class="chart-card card">
+          <div class="chart-card__header"><h2>Wellbeing Pillars</h2></div>
+          <div class="chart-card__canvas-wrap">
+            <canvas id="chart-pillars" role="img" aria-label="Wellbeing pillars radar chart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-card card">
+          <div class="chart-card__header"><h2>Task Completion</h2></div>
+          <div class="chart-card__canvas-wrap">
+            <canvas id="chart-tasks" role="img" aria-label="Task completion doughnut chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- SLEEP & HYDRATION -->
+      <section class="section">
+        <div class="chart-card card">
+          <div class="chart-card__header"><h2>Sleep &amp; Hydration</h2></div>
+          <div class="chart-card__canvas-wrap">
+            <canvas id="chart-sleep-water" role="img" aria-label="Sleep and hydration bar chart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- HABIT CONSISTENCY -->
+      <section class="section">
+        <div class="chart-card card">
+          <div class="chart-card__header">
+            <h2>Habit Consistency</h2>
+          </div>
+
+          <div class="habit-stats">
+            <div class="habit-stat">
+              <span class="habit-stat__value" id="streak-current">0</span>
+              <span class="habit-stat__label">Current streak</span>
+            </div>
+            <div class="habit-stat">
+              <span class="habit-stat__value" id="streak-longest">0</span>
+              <span class="habit-stat__label">Longest streak</span>
+            </div>
+            <div class="habit-stat">
+              <span class="habit-stat__value" id="consistency-percent">0%</span>
+              <span class="habit-stat__label">Consistency</span>
+            </div>
+          </div>
+
+          <div class="chart-card__canvas-wrap chart-card__canvas-wrap--short">
+            <canvas id="chart-weekday" role="img" aria-label="Check-in consistency by day of week"></canvas>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+      <nav class="nav-bar hide-desktop" id="bottom-nav">
+        <a href="dashboard.html" class="nav-item" data-nav="home">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg><span>Home</span>
+        </a>
+        <a href="physical.html" class="nav-item" data-nav="wellbeing">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg><span>Wellbeing</span>
+        </a>
+        <a href="planner.html" class="nav-item" data-nav="academic">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg><span>Academic</span>
+        </a>
+        <a href="chat.html" class="nav-item" data-nav="bloom">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg><span>Bloom</span>
+        </a>
+        <a href="analytics.html" class="nav-item" data-nav="insights">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg><span>Insights</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/charts.js"></script>
+  <script src="../scripts/habit-analysis.js"></script>
+  <script src="../scripts/burnout-score.js"></script>
+  <script src="../scripts/weekly-summary.js"></script>
+  <script src="../scripts/analytics.js"></script>
+</body>
+</html>

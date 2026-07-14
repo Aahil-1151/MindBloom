@@ -1,0 +1,61 @@
+/* ==========================================================================
+   MindBloom — onboarding.css
+   Styles specific to onboarding.html, layered on top of auth.css (shares
+   the same centered card + blob background treatment).
+   ========================================================================== */
+
+.onboarding-mark {
+  margin-inline: auto;
+}
+
+.onboarding-center {
+  text-align: center;
+}
+
+.onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.onboarding-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circle);
+  background: var(--color-border-default);
+  transition: background-color var(--duration-base) var(--ease-standard),
+              width var(--duration-base) var(--ease-standard);
+}
+
+.onboarding-dot--active {
+  background: var(--color-primary);
+  width: 20px;
+  border-radius: var(--radius-pill);
+}
+
+.onboarding-step[hidden] {
+  display: none;
+}
+
+.onboarding-goals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-4);
+}
+
+.onboarding-goal {
+  font-size: var(--fs-sm);
+  padding: var(--space-3) var(--space-4);
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.onboarding-actions .btn--primary {
+  flex: 1;
+}

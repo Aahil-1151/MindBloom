@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Wellbeing — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/shell.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/physical.css" />
+</head>
+<body>
+  <div id="app" class="wellbeing-shell">
+
+    <aside class="sidebar hide-mobile" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="auth-brand__mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-leaf"></use></svg></div>
+        <span class="sidebar__brand-name">MindBloom</span>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="dashboard.html" class="sidebar__link" data-nav="home">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg></span> Home
+        </a>
+        <a href="physical.html" class="sidebar__link" data-nav="wellbeing">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg></span> Wellbeing
+        </a>
+        <a href="planner.html" class="sidebar__link" data-nav="academic">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg></span> Academic
+        </a>
+        <a href="chat.html" class="sidebar__link" data-nav="bloom">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg></span> Bloom AI
+        </a>
+        <a href="analytics.html" class="sidebar__link" data-nav="insights">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg></span> Insights
+        </a>
+        <a href="settings.html" class="sidebar__link" data-nav="settings">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-settings"></use></svg></span> Settings
+        </a>
+      </nav>
+
+      <button class="sidebar__logout" id="sidebar-logout">
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logout"></use></svg> Log out
+      </button>
+    </aside>
+
+    <div class="main-area">
+
+      <header class="top-header">
+        <h1 class="page-header__title">Wellbeing</h1>
+      </header>
+
+      <main class="page wellbeing-page">
+
+        <div class="segmented-control" id="tab-control" role="tablist" aria-label="Wellbeing sections">
+          <button type="button" class="segmented-control__tab" data-tab="physical" role="tab" aria-selected="true">Physical</button>
+          <button type="button" class="segmented-control__tab" data-tab="mental" role="tab" aria-selected="false">Mental</button>
+          <button type="button" class="segmented-control__tab" data-tab="mood" role="tab" aria-selected="false">Mood</button>
+        </div>
+
+        <!-- PHYSICAL TAB -->
+        <section class="tab-panel" id="tab-physical" role="tabpanel">
+          <div class="wellbeing-grid">
+            <div class="card wellbeing-stat-card">
+              <span class="wellbeing-stat-card__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-moon"></use></svg></span>
+              <p class="wellbeing-stat-card__label">Sleep last night</p>
+              <div class="stepper">
+                <button type="button" class="stepper__btn" data-stepper="sleep" data-delta="-0.5" aria-label="Decrease sleep hours">−</button>
+                <span class="stepper__value" id="sleep-value">7.5<small>h</small></span>
+                <button type="button" class="stepper__btn" data-stepper="sleep" data-delta="0.5" aria-label="Increase sleep hours">+</button>
+              </div>
+            </div>
+
+            <div class="card wellbeing-stat-card">
+              <span class="wellbeing-stat-card__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-droplet"></use></svg></span>
+              <p class="wellbeing-stat-card__label">Water today</p>
+              <div class="stepper">
+                <button type="button" class="stepper__btn" data-stepper="water" data-delta="-1" aria-label="Decrease water cups">−</button>
+                <span class="stepper__value" id="water-value">0<small>cups</small></span>
+                <button type="button" class="stepper__btn" data-stepper="water" data-delta="1" aria-label="Increase water cups">+</button>
+              </div>
+            </div>
+
+            <div class="card wellbeing-stat-card">
+              <span class="wellbeing-stat-card__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-activity"></use></svg></span>
+              <p class="wellbeing-stat-card__label">Active minutes</p>
+              <div class="stepper">
+                <button type="button" class="stepper__btn" data-stepper="activity" data-delta="-5" aria-label="Decrease active minutes">−</button>
+                <span class="stepper__value" id="activity-value">0<small>min</small></span>
+                <button type="button" class="stepper__btn" data-stepper="activity" data-delta="5" aria-label="Increase active minutes">+</button>
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn--primary btn--full" id="save-physical">Save today's log</button>
+        </section>
+
+        <!-- MENTAL TAB -->
+        <section class="tab-panel" id="tab-mental" role="tabpanel" hidden>
+          <div class="card breathing-card">
+            <p class="breathing-card__label" id="breathing-label">Tap start for a guided breath</p>
+            <div class="breathing-circle" id="breathing-circle" aria-hidden="true"></div>
+            <button type="button" class="btn btn--primary" id="breathing-toggle">Start breathing</button>
+          </div>
+
+          <div class="card stress-card">
+            <p class="field__label">How stressed do you feel right now?</p>
+            <input type="range" class="slider" id="stress-slider" min="1" max="5" value="3" aria-label="Stress level from 1 to 5" />
+            <div class="stress-card__labels">
+              <span>Calm</span>
+              <span id="stress-value-label">Moderate</span>
+              <span>Overwhelmed</span>
+            </div>
+            <button type="button" class="btn btn--secondary btn--full" id="save-stress">Log stress check-in</button>
+          </div>
+        </section>
+
+        <!-- MOOD TAB -->
+        <section class="tab-panel" id="tab-mood" role="tabpanel" hidden>
+          <div class="card mood-log-card">
+            <p class="field__label">How are you feeling right now?</p>
+            <div class="mood-picker" id="mood-log-picker"></div>
+            <button type="button" class="btn btn--primary btn--full" id="save-mood" disabled>Log mood</button>
+          </div>
+
+          <div class="section">
+            <div class="section__header"><h2>Recent moods</h2></div>
+            <ul class="mood-history-list" id="mood-history-list"></ul>
+            <div class="empty-state" id="mood-empty" hidden>
+              <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-mood-good"></use></svg></span>
+              <h3>No moods logged yet</h3>
+              <p>Pick how you're feeling above to start your history.</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+
+      <nav class="nav-bar hide-desktop" id="bottom-nav">
+        <a href="dashboard.html" class="nav-item" data-nav="home">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg><span>Home</span>
+        </a>
+        <a href="physical.html" class="nav-item" data-nav="wellbeing">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg><span>Wellbeing</span>
+        </a>
+        <a href="planner.html" class="nav-item" data-nav="academic">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg><span>Academic</span>
+        </a>
+        <a href="chat.html" class="nav-item" data-nav="bloom">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg><span>Bloom</span>
+        </a>
+        <a href="analytics.html" class="nav-item" data-nav="insights">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg><span>Insights</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div id="toast-root" class="toast-root"></div>
+
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/physical.js"></script>
+</body>
+</html>

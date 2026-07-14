@@ -1,0 +1,222 @@
+/* ==========================================================================
+   MindBloom — journal.css
+   Styles for journal.html: the composer (prompt + mood picker + textarea),
+   filter/search row, and the entries list including per-mood tinted cards
+   and the reflection callout. Built entirely on tokens from variables.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. HEADER
+   --------------------------------------------------------------------- */
+.journal-header__title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  flex: 1;
+  text-align: center;
+}
+
+.journal-header__spacer {
+  width: var(--touch-target);
+  display: inline-block;
+}
+
+.journal-page {
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------------------
+   2. COMPOSER
+   --------------------------------------------------------------------- */
+.composer-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.composer-prompt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-primary-tint);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.composer-prompt__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-bloom-700);
+}
+
+.composer-prompt__text {
+  flex: 1;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-bloom-700);
+}
+
+.composer-footer {
+  display: flex;
+  justify-content: center;
+}
+
+.composer-mood-picker {
+  max-width: 320px;
+}
+
+.composer-mood-picker .mood-option {
+  aspect-ratio: unset;
+  width: 52px;
+  height: 52px;
+  font-size: var(--fs-lg);
+}
+
+.composer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.composer-status {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+  flex: 1;
+}
+
+/* ---------------------------------------------------------------------
+   3. FILTERS + SEARCH
+   --------------------------------------------------------------------- */
+.journal-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.filter-row {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-row .chip {
+  flex-shrink: 0;
+}
+
+.journal-search {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------
+   4. ENTRIES LIST
+   --------------------------------------------------------------------- */
+.entries-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.journal-entry {
+  padding: var(--space-4);
+  position: relative;
+}
+
+.journal-entry__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.journal-entry__emoji {
+  display: inline-flex;
+  color: var(--color-text-secondary);
+}
+
+.journal-entry__emoji .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.journal-entry__date {
+  flex: 1;
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+
+.journal-entry__delete {
+  opacity: 0.6;
+}
+
+.journal-entry__delete:hover {
+  opacity: 1;
+}
+
+.journal-entry__text {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
+}
+
+.journal-entry__toggle {
+  display: inline-block;
+  margin-top: var(--space-1);
+  font-size: var(--fs-xs);
+}
+
+.journal-entry__themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-3);
+}
+
+/* ---------------------------------------------------------------------
+   5. REFLECTION CALLOUT (Bloom's note on a saved entry)
+   --------------------------------------------------------------------- */
+.journal-reflection {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface-alt);
+}
+
+.journal-reflection__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.journal-reflection__icon .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.journal-reflection__text {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--lh-snug);
+}
+
+/* ---------------------------------------------------------------------
+   6. EMPTY STATE
+   --------------------------------------------------------------------- */
+/* .empty-state__icon styling now lives globally in components.css */
+
+/* ---------------------------------------------------------------------
+   7. RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .composer-mood-picker { max-width: 360px; }
+}

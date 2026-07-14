@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Settings — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/shell.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/settings.css" />
+</head>
+<body>
+  <div id="app" class="settings-shell">
+
+    <aside class="sidebar hide-mobile" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="auth-brand__mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-leaf"></use></svg></div>
+        <span class="sidebar__brand-name">MindBloom</span>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="dashboard.html" class="sidebar__link" data-nav="home">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg></span> Home
+        </a>
+        <a href="physical.html" class="sidebar__link" data-nav="wellbeing">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg></span> Wellbeing
+        </a>
+        <a href="planner.html" class="sidebar__link" data-nav="academic">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg></span> Academic
+        </a>
+        <a href="chat.html" class="sidebar__link" data-nav="bloom">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg></span> Bloom AI
+        </a>
+        <a href="analytics.html" class="sidebar__link" data-nav="insights">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg></span> Insights
+        </a>
+        <a href="settings.html" class="sidebar__link" data-nav="settings">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-settings"></use></svg></span> Settings
+        </a>
+      </nav>
+
+      <button class="sidebar__logout" id="sidebar-logout">
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logout"></use></svg> Log out
+      </button>
+    </aside>
+
+    <div class="main-area">
+
+      <header class="top-header">
+        <h1 class="page-header__title">Settings</h1>
+      </header>
+
+      <main class="page settings-page">
+
+        <section class="section">
+          <div class="card settings-profile">
+            <div class="avatar avatar--lg" id="profile-avatar">B</div>
+            <div>
+              <p class="settings-profile__name" id="profile-name">—</p>
+              <p class="settings-profile__email" id="profile-email">—</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section__header"><h2>Appearance</h2></div>
+          <div class="card settings-row">
+            <div>
+              <p class="settings-row__label">Dark mode</p>
+              <p class="settings-row__hint">Switch between light and dark themes</p>
+            </div>
+            <button class="toggle" id="theme-toggle" role="switch" aria-checked="false" aria-label="Toggle dark mode"></button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section__header"><h2>Notifications</h2></div>
+          <div class="card settings-row">
+            <div>
+              <p class="settings-row__label">Daily check-in reminder</p>
+              <p class="settings-row__hint">A gentle nudge to log your mood each day</p>
+            </div>
+            <button class="toggle" id="notif-toggle" role="switch" aria-checked="true" aria-label="Toggle daily reminders"></button>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section__header"><h2>Data</h2></div>
+          <div class="card settings-row">
+            <div>
+              <p class="settings-row__label">Clear all local data</p>
+              <p class="settings-row__hint">Removes journal entries, tasks, moods, and chat history from this device</p>
+            </div>
+            <button class="btn btn--danger btn--sm" id="clear-data-btn">Clear</button>
+          </div>
+        </section>
+
+        <section class="section">
+          <button class="btn btn--ghost btn--full" id="logout-btn">Log out</button>
+          <p class="settings-version">MindBloom · v1.0 · local-first build</p>
+        </section>
+
+      </main>
+
+      <nav class="nav-bar hide-desktop" id="bottom-nav">
+        <a href="dashboard.html" class="nav-item" data-nav="home">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg><span>Home</span>
+        </a>
+        <a href="physical.html" class="nav-item" data-nav="wellbeing">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg><span>Wellbeing</span>
+        </a>
+        <a href="planner.html" class="nav-item" data-nav="academic">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg><span>Academic</span>
+        </a>
+        <a href="chat.html" class="nav-item" data-nav="bloom">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg><span>Bloom</span>
+        </a>
+        <a href="analytics.html" class="nav-item" data-nav="insights">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg><span>Insights</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <div id="toast-root" class="toast-root"></div>
+
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/settings.js"></script>
+</body>
+</html>

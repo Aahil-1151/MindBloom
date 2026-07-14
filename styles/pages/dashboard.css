@@ -1,0 +1,411 @@
+/* ==========================================================================
+   MindBloom — dashboard.css
+   Styles specific to the Home Dashboard: header, wellbeing score, summary
+   grid, quick actions, motivation card, activity list, upcoming tasks.
+   Shared app-shell/sidebar layout now lives in styles/shell.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   3. HEADER
+   --------------------------------------------------------------------- */
+.dashboard-header {
+  position: sticky;
+  justify-content: space-between;
+}
+
+.dashboard-header__eyebrow {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.dashboard-header__title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.dashboard-header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-circle);
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+/* ---------------------------------------------------------------------
+   4. WELLBEING SCORE
+   --------------------------------------------------------------------- */
+.wellbeing-score-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+  overflow: hidden;
+}
+
+.wellbeing-score-card::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  right: -20%;
+  width: 260px;
+  height: 260px;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%);
+  pointer-events: none;
+}
+
+.wellbeing-score__ring-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 128px;
+  height: 128px;
+}
+
+.wellbeing-score__ring {
+  width: 100%;
+  height: 100%;
+}
+
+.progress-ring__fill#wellbeing-ring-fill {
+  stroke: var(--color-primary);
+}
+
+.wellbeing-score__value {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.wellbeing-score__value .stat-number {
+  font-size: var(--fs-2xl);
+  color: var(--color-text-primary);
+  line-height: 1;
+}
+
+.wellbeing-score__unit {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+}
+
+.wellbeing-score__details {
+  flex: 1;
+  min-width: 180px;
+}
+
+.wellbeing-score__heading {
+  font-size: var(--fs-md);
+  margin-bottom: var(--space-1);
+}
+
+.wellbeing-score__message {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.wellbeing-score__breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wellbeing-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  background: var(--color-bg-surface-alt);
+}
+
+.wellbeing-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circle);
+}
+
+/* ---------------------------------------------------------------------
+   5. SECTION HEADERS
+   --------------------------------------------------------------------- */
+.section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.section__header h2 {
+  font-size: var(--fs-md);
+}
+
+/* ---------------------------------------------------------------------
+   6. TODAY'S SUMMARY GRID
+   --------------------------------------------------------------------- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.summary-stat {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.summary-stat__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.summary-stat__icon {
+  display: inline-flex;
+  color: var(--color-primary);
+}
+
+.summary-stat__icon .icon {
+  width: 22px;
+  height: 22px;
+}
+
+.summary-stat__value {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-md);
+}
+
+.summary-stat__label {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------
+   7. QUICK ACTIONS
+   --------------------------------------------------------------------- */
+.quick-actions-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-3);
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-bounce),
+              box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.quick-action:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.quick-action:active {
+  transform: scale(0.94);
+}
+
+.quick-action__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary-pressed);
+}
+
+.quick-action__label {
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------
+   8. DAILY MOTIVATION
+   --------------------------------------------------------------------- */
+.motivation-card {
+  padding: var(--space-6);
+  text-align: center;
+}
+
+.motivation-card__icon {
+  display: inline-flex;
+  justify-content: center;
+  width: 100%;
+  color: var(--color-glow);
+  margin-bottom: var(--space-2);
+}
+
+.motivation-card__icon .icon {
+  width: 28px;
+  height: 28px;
+}
+
+.motivation-card__quote {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-snug);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.motivation-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.motivation-card__signature {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   9. RECENT ACTIVITY
+   --------------------------------------------------------------------- */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.activity-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.activity-item__text {
+  flex: 1;
+  font-size: var(--fs-sm);
+  color: var(--color-text-primary);
+}
+
+.activity-item__time {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   10. UPCOMING TASKS
+   --------------------------------------------------------------------- */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  transition: opacity var(--duration-base) var(--ease-standard);
+}
+
+.task-item--done {
+  opacity: 0.55;
+}
+
+.task-item--done .task-item__title {
+  text-decoration: line-through;
+}
+
+.task-item__checkbox {
+  flex-shrink: 0;
+}
+
+.task-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-item__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-primary);
+}
+
+.task-item__meta {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.task-item__priority {
+  flex-shrink: 0;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+}
+
+.task-item__priority--high   { background: var(--color-coral-50); color: var(--color-coral-700); }
+.task-item__priority--medium { background: var(--color-gold-50);  color: var(--color-gold-700); }
+.task-item__priority--low    { background: var(--color-bloom-50); color: var(--color-bloom-700); }
+
+/* ---------------------------------------------------------------------
+   11. RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (min-width: 480px) {
+  .summary-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .dashboard-page { max-width: 760px; margin-inline: auto; }
+  .summary-grid { grid-template-columns: repeat(4, 1fr); }
+  .wellbeing-score-card { flex-wrap: nowrap; }
+}
+
+@media (max-width: 479px) {
+  .quick-actions-row { grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
+  .quick-action__label { font-size: 10px; }
+}

@@ -1,0 +1,645 @@
+/* ==========================================================================
+   MindBloom — components.css
+   Reusable component styles: cards, buttons, forms, chips, progress,
+   charts, icons, nav, modal, toast. Glassmorphism variants included.
+   All values reference tokens from variables.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. CARDS
+   --------------------------------------------------------------------- */
+.card {
+  position: relative;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: box-shadow var(--duration-base) var(--ease-standard),
+              transform var(--duration-base) var(--ease-standard),
+              border-color var(--duration-base) var(--ease-standard);
+}
+
+[data-theme="dark"] .card {
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.card--elevated {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-border-subtle);
+}
+
+.card--interactive {
+  cursor: pointer;
+}
+.card--interactive:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-bloom-300);
+  transform: translateY(-2px);
+}
+.card--interactive:active {
+  transform: translateY(0) scale(0.99);
+}
+
+/* Glassmorphism card — cyan-tinted glass for a technical, futuristic feel */
+.card--glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  box-shadow: var(--glass-shadow);
+}
+
+/* Signature "glow" card — used for the single most important stat on a
+   page (wellbeing score, burnout gauge). A thin gradient border catches
+   light without being loud. */
+.card--glow {
+  position: relative;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--color-bg-surface), var(--color-bg-surface)) padding-box,
+    var(--gradient-glow) border-box;
+  box-shadow: var(--shadow-glow-primary);
+}
+
+/* Pillar-tinted cards — subtle colored wash identifying which pillar a card belongs to */
+.card--pillar-physical  { background: var(--color-primary-tint); }
+.card--pillar-mental    { background: var(--color-secondary-tint); }
+.card--pillar-academic  { background: var(--color-accent-tint); }
+.card--pillar-emotional { background: var(--color-celebrate-tint); }
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.card__subtitle {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Mood-colored card variant, driven by data-mood attribute */
+.card--mood[data-mood="rough"] { background: var(--mood-rough-bg); border-color: var(--mood-rough); }
+.card--mood[data-mood="low"]   { background: var(--mood-low-bg);   border-color: var(--mood-low); }
+.card--mood[data-mood="okay"]  { background: var(--mood-okay-bg);  border-color: var(--mood-okay); }
+.card--mood[data-mood="good"]  { background: var(--mood-good-bg);  border-color: var(--mood-good); }
+.card--mood[data-mood="great"] { background: var(--mood-great-bg); border-color: var(--mood-great); }
+
+/* ---------------------------------------------------------------------
+   2. BUTTONS
+   --------------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-base);
+  letter-spacing: var(--ls-normal);
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-base) var(--ease-standard),
+              background-color var(--duration-base) var(--ease-standard),
+              border-color var(--duration-base) var(--ease-standard);
+  user-select: none;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Primary — gradient fill with a soft cyan glow, refined hover-lift
+   instead of a chunky 3D press effect */
+.btn--primary {
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+.btn--primary:hover {
+  box-shadow: var(--shadow-glow-primary);
+  transform: translateY(-1px);
+}
+.btn--primary:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Secondary — soft tinted, low emphasis, thin defined border */
+.btn--secondary {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-pressed);
+  border: 1px solid transparent;
+}
+.btn--secondary:hover {
+  border-color: var(--color-bloom-300);
+}
+
+/* Ghost — text only, for tertiary actions */
+.btn--ghost {
+  background: transparent;
+  color: var(--color-text-primary);
+  padding-inline: var(--space-3);
+}
+.btn--ghost:hover {
+  background: var(--color-bg-surface-alt);
+}
+
+/* Accent — coral, used for streak/celebration CTAs */
+.btn--accent {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-sm);
+}
+.btn--accent:hover {
+  box-shadow: var(--shadow-glow-coral);
+  transform: translateY(-1px);
+}
+.btn--accent:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Danger — destructive actions only */
+.btn--danger {
+  background: transparent;
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.btn--icon {
+  padding: var(--space-3);
+  border-radius: var(--radius-circle);
+  min-width: var(--touch-target);
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.btn--full { width: 100%; }
+.btn--sm   { min-height: 36px; padding: var(--space-2) var(--space-4); font-size: var(--fs-sm); }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------
+   3. FORMS
+   --------------------------------------------------------------------- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  min-height: var(--touch-target);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-bg-surface-alt);
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-base);
+  color: var(--color-text-primary);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              background-color var(--duration-fast) var(--ease-standard);
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: var(--color-primary);
+  background: var(--color-bg-surface);
+  outline: none;
+}
+
+.input--error {
+  border-color: var(--color-danger);
+}
+
+.field__hint {
+  font-size: var(--fs-xs);
+  color: var(--color-text-muted);
+}
+
+.field__error {
+  font-size: var(--fs-xs);
+  color: var(--color-danger);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+  line-height: var(--lh-normal);
+}
+
+/* Toggle switch — settings, notifications */
+.toggle {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-sunken);
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-standard);
+}
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 22px; height: 22px;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-circle);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--duration-base) var(--ease-out-soft);
+}
+.toggle[aria-checked="true"] {
+  background: var(--color-primary);
+}
+.toggle[aria-checked="true"]::after {
+  transform: translateX(20px);
+}
+
+/* Checkbox — task completion */
+.checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border-default);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.checkbox[aria-checked="true"] {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* Slider — mood intensity, stress level */
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-sunken);
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px; height: 24px;
+  border-radius: var(--radius-circle);
+  background: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  border: 3px solid var(--color-bg-surface);
+}
+
+/* ---------------------------------------------------------------------
+   4. CHIPS / BADGES / TAGS
+   --------------------------------------------------------------------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-secondary);
+}
+
+.chip--primary   { background: var(--color-primary-tint);   color: var(--color-primary-pressed); }
+.chip--secondary { background: var(--color-secondary-tint); color: var(--color-lavender-700); }
+.chip--accent    { background: var(--color-accent-tint);    color: var(--color-coral-700); }
+
+.chip--selectable {
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.chip--selectable[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary-tint);
+  color: var(--color-primary-pressed);
+}
+
+/* Streak badge — Duolingo-style flame + count */
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-accent-tint);
+  color: var(--color-coral-700);
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+/* ---------------------------------------------------------------------
+   5. PROGRESS INDICATORS
+   --------------------------------------------------------------------- */
+
+/* Linear progress bar */
+.progress-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-sunken);
+  overflow: hidden;
+}
+.progress-bar__fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  transition: width var(--duration-slow) var(--ease-out-soft);
+}
+.progress-bar__fill--accent { background: var(--color-accent); }
+.progress-bar__fill--secondary { background: var(--color-secondary); }
+
+/* Circular progress ring (SVG-based; component sets stroke-dashoffset via JS) */
+.progress-ring {
+  transform: rotate(-90deg);
+}
+.progress-ring__track {
+  fill: none;
+  stroke: var(--color-bg-sunken);
+  stroke-width: 8;
+}
+.progress-ring__fill {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--duration-slow) var(--ease-out-soft);
+}
+.progress-ring__label {
+  transform: rotate(90deg);
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-lg);
+  fill: var(--color-text-primary);
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+/* ---------------------------------------------------------------------
+   6. MOOD PICKER
+   --------------------------------------------------------------------- */
+.mood-picker {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.mood-option {
+  flex: 1;
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-xl);
+  background: var(--color-bg-surface-alt);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-bounce),
+              background-color var(--duration-fast) var(--ease-standard);
+}
+.mood-option:active { transform: scale(0.9); }
+.mood-option[aria-pressed="true"] { transform: scale(1.12); }
+
+.mood-option[data-mood="rough"][aria-pressed="true"] { background: var(--mood-rough-bg); }
+.mood-option[data-mood="low"][aria-pressed="true"]   { background: var(--mood-low-bg); }
+.mood-option[data-mood="okay"][aria-pressed="true"]  { background: var(--mood-okay-bg); }
+.mood-option[data-mood="good"][aria-pressed="true"]  { background: var(--mood-good-bg); }
+.mood-option[data-mood="great"][aria-pressed="true"] { background: var(--mood-great-bg); }
+
+/* ---------------------------------------------------------------------
+   7. CHARTS (lightweight SVG/canvas base styling — chartLine component)
+   --------------------------------------------------------------------- */
+.chart {
+  width: 100%;
+}
+.chart__grid-line {
+  stroke: var(--color-border-subtle);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+.chart__axis-label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  fill: var(--color-text-muted);
+}
+.chart__line {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.chart__area {
+  fill: var(--color-primary-tint);
+  opacity: 0.6;
+}
+.chart__point {
+  fill: var(--color-bg-surface);
+  stroke: var(--color-primary);
+  stroke-width: 2;
+}
+.chart__bar {
+  fill: var(--color-secondary);
+  rx: 4;
+}
+.chart__tooltip {
+  background: var(--color-ink-900);
+  color: var(--color-cloud-050);
+  font-size: var(--fs-xs);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------------------------------------------------------------------
+   8. ICONS
+   --------------------------------------------------------------------- */
+.icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+}
+.icon--sm { width: 18px; height: 18px; }
+.icon--lg { width: 32px; height: 32px; }
+.icon--primary { color: var(--color-primary); }
+.icon--muted   { color: var(--color-text-muted); }
+
+.icon-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
+}
+
+/* ---------------------------------------------------------------------
+   9. NAVIGATION
+   --------------------------------------------------------------------- */
+.nav-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  border-top: 1px solid var(--glass-border);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: var(--z-nav);
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+.nav-item[aria-current="page"] {
+  color: var(--color-primary);
+}
+
+.top-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: var(--space-5);
+  padding-top: env(safe-area-inset-top);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-bottom: 1px solid var(--glass-border);
+  z-index: var(--z-header);
+}
+
+/* ---------------------------------------------------------------------
+   10. MODAL / BOTTOM SHEET / TOAST
+   --------------------------------------------------------------------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 12, 14, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: var(--z-modal);
+}
+.modal-sheet {
+  width: 100%;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  padding: var(--space-6) var(--space-5);
+  padding-bottom: calc(var(--space-8) + env(safe-area-inset-bottom));
+  box-shadow: var(--shadow-lg);
+}
+.modal-sheet__handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border-default);
+  margin: 0 auto var(--space-4);
+}
+
+.toast {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-3));
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-ink-900);
+  color: var(--color-cloud-050);
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--fs-sm);
+  z-index: var(--z-toast);
+}
+.toast--success { background: var(--color-bloom-700); }
+.toast--error    { background: var(--color-coral-700); }
+
+/* ---------------------------------------------------------------------
+   11. EMPTY STATES
+   --------------------------------------------------------------------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.empty-state__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.empty-state__icon .icon {
+  width: 26px;
+  height: 26px;
+}
+
+.empty-state h3 {
+  font-size: var(--fs-base);
+  color: var(--color-text-primary);
+}
+
+.empty-state p {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  max-width: 280px;
+}

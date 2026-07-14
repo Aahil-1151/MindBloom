@@ -1,0 +1,7 @@
+{
+  "name": "mindbloom",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MindBloom — AI-powered student wellbeing platform. Static frontend plus a small Vercel serverless function (api/chat.js) that securely proxies chat requests to OpenAI."
+}

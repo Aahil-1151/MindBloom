@@ -1,0 +1,36 @@
+/* ==========================================================================
+   MindBloom — index.css
+   Styles for the root index.html splash shown briefly while app.js decides
+   whether to redirect to login.html or dashboard.html.
+   ========================================================================== */
+
+.entry-splash {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background: var(--color-bg-canvas);
+}
+
+.entry-splash__mark {
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-2xl);
+  border-radius: var(--radius-lg);
+  background: var(--color-primary-tint);
+}
+
+.entry-splash__label {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}

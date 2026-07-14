@@ -1,0 +1,145 @@
+/* ==========================================================================
+   MindBloom — responsive.css
+   Mobile-first breakpoint system. Base styles (in global.css/components.css)
+   target phones; rules here progressively enhance for larger viewports.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. BREAKPOINT REFERENCE (documented, not a mixin system since this is
+   plain CSS — kept consistent by convention across this file)
+
+   --bp-sm:  480px   (large phones)
+   --bp-md:  768px   (tablets / small laptops)
+   --bp-lg:  1024px  (desktop)
+   --bp-xl:  1280px  (wide desktop)
+   --------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------
+   2. BASE (0–479px) — already the default in global.css/components.css.
+   Rules here just guarantee minimum comfortable touch sizing on the
+   smallest supported phones.
+   --------------------------------------------------------------------- */
+@media (max-width: 359px) {
+  :root {
+    --fs-2xl: 1.875rem; /* scale hero down slightly on very small screens */
+    --fs-3xl: 2.5rem;
+  }
+  .container { padding-inline: var(--space-4); }
+  .page { padding-inline: var(--space-4); }
+}
+
+/* ---------------------------------------------------------------------
+   3. LARGE PHONES (≥480px)
+   --------------------------------------------------------------------- */
+@media (min-width: 480px) {
+  .container { max-width: 480px; }
+
+  .mood-picker { gap: var(--space-3); }
+
+  .grid-2 { gap: var(--space-5); }
+}
+
+/* ---------------------------------------------------------------------
+   4. TABLETS (≥768px) — app gains breathing room but stays single-column
+   in spirit; cards can now sit in a light 2-column dashboard grid.
+   --------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  :root {
+    --container-max: 640px;
+  }
+
+  .page {
+    padding-inline: var(--space-8);
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-5);
+  }
+
+  .card { padding: var(--space-6); }
+
+  h1 { font-size: var(--fs-3xl); }
+  h2 { font-size: var(--fs-2xl); }
+}
+
+/* ---------------------------------------------------------------------
+   5. DESKTOP (≥1024px) — MindBloom is mobile-first by design. Auth pages
+   (login/signup/forgot-password) intentionally keep a centered "phone
+   frame" card look even on desktop, scoped via .auth-shell so this never
+   affects shell pages (dashboard/journal/planner/chat/analytics), which
+   need their sidebar layout to use the full available width instead.
+   --------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .auth-shell {
+    max-width: 480px;
+    margin-inline: auto;
+    min-height: 100vh;
+    background: var(--color-bg-canvas);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Optional wide layout for future admin/insights-heavy views */
+  .desktop-wide #app {
+    max-width: 960px;
+  }
+
+  .desktop-wide .dashboard-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   6. WIDE DESKTOP (≥1280px)
+   --------------------------------------------------------------------- */
+@media (min-width: 1280px) {
+  .desktop-wide #app {
+    max-width: 1100px;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   7. ORIENTATION / DEVICE ADAPTATIONS
+   --------------------------------------------------------------------- */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Phones rotated to landscape — collapse nav to be less tall */
+  .nav-bar { height: 52px; }
+  .page { padding-bottom: calc(52px + var(--space-4)); }
+}
+
+/* Larger touch targets on coarse pointers (touchscreens) */
+@media (pointer: coarse) {
+  .btn, .nav-item, .chip--selectable, .checkbox {
+    min-height: var(--touch-target);
+  }
+}
+
+/* Tighter, mouse-optimized spacing on fine pointers (desktop/laptop trackpads) */
+@media (pointer: fine) and (min-width: 1024px) {
+  .card--interactive:hover {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   8. VISIBILITY UTILITIES
+   --------------------------------------------------------------------- */
+.hide-mobile { display: none; }
+.hide-desktop { display: initial; }
+
+@media (min-width: 768px) {
+  .hide-mobile { display: initial; }
+  .hide-desktop { display: none; }
+}
+
+/* ---------------------------------------------------------------------
+   9. PRINT (weekly report / insights export)
+   --------------------------------------------------------------------- */
+@media print {
+  .nav-bar, .top-header, .btn, .toast { display: none !important; }
+  body { background: #fff; color: #000; }
+  .page { padding: 0; }
+}

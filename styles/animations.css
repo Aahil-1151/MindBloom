@@ -1,0 +1,188 @@
+/* ==========================================================================
+   MindBloom — animations.css
+   Keyframes + motion utility classes. Every animation is opt-in via a class,
+   and everything collapses under prefers-reduced-motion at the bottom.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. ENTRANCE / EXIT KEYFRAMES
+   --------------------------------------------------------------------- */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+@keyframes slideDownSheet {
+  from { transform: translateY(0); }
+  to   { transform: translateY(100%); }
+}
+
+@keyframes slideInToast {
+  from { opacity: 0; transform: translateY(-16px) translateX(-50%); }
+  to   { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ---------------------------------------------------------------------
+   2. MICRO-INTERACTIONS (buttons, taps, selection)
+   --------------------------------------------------------------------- */
+@keyframes pressDown {
+  from { transform: scale(1); }
+  to   { transform: scale(0.96); }
+}
+
+@keyframes popIn {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-4deg); }
+  75%      { transform: rotate(4deg); }
+}
+
+@keyframes shakeError {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-6px); }
+  40%      { transform: translateX(6px); }
+  60%      { transform: translateX(-4px); }
+  80%      { transform: translateX(4px); }
+}
+
+/* ---------------------------------------------------------------------
+   3. WELLBEING-SPECIFIC MOTION (breathing, mindfulness, streaks)
+   --------------------------------------------------------------------- */
+
+/* Guided breathing circle: 4s inhale/hold/exhale rhythm, used by breathingAnimator */
+@keyframes breathe {
+  0%   { transform: scale(0.75); box-shadow: 0 0 0 rgba(63, 166, 107, 0.25); }
+  50%  { transform: scale(1.15); box-shadow: 0 0 40px rgba(63, 166, 107, 0.35); }
+  100% { transform: scale(0.75); box-shadow: 0 0 0 rgba(63, 166, 107, 0.25); }
+}
+
+/* Streak flame flicker — subtle, not distracting */
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50%      { transform: scale(1.05) rotate(-2deg); }
+}
+
+/* Celebration burst for completed goals / streak milestones */
+@keyframes celebratePop {
+  0%   { transform: scale(0.5) rotate(-8deg); opacity: 0; }
+  50%  { transform: scale(1.15) rotate(4deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Circular progress ring fill (stroke-dashoffset animated via inline style/JS,
+   this class only handles the reveal transition) */
+@keyframes ringReveal {
+  from { stroke-dashoffset: var(--ring-circumference, 283); }
+  to   { stroke-dashoffset: var(--ring-offset, 0); }
+}
+
+/* ---------------------------------------------------------------------
+   4. LOADING / SKELETON STATES
+   --------------------------------------------------------------------- */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50%      { opacity: 1;   transform: scale(1); }
+}
+
+/* ---------------------------------------------------------------------
+   5. UTILITY CLASSES (apply keyframes with sensible defaults)
+   --------------------------------------------------------------------- */
+.anim-fade-in     { animation: fadeIn var(--duration-base) var(--ease-standard) both; }
+.anim-fade-up     { animation: fadeUp var(--duration-slow) var(--ease-out-soft) both; }
+.anim-fade-scale  { animation: fadeScale var(--duration-base) var(--ease-out-soft) both; }
+.anim-page-enter  { animation: pageEnter var(--duration-base) var(--ease-out-soft) both; }
+
+.anim-sheet-in  { animation: slideUpSheet var(--duration-slow) var(--ease-out-soft) both; }
+.anim-sheet-out { animation: slideDownSheet var(--duration-base) var(--ease-standard) both; }
+.anim-toast-in  { animation: slideInToast var(--duration-base) var(--ease-out-soft) both; }
+
+.anim-pop-in    { animation: popIn var(--duration-slow) var(--ease-bounce) both; }
+.anim-wiggle    { animation: wiggle 0.4s var(--ease-standard); }
+.anim-shake     { animation: shakeError 0.4s var(--ease-standard); }
+.anim-celebrate { animation: celebratePop 0.5s var(--ease-bounce) both; }
+
+.anim-breathe  { animation: breathe var(--duration-breath) ease-in-out infinite; }
+.anim-flicker  { animation: flicker 1.6s ease-in-out infinite; }
+.anim-spin     { animation: spin 0.8s linear infinite; }
+
+.anim-ring-reveal { animation: ringReveal 0.8s var(--ease-out-soft) forwards; }
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-bg-sunken) 0%,
+    var(--color-bg-surface-alt) 50%,
+    var(--color-bg-sunken) 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: var(--radius-sm);
+}
+
+.pulse-dot {
+  animation: pulseDot 1.2s ease-in-out infinite;
+}
+
+/* Staggered list entrance helper — pair with inline --delay custom property */
+.anim-stagger {
+  animation: fadeUp var(--duration-slow) var(--ease-out-soft) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Interactive press feedback for tappable elements */
+.pressable {
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+.pressable:active {
+  transform: scale(0.96);
+}
+
+/* ---------------------------------------------------------------------
+   6. ACCESSIBILITY — reduced motion
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .anim-breathe {
+    animation: none;
+  }
+}

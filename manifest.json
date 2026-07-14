@@ -1,0 +1,19 @@
+{
+  "name": "MindBloom — Student Wellbeing",
+  "short_name": "MindBloom",
+  "description": "An AI-guided student wellbeing companion for physical, emotional, mental, and academic balance.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF9F6",
+  "theme_color": "#3FA66B",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

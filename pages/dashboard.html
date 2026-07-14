@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Dashboard — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/shell.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/dashboard.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+
+    <!-- ============ SIDEBAR (tablet/desktop) ============ -->
+    <aside class="sidebar hide-mobile" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="auth-brand__mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-leaf"></use></svg></div>
+        <span class="sidebar__brand-name">MindBloom</span>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="dashboard.html" class="sidebar__link" data-nav="home" aria-current="page">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg></span> Home
+        </a>
+        <a href="physical.html" class="sidebar__link" data-nav="wellbeing">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg></span> Wellbeing
+        </a>
+        <a href="planner.html" class="sidebar__link" data-nav="academic">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg></span> Academic
+        </a>
+        <a href="chat.html" class="sidebar__link" data-nav="bloom">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg></span> Bloom AI
+        </a>
+        <a href="analytics.html" class="sidebar__link" data-nav="insights">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg></span> Insights
+        </a>
+        <a href="settings.html" class="sidebar__link" data-nav="settings">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-settings"></use></svg></span> Settings
+        </a>
+      </nav>
+
+      <button class="sidebar__logout" id="sidebar-logout">
+        <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-logout"></use></svg> Log out
+      </button>
+    </aside>
+
+    <div class="main-area">
+
+      <!-- ============ HEADER ============ -->
+      <header class="top-header dashboard-header">
+        <div class="dashboard-header__greeting">
+          <p class="dashboard-header__eyebrow" id="header-date">Loading date…</p>
+          <h1 class="dashboard-header__title" id="header-greeting">Hi there</h1>
+        </div>
+        <div class="dashboard-header__actions">
+          <button class="btn btn--icon" id="notif-btn" aria-label="Notifications"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-bell"></use></svg></button>
+          <div class="avatar" id="header-avatar">B</div>
+        </div>
+      </header>
+
+      <!-- ============ MAIN CONTENT ============ -->
+      <main class="page dashboard-page">
+
+        <!-- WELLBEING SCORE -->
+        <section class="section wellbeing-score-card card card--glow anim-fade-up" aria-labelledby="wb-score-heading">
+          <div class="wellbeing-score__ring-wrap">
+            <svg class="progress-ring wellbeing-score__ring" viewBox="0 0 120 120" width="128" height="128" id="wellbeing-ring">
+              <circle class="progress-ring__track" cx="60" cy="60" r="52"></circle>
+              <circle class="progress-ring__fill" id="wellbeing-ring-fill" cx="60" cy="60" r="52"></circle>
+            </svg>
+            <div class="wellbeing-score__value">
+              <span class="stat-number" id="wellbeing-score-number">--</span>
+              <span class="wellbeing-score__unit">/ 100</span>
+            </div>
+          </div>
+
+          <div class="wellbeing-score__details">
+            <h2 class="wellbeing-score__heading" id="wb-score-heading">Your Wellbeing Score</h2>
+            <p class="wellbeing-score__message" id="wellbeing-score-message">Calculating your balance…</p>
+            <div class="wellbeing-score__breakdown" id="wellbeing-breakdown"></div>
+          </div>
+        </section>
+
+        <!-- TODAY'S SUMMARY -->
+        <section class="section">
+          <div class="section__header">
+            <h2>Today's Summary</h2>
+          </div>
+          <div class="summary-grid" id="summary-grid"></div>
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <section class="section">
+          <div class="section__header">
+            <h2>Quick Actions</h2>
+          </div>
+          <div class="quick-actions-row" id="quick-actions"></div>
+        </section>
+
+        <!-- DAILY MOTIVATION -->
+        <section class="section">
+          <div class="motivation-card card card--glass anim-fade-up">
+            <div class="motivation-card__icon"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-sparkle"></use></svg></div>
+            <p class="motivation-card__quote" id="motivation-quote">Loading today's thought…</p>
+            <div class="motivation-card__footer">
+              <span class="motivation-card__signature">— Bloom</span>
+              <button class="btn btn--ghost btn--sm" id="motivation-refresh">New thought</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- RECENT ACTIVITY -->
+        <section class="section">
+          <div class="section__header">
+            <h2>Recent Activity</h2>
+          </div>
+          <ul class="activity-list" id="activity-list"></ul>
+        </section>
+
+        <!-- UPCOMING TASKS -->
+        <section class="section">
+          <div class="section__header">
+            <h2>Upcoming Tasks</h2>
+            <a href="planner.html" class="auth-link">See all</a>
+          </div>
+          <ul class="task-list" id="task-list"></ul>
+        </section>
+
+      </main>
+
+      <!-- ============ BOTTOM NAVIGATION (mobile) ============ -->
+      <nav class="nav-bar hide-desktop" id="bottom-nav">
+        <a href="dashboard.html" class="nav-item" data-nav="home" aria-current="page">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-home"></use></svg><span>Home</span>
+        </a>
+        <a href="physical.html" class="nav-item" data-nav="wellbeing">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-heart"></use></svg><span>Wellbeing</span>
+        </a>
+        <a href="planner.html" class="nav-item" data-nav="academic">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg><span>Academic</span>
+        </a>
+        <a href="chat.html" class="nav-item" data-nav="bloom">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chat"></use></svg><span>Bloom</span>
+        </a>
+        <a href="analytics.html" class="nav-item" data-nav="insights">
+          <svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-chart"></use></svg><span>Insights</span>
+        </a>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Toast mount point for quick-action feedback -->
+  <div id="toast-root"></div>
+
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/dashboard.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      MindBloomDashboard.init();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,128 @@
+/* ==========================================================================
+   MindBloom — shell.css
+   The shared app shell used by every authenticated page: sidebar
+   (tablet/desktop) + bottom navigation (mobile) + top header. Extracted
+   from dashboard.css so journal/planner/chat/analytics don't duplicate it.
+   Load after components.css and before any page-specific stylesheet.
+   ========================================================================== */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.main-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------------------------------------------------------------
+   SIDEBAR (tablet/desktop — hide-mobile utility handles the breakpoint)
+   --------------------------------------------------------------------- */
+.sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-bg-surface);
+  border-right: 1px solid var(--color-border-subtle);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline: var(--space-2);
+  margin-bottom: var(--space-8);
+}
+
+.sidebar__brand .auth-brand__mark {
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  font-size: var(--fs-md);
+}
+
+.sidebar__brand-name {
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-md);
+}
+
+.sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  flex: 1;
+}
+
+.sidebar__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.sidebar__link:hover {
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.sidebar__link[aria-current="page"] {
+  background: var(--color-primary-tint);
+  color: var(--color-primary-pressed);
+  font-weight: var(--fw-semibold);
+  box-shadow: inset 2px 0 0 var(--color-glow);
+}
+
+.sidebar__icon {
+  width: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar__icon .icon {
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar__logout {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  color: var(--color-danger);
+}
+
+.sidebar__logout:hover {
+  background: var(--color-coral-50);
+}
+
+/* ---------------------------------------------------------------------
+   SHARED PAGE HEADER (title-only header used by non-dashboard pages)
+   --------------------------------------------------------------------- */
+.page-header__title {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  flex: 1;
+  text-align: center;
+}
+
+.page-header__spacer {
+  width: var(--touch-target);
+  display: inline-block;
+}

@@ -1,0 +1,270 @@
+/* ==========================================================================
+   MindBloom — planner.css
+   Styles for planner.html: calendar grid, focus card, workload meter,
+   task list, view toggle, and the add/edit task modal. Built entirely on
+   tokens from variables.css.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. PAGE
+   --------------------------------------------------------------------- */
+.planner-page {
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+/* ---------------------------------------------------------------------
+   2. CALENDAR
+   --------------------------------------------------------------------- */
+.calendar {
+  padding: var(--space-4);
+}
+
+.calendar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.calendar__month-label {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-md);
+}
+
+.calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: var(--space-1);
+}
+
+.calendar__weekday {
+  text-align: center;
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-muted);
+  padding-block: var(--space-1);
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.calendar__cell {
+  position: relative;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-sm);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              color var(--duration-fast) var(--ease-standard);
+}
+
+.calendar__cell:not(.calendar__cell--empty):hover {
+  background: var(--color-bg-surface-alt);
+}
+
+.calendar__cell--empty {
+  pointer-events: none;
+}
+
+.calendar__cell--today {
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+}
+
+.calendar__cell--selected {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.calendar__cell--selected:hover {
+  background: var(--color-primary);
+}
+
+.calendar__dot {
+  position: absolute;
+  bottom: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: var(--radius-circle);
+  background: var(--color-accent);
+}
+
+.calendar__cell--selected .calendar__dot {
+  background: var(--color-text-inverse);
+}
+
+.calendar__dot--multi {
+  box-shadow: 3px 0 0 var(--color-accent);
+}
+
+.calendar__cell--selected .calendar__dot--multi {
+  box-shadow: 3px 0 0 var(--color-text-inverse);
+}
+
+/* ---------------------------------------------------------------------
+   3. FOCUS CARD
+   --------------------------------------------------------------------- */
+.focus-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+.focus-card__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-coral-700);
+}
+
+.focus-card__icon .icon {
+  width: 26px;
+  height: 26px;
+}
+
+.focus-card__label {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--color-coral-700);
+  font-weight: var(--fw-semibold);
+}
+
+.focus-card__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  margin-top: 2px;
+}
+
+.focus-card__rationale {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------
+   4. WORKLOAD METER
+   --------------------------------------------------------------------- */
+.workload-meter {
+  padding: var(--space-4);
+}
+
+.workload-meter__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.workload-meter__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-circle);
+  flex-shrink: 0;
+}
+
+.workload-meter__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+}
+
+.workload-meter__message {
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------
+   5. LIST HEADER + VIEW TOGGLE
+   --------------------------------------------------------------------- */
+.planner-list-header {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.view-toggle {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------
+   6. TASK LIST
+   --------------------------------------------------------------------- */
+.planner-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.planner-task {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+}
+
+.planner-task--done {
+  opacity: 0.55;
+}
+
+.planner-task--done .planner-task__title {
+  text-decoration: line-through;
+}
+
+.planner-task__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.planner-task__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+}
+
+.planner-task__meta {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.planner-task__actions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* ---------------------------------------------------------------------
+   7. ADD / EDIT MODAL FORM
+   --------------------------------------------------------------------- */
+.planner-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.planner-form__notes {
+  min-height: 80px;
+}
+
+.planner-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------
+   8. RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (max-width: 359px) {
+  .planner-form__row { grid-template-columns: 1fr; }
+}

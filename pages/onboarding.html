@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Welcome — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/auth.css" />
+  <link rel="stylesheet" href="../styles/pages/onboarding.css" />
+</head>
+<body>
+  <div id="app" class="auth-shell">
+    <main class="auth-page">
+      <div class="auth-blob auth-blob--one" aria-hidden="true"></div>
+      <div class="auth-blob auth-blob--two" aria-hidden="true"></div>
+
+      <section class="auth-card card card--glass anim-fade-up">
+
+        <div class="onboarding-dots" id="onboarding-dots">
+          <span class="onboarding-dot" data-step="1"></span>
+          <span class="onboarding-dot" data-step="2"></span>
+          <span class="onboarding-dot" data-step="3"></span>
+        </div>
+
+        <!-- STEP 1: welcome -->
+        <div class="onboarding-step" id="step-1">
+          <div class="auth-brand__mark onboarding-mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-leaf"></use></svg></div>
+          <h2 class="auth-heading onboarding-center">Welcome<span id="welcome-name"></span></h2>
+          <p class="auth-subheading onboarding-center">
+            MindBloom brings your physical, emotional, mental, and academic wellbeing into one place.
+            Let's set it up in under a minute.
+          </p>
+          <button type="button" class="btn btn--primary btn--full" data-next>Get started</button>
+        </div>
+
+        <!-- STEP 2: goals -->
+        <div class="onboarding-step" id="step-2" hidden>
+          <h2 class="auth-heading">What brings you here?</h2>
+          <p class="auth-subheading">Pick as many as you like — this just tunes what Bloom highlights first.</p>
+
+          <div class="onboarding-goals" id="onboarding-goals">
+            <button type="button" class="chip chip--selectable onboarding-goal" data-goal="stress"><svg class="icon icon--sm" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-wind"></use></svg> Manage stress</button>
+            <button type="button" class="chip chip--selectable onboarding-goal" data-goal="sleep"><svg class="icon icon--sm" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-moon"></use></svg> Sleep better</button>
+            <button type="button" class="chip chip--selectable onboarding-goal" data-goal="academic"><svg class="icon icon--sm" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-cap"></use></svg> Stay on top of studies</button>
+            <button type="button" class="chip chip--selectable onboarding-goal" data-goal="mood"><svg class="icon icon--sm" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-mood-good"></use></svg> Understand my moods</button>
+          </div>
+
+          <div class="onboarding-actions">
+            <button type="button" class="btn btn--ghost" data-back>Back</button>
+            <button type="button" class="btn btn--primary" data-next>Continue</button>
+          </div>
+        </div>
+
+        <!-- STEP 3: confirm -->
+        <div class="onboarding-step" id="step-3" hidden>
+          <div class="auth-brand__mark onboarding-mark"><svg class="icon" aria-hidden="true"><use href="../assets/icons/icons.svg#icon-check"></use></svg></div>
+          <h2 class="auth-heading onboarding-center">You're all set</h2>
+          <p class="auth-subheading onboarding-center">
+            Your dashboard is ready. You can change these anytime in Settings.
+          </p>
+          <button type="button" class="btn btn--primary btn--full" id="finish-onboarding">Go to my dashboard</button>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/onboarding.js"></script>
+</body>
+</html>
