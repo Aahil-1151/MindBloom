@@ -221,6 +221,7 @@
      9. LAYOUT / Z-INDEX
      --------------------------------------------------------------------- */
   --container-max: 480px;
+  --sidebar-width: 232px;
   --nav-height:    64px;
   --header-height: 56px;
   --touch-target:  44px;

@@ -23,7 +23,7 @@
    SIDEBAR (tablet/desktop — hide-mobile utility handles the breakpoint)
    --------------------------------------------------------------------- */
 .sidebar {
-  width: 232px;
+  width: var(--sidebar-width);
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
