@@ -17,6 +17,11 @@
   min-height: 100%;
 }
 
+/* Same canvas as every other screen (dot-grid + the shared ambient aurora
+   on body::before) — auth used to run its own heavier gradient wash here,
+   which made the sign-in/sign-up moment feel like a different product.
+   The two blobs below are this page's one bit of extra flourish, layered
+   on top in the same green/cyan signal hues everywhere else uses. */
 .auth-page {
   position: relative;
   min-height: 100vh;
@@ -25,31 +30,20 @@
   justify-content: center;
   padding: var(--space-6) var(--space-5);
   overflow: hidden;
-  background: linear-gradient(
-    180deg,
-    var(--color-bloom-50) 0%,
-    var(--color-bg-canvas) 45%,
-    var(--color-lavender-50) 100%
-  );
+  background: var(--color-bg-canvas);
 }
 
-[data-theme="dark"] .auth-page {
-  background: linear-gradient(
-    180deg,
-    var(--color-ink-950) 0%,
-    var(--color-bg-canvas) 45%,
-    var(--color-ink-900) 100%
-  );
-}
-
-/* Soft decorative gradient blobs — ambient, not distracting */
+/* Soft decorative aurora blobs — ambient, not distracting. Same hue
+   language as the sidebar/dashboard glow (Signal green + Mist cyan), with
+   a slow drift so this entry screen isn't perfectly static. */
 .auth-blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.45;
+  opacity: 0.35;
   z-index: var(--z-base);
   pointer-events: none;
+  animation: drift var(--duration-drift) var(--ease-standard) infinite;
 }
 
 .auth-blob--one {
@@ -65,11 +59,12 @@
   height: 320px;
   bottom: -100px;
   right: -100px;
-  background: var(--color-lavender-300);
+  background: var(--color-cyan-300);
+  animation-delay: -8s;
 }
 
 [data-theme="dark"] .auth-blob {
-  opacity: 0.18;
+  opacity: 0.22;
 }
 
 /* ---------------------------------------------------------------------
@@ -81,6 +76,14 @@
   width: 100%;
   max-width: 400px;
   padding: var(--space-8) var(--space-6);
+}
+
+/* The single hero card on this screen — same always-on corner-bracket
+   signature as the dashboard's wellbeing-score-card (.card--glow), so the
+   very first screen someone sees already carries the app's signature. */
+.auth-card::before,
+.auth-card::after {
+  opacity: 0.85;
 }
 
 .auth-brand {
