@@ -109,6 +109,36 @@
     );
   }
 
+  /**
+   * Renders the shared 5-option mood picker (rough/low/okay/good/great)
+   * into `container`, wiring click-to-select. Used by both physical.html's
+   * Mood tab and journal.html's composer so the two never drift apart.
+   * @param {HTMLElement} container
+   * @param {string|null} selectedMood - a MindBloomData mood key, or null
+   * @param {(mood:string)=>void} onSelect
+   */
+  function renderMoodPicker(container, selectedMood, onSelect) {
+    if (!container || !window.MindBloomData) return;
+    container.innerHTML = "";
+    window.MindBloomData.MOOD_META.forEach(function (m) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mood-option";
+      btn.dataset.mood = m.key;
+      btn.setAttribute("aria-pressed", String(m.key === selectedMood));
+      btn.setAttribute("aria-label", m.label);
+      btn.innerHTML = icon("mood-" + m.key, "icon--lg");
+      btn.addEventListener("click", function () {
+        container.querySelectorAll(".mood-option").forEach(function (opt) {
+          opt.setAttribute("aria-pressed", "false");
+        });
+        btn.setAttribute("aria-pressed", "true");
+        if (typeof onSelect === "function") onSelect(m.key);
+      });
+      container.appendChild(btn);
+    });
+  }
+
   window.MindBloomUtils = {
     el: el,
     toDateKey: toDateKey,
@@ -118,6 +148,7 @@
     setTheme: setTheme,
     getTheme: getTheme,
     icon: icon,
+    renderMoodPicker: renderMoodPicker,
   };
 
   // Apply theme immediately on script load, before first paint of content.

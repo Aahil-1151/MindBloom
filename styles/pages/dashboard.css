@@ -331,6 +331,68 @@
 }
 
 /* ---------------------------------------------------------------------
+   9b. TIPS FOR YOU — short, data-driven nudges derived from the last
+   week of logged sleep/water/stress/mood (MindBloomData.computeTips in
+   core/data-store.js). Color-coded by level: warning (coral) needs
+   attention, info (lavender) is a light nudge, positive (bloom green)
+   is a "keep it up."
+   --------------------------------------------------------------------- */
+.tips-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tip-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 3px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+}
+
+.tip-item__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.tip-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tip-item__title {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-text-primary);
+}
+
+.tip-item__message {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--color-text-secondary);
+}
+
+.tip-item--warning { border-left-color: var(--color-coral-500); }
+.tip-item--warning .tip-item__icon { background: var(--color-coral-50); color: var(--color-coral-700); }
+
+.tip-item--info { border-left-color: var(--color-secondary); }
+.tip-item--info .tip-item__icon { background: var(--color-secondary-tint); color: var(--color-lavender-700); }
+
+.tip-item--positive { border-left-color: var(--color-primary); }
+.tip-item--positive .tip-item__icon { background: var(--color-primary-tint); color: var(--color-primary-pressed); }
+
+/* ---------------------------------------------------------------------
    10. UPCOMING TASKS
    --------------------------------------------------------------------- */
 .task-list {
@@ -424,6 +486,7 @@
     grid-template-areas:
       "score  score  score  quick"
       "summary summary summary quick"
+      "tips   tips   tips   tips"
       "activity activity motivation motivation"
       "tasks  tasks  tasks  tasks";
     gap: var(--space-5);
@@ -432,6 +495,7 @@
   .dash-grid__score     { grid-area: score; }
   .dash-grid__quick     { grid-area: quick; display: flex; flex-direction: column; }
   .dash-grid__summary   { grid-area: summary; }
+  .dash-grid__tips      { grid-area: tips; }
   .dash-grid__activity  { grid-area: activity; }
   .dash-grid__motivation{ grid-area: motivation; display: flex; flex-direction: column; }
   .dash-grid__tasks     { grid-area: tasks; }

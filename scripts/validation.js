@@ -1,144 +1,123 @@
 /* ==========================================================================
    MindBloom — validation.js
-   Pure validation functions. No DOM access, no storage access — these
-   functions only take data in and return booleans/objects out, so they can
-   be unit-tested in isolation and reused by any future form (not just auth).
-   Exposed globally as window.Validation.
+   Pure, dependency-free form-validation helpers shared by every auth page
+   controller in auth.js (initLoginPage / initSignupPage /
+   initForgotPasswordPage). Load this before auth.js.
+
+   Every validate*Form() function returns { valid: boolean, errors: object },
+   where `errors` is keyed by the same field names used in each page's
+   data-field="..." markup (name, email, password, confirmPassword) — auth.js
+   feeds those keys straight into setFieldError() without translation.
    ========================================================================== */
 
 (function (window) {
   "use strict";
 
-  const Validation = {};
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const MIN_PASSWORD_LENGTH = 8;
 
-  /* ---------------------------------------------------------------------
-     Field-level checks
-     --------------------------------------------------------------------- */
+  function isBlank(value) {
+    return value === undefined || value === null || !String(value).trim();
+  }
 
-  Validation.isValidEmail = function (email) {
-    if (typeof email !== "string") return false;
-    const trimmed = email.trim();
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-    return emailPattern.test(trimmed);
-  };
-
-  Validation.isValidName = function (name) {
-    if (typeof name !== "string") return false;
-    const trimmed = name.trim();
-    return trimmed.length >= 2 && trimmed.length <= 60;
-  };
-
-  Validation.isValidPassword = function (password) {
-    if (typeof password !== "string") return false;
-    const hasMinLength = password.length >= 8;
-    const hasLetter = /[A-Za-z]/.test(password);
-    const hasNumber = /[0-9]/.test(password);
-    return hasMinLength && hasLetter && hasNumber;
-  };
-
-  Validation.passwordsMatch = function (password, confirmPassword) {
-    return (
-      typeof password === "string" &&
-      password.length > 0 &&
-      password === confirmPassword
-    );
-  };
-
-  /* ---------------------------------------------------------------------
-     Password strength meter — used by signup.html and the reset-password
-     step of forgot-password.html for live feedback.
-     Returns a score from 0–5 and a human label.
-     --------------------------------------------------------------------- */
-  Validation.getPasswordStrength = function (password) {
-    if (!password) {
-      return { score: 0, label: "Too short" };
+  function validateEmailField(email, errors) {
+    if (isBlank(email)) {
+      errors.email = "Email is required.";
+    } else if (!EMAIL_RE.test(String(email).trim())) {
+      errors.email = "Enter a valid email address.";
     }
+  }
 
+  function validateRequiredPassword(password, errors) {
+    if (isBlank(password)) {
+      errors.password = "Password is required.";
+    }
+  }
+
+  function validateStrongPassword(password, errors) {
+    if (isBlank(password)) {
+      errors.password = "Password is required.";
+    } else if (String(password).length < MIN_PASSWORD_LENGTH) {
+      errors.password = "Password must be at least " + MIN_PASSWORD_LENGTH + " characters.";
+    }
+  }
+
+  function validateConfirmPassword(password, confirmPassword, errors) {
+    if (isBlank(confirmPassword)) {
+      errors.confirmPassword = "Please confirm your password.";
+    } else if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords don't match.";
+    }
+  }
+
+  /**
+   * Scores password strength on a simple 0-5 scale (length + character
+   * variety). Used by the signup page's live strength meter — see
+   * #password-strength-fill / #password-strength-label in signup.html,
+   * whose [data-level="weak|medium|strong"] CSS expects `label.toLowerCase()`
+   * to be exactly one of those three words.
+   * @returns {{score:number, label:"Weak"|"Medium"|"Strong"}}
+   */
+  function getPasswordStrength(password) {
+    password = password || "";
     let score = 0;
-    if (password.length >= 8) score++;
+    if (password.length >= MIN_PASSWORD_LENGTH) score++;
     if (password.length >= 12) score++;
-    if (/[A-Z]/.test(password)) score++;
-    if (/[0-9]/.test(password)) score++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
 
     let label = "Weak";
     if (score >= 4) label = "Strong";
     else if (score >= 2) label = "Medium";
 
-    return { score: Math.min(score, 5), label: label };
-  };
+    return { score: score, label: label };
+  }
 
-  /* ---------------------------------------------------------------------
-     Form-level validators — each returns { valid, errors } where errors
-     is a map of fieldName -> human-readable message. Empty errors object
-     means the form passed.
-     --------------------------------------------------------------------- */
-
-  Validation.validateSignupForm = function (data) {
-    const name = data.name || "";
-    const email = data.email || "";
-    const password = data.password || "";
-    const confirmPassword = data.confirmPassword || "";
+  /** @returns {{valid:boolean, errors:object}} */
+  function validateLoginForm(data) {
     const errors = {};
-
-    if (!Validation.isValidName(name)) {
-      errors.name = "Enter a name between 2 and 60 characters.";
-    }
-    if (!Validation.isValidEmail(email)) {
-      errors.email = "Enter a valid email address.";
-    }
-    if (!Validation.isValidPassword(password)) {
-      errors.password =
-        "Password needs at least 8 characters, including a letter and a number.";
-    }
-    if (!Validation.passwordsMatch(password, confirmPassword)) {
-      errors.confirmPassword = "Passwords do not match.";
-    }
-
+    validateEmailField(data.email, errors);
+    validateRequiredPassword(data.password, errors);
     return { valid: Object.keys(errors).length === 0, errors: errors };
-  };
+  }
 
-  Validation.validateLoginForm = function (data) {
-    const email = data.email || "";
-    const password = data.password || "";
+  /** @returns {{valid:boolean, errors:object}} */
+  function validateSignupForm(data) {
     const errors = {};
-
-    if (!Validation.isValidEmail(email)) {
-      errors.email = "Enter a valid email address.";
+    if (isBlank(data.name)) {
+      errors.name = "Name is required.";
     }
-    if (!password || password.length === 0) {
-      errors.password = "Enter your password.";
+    validateEmailField(data.email, errors);
+    validateStrongPassword(data.password, errors);
+    if (!errors.password) {
+      validateConfirmPassword(data.password, data.confirmPassword, errors);
     }
-
     return { valid: Object.keys(errors).length === 0, errors: errors };
-  };
+  }
 
-  Validation.validateForgotPasswordForm = function (data) {
-    const email = data.email || "";
+  /** @returns {{valid:boolean, errors:object}} */
+  function validateForgotPasswordForm(data) {
     const errors = {};
-
-    if (!Validation.isValidEmail(email)) {
-      errors.email = "Enter a valid email address.";
-    }
-
+    validateEmailField(data.email, errors);
     return { valid: Object.keys(errors).length === 0, errors: errors };
-  };
+  }
 
-  Validation.validateResetPasswordForm = function (data) {
-    const password = data.password || "";
-    const confirmPassword = data.confirmPassword || "";
+  /** @returns {{valid:boolean, errors:object}} */
+  function validateResetPasswordForm(data) {
     const errors = {};
-
-    if (!Validation.isValidPassword(password)) {
-      errors.password =
-        "Password needs at least 8 characters, including a letter and a number.";
+    validateStrongPassword(data.password, errors);
+    if (!errors.password) {
+      validateConfirmPassword(data.password, data.confirmPassword, errors);
     }
-    if (!Validation.passwordsMatch(password, confirmPassword)) {
-      errors.confirmPassword = "Passwords do not match.";
-    }
-
     return { valid: Object.keys(errors).length === 0, errors: errors };
-  };
+  }
 
-  window.Validation = Validation;
+  window.Validation = {
+    validateLoginForm: validateLoginForm,
+    validateSignupForm: validateSignupForm,
+    validateForgotPasswordForm: validateForgotPasswordForm,
+    validateResetPasswordForm: validateResetPasswordForm,
+    getPasswordStrength: getPasswordStrength,
+  };
 })(window);

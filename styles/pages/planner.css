@@ -238,9 +238,14 @@
 
 .planner-task__actions {
   display: flex;
+  align-items: center;
   gap: var(--space-1);
   flex-shrink: 0;
 }
+
+.planner-task__priority--high   { background: var(--color-coral-50); color: var(--color-coral-700); }
+.planner-task__priority--medium { background: var(--color-gold-50);  color: var(--color-gold-700); }
+.planner-task__priority--low    { background: var(--color-bloom-50); color: var(--color-bloom-700); }
 
 /* ---------------------------------------------------------------------
    7. ADD / EDIT MODAL FORM

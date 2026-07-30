@@ -322,12 +322,31 @@
           <div class="summary-grid" id="summary-grid"></div>
         </section>
 
+        <!-- TIPS FOR YOU — derived from the last 7 days of logged sleep,
+             water, stress, and mood; empty until there's real history. -->
+        <section class="section dash-grid__tips" id="tips-section">
+          <div class="section__header">
+            <h2>Tips for You</h2>
+          </div>
+          <ul class="tips-list" id="tips-list"></ul>
+          <div class="empty-state" id="tips-empty" hidden>
+            <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-sparkle"></use></svg></span>
+            <h3>Nothing to flag yet</h3>
+            <p>Log a few days of sleep, mood, or stress check-ins on the Wellbeing page and personalized tips will show up here.</p>
+          </div>
+        </section>
+
         <!-- RECENT ACTIVITY -->
         <section class="section dash-grid__activity">
           <div class="section__header">
             <h2>Recent Activity</h2>
           </div>
           <ul class="activity-list" id="activity-list"></ul>
+          <div class="empty-state" id="activity-empty" hidden>
+            <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-activity"></use></svg></span>
+            <h3>No activity yet</h3>
+            <p>Log a mood, finish a task, or write a journal entry — it'll show up here.</p>
+          </div>
         </section>
 
         <!-- DAILY MOTIVATION -->
@@ -349,6 +368,11 @@
             <a href="planner.html" class="auth-link">See all</a>
           </div>
           <ul class="task-list" id="task-list"></ul>
+          <div class="empty-state" id="task-empty" hidden>
+            <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-check"></use></svg></span>
+            <h3>No tasks yet</h3>
+            <p>Add tasks in Planner and they'll show up here.</p>
+          </div>
         </section>
 
       </main>
@@ -379,6 +403,7 @@
   <div id="toast-root"></div>
 
   <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/core/data-store.js"></script>
   <script src="../scripts/auth.js"></script>
   <script src="../scripts/dashboard.js"></script>
   <script>

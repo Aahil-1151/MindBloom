@@ -1,102 +1,59 @@
 /* ==========================================================================
    MindBloom — dashboard.js
    Home Dashboard controller. Renders Sidebar/Bottom-Nav active state,
-   Header, Wellbeing Score, Today's Summary, Quick Actions, Daily
-   Motivation, Recent Activity, and Upcoming Tasks — all from an in-memory
-   dummy dataset (DASHBOARD_DATA below). No backend or storage service is
-   required to see a fully working dashboard.
+   Header, Wellbeing Score, Today's Summary, Quick Actions, Tips for You,
+   Daily Motivation, Recent Activity, and Upcoming Tasks.
 
-   Swap point for later: replace the DASHBOARD_DATA block and the reads
-   inside render*() functions with calls to the real services
-   (moodService, academicService, insightsService, etc.) — the render
-   functions themselves already expect this exact shape, so the DOM code
-   does not need to change.
+   Data model: every section reads through MindBloomData (core/data-store.js)
+   — the same shared, per-user record that physical.html and journal.html
+   write to when someone logs a mood, sleep/water/activity check-in, a
+   stress check-in, or a journal entry. That means logging something on
+   another page shows up here immediately on the next load: Today's
+   Summary, Recent Activity, the wellbeing pillars, and the Tips card are
+   all *derived* from those logs, never hand-maintained here. Nothing is
+   pre-seeded — a new signup starts with every log empty and every section
+   in its honest empty state until the person actually logs something.
    ========================================================================== */
 
 (function (window) {
   "use strict";
 
   /* ======================================================================
-     DUMMY DATA — stands in for services/*.js + insightsService.js
+     STATIC APP DATA — chrome that isn't tied to any one user's history
      ====================================================================== */
+  const PILLARS_META = [
+    { key: "physical", label: "Physical", color: "var(--color-primary)" },
+    { key: "mental", label: "Mental", color: "var(--color-secondary)" },
+    { key: "emotional", label: "Emotional", color: "var(--color-celebrate)" },
+    { key: "academic", label: "Academic", color: "var(--color-accent)" },
+  ];
+
+  const QUICK_ACTIONS = [
+    { icon: "mood-good", label: "Log Mood", href: "physical.html#mood" },
+    { icon: "edit", label: "Journal", href: "journal.html" },
+    { icon: "wind", label: "Breathe", href: "physical.html#mental" },
+    { icon: "clock", label: "Focus", href: "planner.html" },
+  ];
+
+  const MOTIVATION_QUOTES = [
+    "Small steps, repeated daily, beat big leaps taken rarely.",
+    "You don't have to feel motivated to make progress today.",
+    "Rest is part of the work, not a break from it.",
+    "One honest check-in with yourself is worth ten ignored ones.",
+    "Progress in any one area lifts the rest — start anywhere.",
+    "You're allowed to have an average day and still be doing great.",
+  ];
+
   const DASHBOARD_DATA = {
-    user: {
-      name: "Alex",
-    },
-
-    pillars: [
-      { key: "physical", label: "Physical", score: 82, color: "var(--color-primary)" },
-      { key: "mental", label: "Mental", score: 68, color: "var(--color-secondary)" },
-      { key: "emotional", label: "Emotional", score: 90, color: "var(--color-celebrate)" },
-      { key: "academic", label: "Academic", score: 74, color: "var(--color-accent)" },
-    ],
-
-    todaySummary: [
-      { icon: "mood-good", value: "Good", label: "Mood today" },
-      { icon: "moon", value: "7.5h", label: "Sleep (goal 8h)" },
-      { icon: "droplet", value: "5 / 8", label: "Water cups" },
-      { icon: "check", value: "3 / 5", label: "Tasks done" },
-    ],
-
-    quickActions: [
-      { icon: "mood-good", label: "Log Mood", href: "physical.html#mood" },
-      { icon: "edit", label: "Journal", href: "journal.html" },
-      { icon: "wind", label: "Breathe", href: "physical.html#mental" },
-      { icon: "clock", label: "Focus", href: "planner.html" },
-    ],
-
-    motivationQuotes: [
-      "Small steps, repeated daily, beat big leaps taken rarely.",
-      "You don't have to feel motivated to make progress today.",
-      "Rest is part of the work, not a break from it.",
-      "One honest check-in with yourself is worth ten ignored ones.",
-      "Progress in any one area lifts the rest — start anywhere.",
-      "You're allowed to have an average day and still be doing great.",
-    ],
-
-    recentActivity: [
-      { icon: "mood-good", text: "You logged your mood as Good", time: "2h ago" },
-      { icon: "check", text: 'Completed "Finish chem lab report"', time: "4h ago" },
-      { icon: "edit", text: "Wrote a journal entry", time: "Yesterday" },
-      { icon: "droplet", text: "Logged 6 cups of water", time: "Yesterday" },
-      { icon: "wind", text: "Completed a 5-minute breathing session", time: "2 days ago" },
-    ],
-
-    upcomingTasks: [
-      {
-        id: "t1",
-        title: "Submit History essay",
-        subject: "History",
-        due: "Today, 11:59 PM",
-        priority: "high",
-        done: false,
-      },
-      {
-        id: "t2",
-        title: "Math problem set 4",
-        subject: "Math",
-        due: "Tomorrow",
-        priority: "medium",
-        done: false,
-      },
-      {
-        id: "t3",
-        title: "Read Chapter 6",
-        subject: "Biology",
-        due: "Friday",
-        priority: "low",
-        done: false,
-      },
-      {
-        id: "t4",
-        title: "Group project check-in",
-        subject: "Computer Science",
-        due: "Monday",
-        priority: "medium",
-        done: true,
-      },
-    ],
+    user: { name: "there" },
+    quickActions: QUICK_ACTIONS,
+    motivationQuotes: MOTIVATION_QUOTES,
   };
+
+  /* ======================================================================
+     SHARED DATA — loaded fresh at init from MindBloomData (core/data-store.js)
+     ====================================================================== */
+  let record = null;
 
   /* ======================================================================
      HELPERS
@@ -123,6 +80,20 @@
     });
   }
 
+  function buildTodaySummary() {
+    const summary = MindBloomData.computeTodaySummary(record);
+    return [
+      { icon: "mood-good", value: summary.mood || "Not logged", label: "Mood today" },
+      {
+        icon: "moon",
+        value: summary.sleepHours ? summary.sleepHours + "h" : "Not logged",
+        label: "Sleep (goal " + summary.sleepGoal + "h)",
+      },
+      { icon: "droplet", value: summary.waterCups + " / " + summary.waterGoal, label: "Water cups" },
+      { icon: "check", value: summary.tasksDone + " / " + summary.tasksTotal, label: "Tasks done" },
+    ];
+  }
+
   /* ======================================================================
      RENDER: HEADER
      ====================================================================== */
@@ -139,14 +110,21 @@
   /* ======================================================================
      RENDER: WELLBEING SCORE (circular ring + pillar breakdown)
      ====================================================================== */
-  function computeOverallScore(pillars) {
-    const total = pillars.reduce(function (sum, p) {
-      return sum + p.score;
+  function computeOverallScore(pillarScores) {
+    const tracked = PILLARS_META.map(function (p) {
+      return pillarScores[p.key];
+    }).filter(function (score) {
+      return typeof score === "number";
+    });
+    if (!tracked.length) return null;
+    const total = tracked.reduce(function (sum, s) {
+      return sum + s;
     }, 0);
-    return Math.round(total / pillars.length);
+    return Math.round(total / tracked.length);
   }
 
   function scoreMessage(score) {
+    if (score === null) return "Log a mood, task, or journal entry to start building your wellbeing score.";
     if (score >= 85) return "You're thriving across the board. Keep it up!";
     if (score >= 70) return "Solid balance today — one or two areas need attention.";
     if (score >= 50) return "A mixed day. Let's shore up the lower-scoring areas.";
@@ -154,7 +132,8 @@
   }
 
   function renderWellbeingScore() {
-    const score = computeOverallScore(DASHBOARD_DATA.pillars);
+    const pillars = MindBloomData.computePillars(record);
+    const score = computeOverallScore(pillars);
     const numberEl = qs("#wellbeing-score-number");
     const messageEl = qs("#wellbeing-score-message");
     const breakdownEl = qs("#wellbeing-breakdown");
@@ -162,34 +141,40 @@
 
     if (messageEl) messageEl.textContent = scoreMessage(score);
 
-    // Animate the ring fill
+    // Animate the ring fill (an untracked score just sits at an empty ring)
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
+    const displayScore = score === null ? 0 : score;
     if (ringFill) {
       ringFill.style.strokeDasharray = circumference.toFixed(2);
       ringFill.style.strokeDashoffset = circumference.toFixed(2);
       // force reflow, then animate to target offset
       requestAnimationFrame(function () {
-        const offset = circumference * (1 - score / 100);
+        const offset = circumference * (1 - displayScore / 100);
         ringFill.style.transition = "stroke-dashoffset 900ms cubic-bezier(0.16,1,0.3,1)";
         ringFill.style.strokeDashoffset = offset.toFixed(2);
       });
     }
 
-    // Animate the number counting up
+    // Animate the number counting up (or show a placeholder when untracked)
     if (numberEl) {
-      let current = 0;
-      const step = Math.max(1, Math.round(score / 30));
-      const counter = setInterval(function () {
-        current = Math.min(score, current + step);
-        numberEl.textContent = current;
-        if (current >= score) clearInterval(counter);
-      }, 20);
+      if (score === null) {
+        numberEl.textContent = "--";
+      } else {
+        let current = 0;
+        const step = Math.max(1, Math.round(score / 30));
+        const counter = setInterval(function () {
+          current = Math.min(score, current + step);
+          numberEl.textContent = current;
+          if (current >= score) clearInterval(counter);
+        }, 20);
+      }
     }
 
     if (breakdownEl) {
       breakdownEl.innerHTML = "";
-      DASHBOARD_DATA.pillars.forEach(function (pillar) {
+      PILLARS_META.forEach(function (pillar) {
+        const pillarScore = pillars[pillar.key];
         const pill = el(
           "span",
           "wellbeing-pill",
@@ -198,7 +183,7 @@
             '"></span>' +
             pillar.label +
             " " +
-            pillar.score
+            (typeof pillarScore === "number" ? pillarScore : "—")
         );
         breakdownEl.appendChild(pill);
       });
@@ -213,7 +198,7 @@
     if (!grid) return;
     grid.innerHTML = "";
 
-    DASHBOARD_DATA.todaySummary.forEach(function (stat, index) {
+    buildTodaySummary().forEach(function (stat, index) {
       const card = el(
         "div",
         "card summary-stat anim-stagger",
@@ -255,6 +240,38 @@
   }
 
   /* ======================================================================
+     RENDER: TIPS FOR YOU — short, data-driven nudges derived from the
+     last 7 days of logs (see MindBloomData.computeTips). Nothing shows
+     until there's real history to reason about.
+     ====================================================================== */
+  function renderTips() {
+    const list = qs("#tips-list");
+    const emptyState = qs("#tips-empty");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const tips = MindBloomData.computeTips(record);
+    const isEmpty = !tips.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    tips.forEach(function (tip, index) {
+      const item = el(
+        "li",
+        "tip-item tip-item--" + tip.level + " anim-stagger",
+        '<span class="tip-item__icon">' + MindBloomUtils.icon(tip.icon) + "</span>" +
+          '<span class="tip-item__body">' +
+          '<span class="tip-item__title">' + tip.title + "</span>" +
+          '<span class="tip-item__message">' + tip.message + "</span>" +
+          "</span>"
+      );
+      item.style.setProperty("--delay", index * 60 + "ms");
+      list.appendChild(item);
+    });
+  }
+
+  /* ======================================================================
      RENDER: DAILY MOTIVATION
      ====================================================================== */
   function pickQuote(excludeIndex) {
@@ -288,14 +305,23 @@
   }
 
   /* ======================================================================
-     RENDER: RECENT ACTIVITY
+     RENDER: RECENT ACTIVITY — a merged, most-recent-first feed built from
+     every log type (mood/physical/stress/journal/tasks), not a separately
+     stored list.
      ====================================================================== */
   function renderActivity() {
     const list = qs("#activity-list");
+    const emptyState = qs("#activity-empty");
     if (!list) return;
     list.innerHTML = "";
 
-    DASHBOARD_DATA.recentActivity.forEach(function (item, index) {
+    const activity = MindBloomData.computeRecentActivity(record, 6);
+    const isEmpty = !activity.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    activity.forEach(function (item, index) {
       const li = el(
         "li",
         "activity-item anim-stagger",
@@ -309,15 +335,22 @@
   }
 
   /* ======================================================================
-     RENDER: UPCOMING TASKS (interactive — toggling persists in memory
-     for this session and re-renders the wellbeing score's academic pillar)
+     RENDER: UPCOMING TASKS (interactive — toggling persists through
+     MindBloomData.toggleTask and re-renders the summary + activity feed)
      ====================================================================== */
   function renderTasks() {
     const list = qs("#task-list");
+    const emptyState = qs("#task-empty");
     if (!list) return;
     list.innerHTML = "";
 
-    DASHBOARD_DATA.upcomingTasks.forEach(function (task, index) {
+    const isEmpty = !record.upcomingTasks.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    const sorted = MindBloomData.sortTasksForDisplay(record.upcomingTasks).slice(0, 6);
+    sorted.forEach(function (task, index) {
       const li = el("li", "task-item anim-stagger" + (task.done ? " task-item--done" : ""));
       li.style.setProperty("--delay", index * 50 + "ms");
 
@@ -329,20 +362,29 @@
       if (task.done) checkbox.innerHTML = MindBloomUtils.icon("check", "icon--sm");
 
       checkbox.addEventListener("click", function () {
-        task.done = !task.done;
+        record = MindBloomData.toggleTask(task.id);
+        const toggled = record.upcomingTasks.find(function (t) {
+          return t.id === task.id;
+        });
         renderTasks();
         renderSummary();
+        renderActivity();
+        renderWellbeingScore();
         MindBloomUtils.showToast(
-          task.done ? "Nice work — task complete!" : "Marked as not done yet.",
-          task.done ? "success" : null
+          toggled && toggled.done ? "Nice work — task complete!" : "Marked as not done yet.",
+          toggled && toggled.done ? "success" : null
         );
       });
+
+      const metaParts = [];
+      if (task.subject) metaParts.push(task.subject);
+      metaParts.push(MindBloomData.formatTaskDue(task.due));
 
       const body = el(
         "div",
         "task-item__body",
         '<div class="task-item__title">' + task.title + "</div>" +
-          '<div class="task-item__meta">' + task.subject + " • " + task.due + "</div>"
+          '<div class="task-item__meta">' + metaParts.join(" • ") + "</div>"
       );
 
       const priority = el(
@@ -376,16 +418,23 @@
      INIT
      ====================================================================== */
   function init() {
+    record = MindBloomData.load();
     applyRealUserIfSignedIn();
     renderHeader();
     renderWellbeingScore();
     renderSummary();
     renderQuickActions();
+    renderTips();
     renderMotivation();
     renderActivity();
     renderTasks();
     MindBloomUtils.initShell("home");
   }
 
-  window.MindBloomDashboard = { init: init, DASHBOARD_DATA: DASHBOARD_DATA };
+  window.MindBloomDashboard = {
+    init: init,
+    get record() {
+      return record;
+    },
+  };
 })(window);

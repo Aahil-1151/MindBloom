@@ -652,6 +652,13 @@
   align-items: flex-end;
   z-index: var(--z-modal);
 }
+/* Same fix as .empty-state[hidden] / .auth-step[hidden] elsewhere in this
+   app: the overlay's own display:flex otherwise beats the browser's
+   default [hidden]{display:none}, so the modal would stay visible (and
+   block the page) even while "closed". */
+.modal-overlay[hidden] {
+  display: none;
+}
 .modal-sheet {
   width: 100%;
   background: var(--color-bg-surface);
@@ -695,6 +702,14 @@
   gap: var(--space-3);
   padding: var(--space-10) var(--space-5);
   color: var(--color-text-secondary);
+}
+
+/* .empty-state's own display:flex (an author rule) otherwise wins over the
+   browser's default [hidden] { display: none } regardless of the hidden
+   attribute being present — same fix already applied to .auth-step[hidden]
+   / .tab-panel[hidden] / .onboarding-step[hidden] elsewhere in this app. */
+.empty-state[hidden] {
+  display: none;
 }
 
 .empty-state__icon {

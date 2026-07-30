@@ -1,179 +1,72 @@
 /* ==========================================================================
    MindBloom — task-manager.js
-   Data layer for the Smart Planner. Reads/writes tasks to localStorage
-   today. Method names and return shapes (getAll, add, update, remove,
-   toggleComplete) mirror what a future Firestore-backed version would
-   expose (users/{uid}/tasks/{id}) — swapping the internals later requires
-   no changes in calendar.js, priority-engine.js, or planner.js.
+   Thin, planner-specific query layer over MindBloomData (core/data-store.js)
+   — the actual persistence lives there, shared with the dashboard's
+   Upcoming Tasks card. This module adds the read helpers planner.js needs:
+   fetch all, tasks due on a given date, and a date -> count map for the
+   calendar's dot indicators.
    ========================================================================== */
 
 (function (window) {
   "use strict";
 
-  const TASKS_KEY = "mindbloom_academic_tasks";
-
-  function readJSON(key, fallback) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : fallback;
-    } catch (err) {
-      console.error("TaskManager: failed to read " + key, err);
-      return fallback;
-    }
+  function getAll() {
+    return MindBloomData.load().upcomingTasks;
   }
 
-  function writeJSON(key, value) {
-    try {
-      localStorage.setItem(key, JSON.stringify(value));
-      return true;
-    } catch (err) {
-      console.error("TaskManager: failed to write " + key, err);
-      return false;
-    }
+  function add(task) {
+    return MindBloomData.addTask(task);
   }
 
-  function generateId() {
+  function update(id, patch) {
+    return MindBloomData.updateTask(id, patch);
+  }
+
+  function remove(id) {
+    return MindBloomData.deleteTask(id);
+  }
+
+  function toggle(id) {
+    return MindBloomData.toggleTask(id);
+  }
+
+  function getById(tasks, id) {
     return (
-      "task_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8)
+      tasks.find(function (t) {
+        return t.id === id;
+      }) || null
     );
   }
 
-  /** Normalizes any Date/string into a plain "YYYY-MM-DD" key. */
-  const toDateKey = window.MindBloomUtils.toDateKey;
+  function forDate(tasks, dateKey) {
+    return tasks.filter(function (t) {
+      return t.due === dateKey;
+    });
+  }
 
-  const TaskManager = {
-    /**
-     * @returns {Array<{
-     *   id:string, title:string, subject:string, dueDate:string,
-     *   priority:'high'|'medium'|'low', estimatedMinutes:number,
-     *   status:'pending'|'done', notes:string,
-     *   createdAt:string, updatedAt:string|null
-     * }>}
-     */
-    getAll() {
-      return readJSON(TASKS_KEY, []);
-    },
+  function upcoming(tasks) {
+    return MindBloomData.sortTasksForDisplay(tasks);
+  }
 
-    /** @returns {object|null} */
-    getById(id) {
-      return this.getAll().find(function (task) {
-        return task.id === id;
-      }) || null;
-    },
+  /** @returns {Object<string, number>} dateKey ("YYYY-MM-DD") -> task count, for the calendar's dot indicators */
+  function datesWithTasks(tasks) {
+    const map = {};
+    tasks.forEach(function (t) {
+      if (!t.due) return;
+      map[t.due] = (map[t.due] || 0) + 1;
+    });
+    return map;
+  }
 
-    /**
-     * @param {object} task
-     * @returns {object} the stored task, with defaults filled in
-     */
-    add(task) {
-      const stored = {
-        id: task.id || generateId(),
-        title: task.title,
-        subject: task.subject || "General",
-        dueDate: toDateKey(task.dueDate || new Date()),
-        priority: task.priority || "medium",
-        estimatedMinutes: Number(task.estimatedMinutes) || 30,
-        status: task.status || "pending",
-        notes: task.notes || "",
-        createdAt: task.createdAt || new Date().toISOString(),
-        updatedAt: null,
-      };
-
-      const all = this.getAll();
-      all.push(stored);
-      writeJSON(TASKS_KEY, all);
-
-      return stored;
-    },
-
-    /**
-     * @param {string} id
-     * @param {object} changes
-     * @returns {object|null}
-     */
-    update(id, changes) {
-      const all = this.getAll();
-      const index = all.findIndex(function (t) {
-        return t.id === id;
-      });
-      if (index === -1) return null;
-
-      const normalizedChanges = Object.assign({}, changes);
-      if (normalizedChanges.dueDate) {
-        normalizedChanges.dueDate = toDateKey(normalizedChanges.dueDate);
-      }
-
-      all[index] = Object.assign({}, all[index], normalizedChanges, {
-        updatedAt: new Date().toISOString(),
-      });
-      writeJSON(TASKS_KEY, all);
-      return all[index];
-    },
-
-    /** @returns {object|null} the updated task */
-    toggleComplete(id) {
-      const task = this.getById(id);
-      if (!task) return null;
-      return this.update(id, { status: task.status === "done" ? "pending" : "done" });
-    },
-
-    /** @returns {boolean} */
-    remove(id) {
-      const all = this.getAll();
-      const filtered = all.filter(function (t) {
-        return t.id !== id;
-      });
-      writeJSON(TASKS_KEY, filtered);
-      return filtered.length !== all.length;
-    },
-
-    /**
-     * @param {string|Date} date
-     * @returns {Array} tasks due on that exact calendar date
-     */
-    getByDate(date) {
-      const key = toDateKey(date);
-      return this.getAll().filter(function (t) {
-        return t.dueDate === key;
-      });
-    },
-
-    /**
-     * @returns {Object<string, Array>} map of "YYYY-MM-DD" -> tasks due that day
-     */
-    getGroupedByDate() {
-      const groups = {};
-      this.getAll().forEach(function (task) {
-        if (!groups[task.dueDate]) groups[task.dueDate] = [];
-        groups[task.dueDate].push(task);
-      });
-      return groups;
-    },
-
-    /**
-     * @param {number} n
-     * @returns {Array} the next n pending tasks, soonest due date first
-     */
-    getUpcoming(n) {
-      return this.getAll()
-        .filter(function (t) {
-          return t.status !== "done";
-        })
-        .sort(function (a, b) {
-          return new Date(a.dueDate) - new Date(b.dueDate);
-        })
-        .slice(0, n);
-    },
-
-    /** Utility exposed for other modules that need consistent date keys. */
-    toDateKey: toDateKey,
-
-    /** Wipe all tasks. */
-    clear() {
-      writeJSON(TASKS_KEY, []);
-      return true;
-    },
+  window.TaskManager = {
+    getAll: getAll,
+    add: add,
+    update: update,
+    remove: remove,
+    toggle: toggle,
+    getById: getById,
+    forDate: forDate,
+    upcoming: upcoming,
+    datesWithTasks: datesWithTasks,
   };
-
-  window.TaskManager = TaskManager;
 })(window);

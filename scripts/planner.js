@@ -1,320 +1,333 @@
 /* ==========================================================================
    MindBloom — planner.js
-   Page controller for planner.html. Wires TaskManager (data),
-   PriorityEngine (intelligence), and MindBloomCalendar (calendar UI)
-   together, and owns rendering for the focus card, workload meter, and
-   task list. No inline scripts exist in planner.html — this file attaches
-   its own DOMContentLoaded listener.
+   Smart Planner controller (planner.html): the calendar, the Focus Card
+   suggestion, the Workload Meter, and the task list + add/edit modal.
+   Tasks are read and written through TaskManager -> MindBloomData
+   (core/data-store.js) — the same shared, per-user record the dashboard's
+   Upcoming Tasks card reads, so adding or checking off a task here shows
+   up there immediately too.
    ========================================================================== */
 
 (function (window, document) {
   "use strict";
 
-  let els = {};
-  let calendar = null;
-  let viewMode = "day"; // "day" | "upcoming"
+  function qs(selector, scope) {
+    return (scope || document).querySelector(selector);
+  }
 
-  /* ----------------------------------------------------------------------
-     DOM helpers
-     ---------------------------------------------------------------------- */
   const el = MindBloomUtils.el;
-  const showToast = MindBloomUtils.showToast;
 
-  function cacheElements() {
-    els = {
-      calendarContainer: document.getElementById("calendar-container"),
-      focusCard: document.getElementById("focus-card"),
-      workloadMeter: document.getElementById("workload-meter"),
-      viewToggle: document.getElementById("view-toggle"),
-      listHeading: document.getElementById("list-heading"),
-      taskList: document.getElementById("task-list"),
-      emptyState: document.getElementById("task-empty"),
-      addBtn: document.getElementById("add-task-btn"),
-      modalOverlay: document.getElementById("task-modal-overlay"),
-      modalForm: document.getElementById("task-form"),
-      modalTitle: document.getElementById("modal-title"),
-      titleInput: document.getElementById("task-title"),
-      subjectInput: document.getElementById("task-subject"),
-      dueInput: document.getElementById("task-due"),
-      priorityInput: document.getElementById("task-priority"),
-      minutesInput: document.getElementById("task-minutes"),
-      notesInput: document.getElementById("task-notes"),
-      modalCancel: document.getElementById("modal-cancel"),
-    };
-    MindBloomUtils.initShell("academic");
+  let tasks = [];
+  let currentMonth = new Date();
+  let selectedKey = Calendar.toDateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+  let viewMode = "day"; // "day" | "upcoming"
+  let editingTaskId = null;
+
+  function refresh() {
+    tasks = TaskManager.getAll();
   }
 
-  function formatDateLabel(dateKey) {
-    const date = new Date(dateKey + "T00:00:00");
-    return date.toLocaleDateString(undefined, {
-      weekday: "long",
-      month: "long",
-      day: "numeric",
+  /* ======================================================================
+     CALENDAR
+     ====================================================================== */
+  function renderCalendar() {
+    Calendar.render(qs("#calendar-container"), {
+      monthDate: currentMonth,
+      selectedKey: selectedKey,
+      markedCounts: TaskManager.datesWithTasks(tasks),
+      onSelect: function (dateKey) {
+        selectedKey = dateKey;
+        renderCalendar();
+        if (viewMode === "day") renderTaskList();
+      },
+      onMonthChange: function (newMonth) {
+        currentMonth = newMonth;
+        renderCalendar();
+      },
     });
   }
 
-  /* ----------------------------------------------------------------------
+  /* ======================================================================
      FOCUS CARD
-     ---------------------------------------------------------------------- */
+     ====================================================================== */
   function renderFocusCard() {
-    const all = TaskManager.getAll();
-    const suggestion = PriorityEngine.suggestFocusTask(all);
+    const card = qs("#focus-card");
+    if (!card) return;
+    const suggestion = PriorityEngine.suggestFocusTask(tasks);
 
-    if (!suggestion.task) {
-      els.focusCard.innerHTML =
-        '<span class="focus-card__icon">' + MindBloomUtils.icon("check") + "</span>" +
-        '<div><p class="focus-card__title">Nothing pending</p>' +
-        '<p class="focus-card__rationale">' + suggestion.rationale + "</p></div>";
+    if (!suggestion) {
+      card.innerHTML =
+        '<span class="focus-card__icon">' +
+        MindBloomUtils.icon("check") +
+        "</span>" +
+        '<div><p class="focus-card__label">Focus</p>' +
+        '<p class="focus-card__title">You\'re all caught up</p>' +
+        '<p class="focus-card__rationale">Add a task to get a suggestion for what to tackle next.</p></div>';
       return;
     }
 
-    els.focusCard.innerHTML =
-      '<span class="focus-card__icon">' + MindBloomUtils.icon("target") + "</span>" +
-      '<div><p class="focus-card__label">Suggested focus</p>' +
-      '<p class="focus-card__title">' + suggestion.task.title + "</p>" +
-      '<p class="focus-card__rationale">' + suggestion.rationale + "</p></div>";
+    card.innerHTML =
+      '<span class="focus-card__icon">' +
+      MindBloomUtils.icon("target") +
+      "</span>" +
+      '<div><p class="focus-card__label">Focus next</p>' +
+      '<p class="focus-card__title">' +
+      suggestion.task.title +
+      "</p>" +
+      '<p class="focus-card__rationale">' +
+      suggestion.rationale +
+      "</p></div>";
   }
 
-  /* ----------------------------------------------------------------------
-     WORKLOAD METER (for the selected day)
-     ---------------------------------------------------------------------- */
-  function renderWorkloadMeter(dateKey) {
-    const tasksForDay = TaskManager.getByDate(dateKey);
-    const workload = PriorityEngine.getDailyWorkload(tasksForDay);
+  /* ======================================================================
+     WORKLOAD METER
+     ====================================================================== */
+  const WORKLOAD_COLOR = {
+    light: "var(--color-primary)",
+    moderate: "var(--color-gold-500)",
+    heavy: "var(--color-coral-500)",
+  };
 
-    const levelColors = {
-      free: "var(--color-bloom-500)",
-      light: "var(--color-bloom-500)",
-      moderate: "var(--color-gold-500)",
-      heavy: "var(--color-coral-500)",
-    };
+  function renderWorkload() {
+    const meter = qs("#workload-meter");
+    if (!meter) return;
+    const workload = PriorityEngine.computeWorkload(tasks);
 
-    els.workloadMeter.innerHTML =
+    meter.innerHTML =
       '<div class="workload-meter__row">' +
-      '<span class="workload-meter__dot" style="background:' + levelColors[workload.level] + '"></span>' +
-      '<span class="workload-meter__label">' + workload.taskCount + " task" + (workload.taskCount === 1 ? "" : "s") +
-      " · ~" + workload.totalMinutes + " min</span>" +
+      '<span class="workload-meter__dot" style="background:' +
+      WORKLOAD_COLOR[workload.level] +
+      '"></span>' +
+      '<span class="workload-meter__label">' +
+      workload.label +
+      " workload</span>" +
       "</div>" +
-      '<p class="workload-meter__message">' + workload.message + "</p>";
+      '<p class="workload-meter__message">' +
+      workload.message +
+      "</p>";
   }
 
-  /* ----------------------------------------------------------------------
+  /* ======================================================================
      TASK LIST
-     ---------------------------------------------------------------------- */
-  function getTasksForView(dateKey) {
-    if (viewMode === "upcoming") {
-      return PriorityEngine.rankTasks(TaskManager.getUpcoming(50));
-    }
-    return PriorityEngine.rankTasks(TaskManager.getByDate(dateKey));
+     ====================================================================== */
+  function selectedDateLabel() {
+    const todayKey = Calendar.toDateKey(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
+    if (selectedKey === todayKey) return "Today";
+    const parts = selectedKey.split("-").map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    return date.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
   }
 
-  function buildTaskRow(task) {
-    const row = el("li", "planner-task card" + (task.status === "done" ? " planner-task--done" : ""));
+  function renderListHeading() {
+    const heading = qs("#list-heading");
+    if (!heading) return;
+    heading.textContent = viewMode === "day" ? selectedDateLabel() : "All Upcoming";
+  }
 
-    const checkbox = el("button", "checkbox planner-task__checkbox");
-    checkbox.type = "button";
-    checkbox.setAttribute("role", "checkbox");
-    checkbox.setAttribute("aria-checked", String(task.status === "done"));
-    checkbox.setAttribute("aria-label", "Mark '" + task.title + "' as done");
-    if (task.status === "done") checkbox.innerHTML = MindBloomUtils.icon("check", "icon--sm");
-    checkbox.addEventListener("click", function () {
-      TaskManager.toggleComplete(task.id);
-      refreshAll();
-      showToast(task.status === "done" ? "Marked as not done yet." : "Nice work — task complete!");
-    });
+  function tasksForCurrentView() {
+    if (viewMode === "day") {
+      return TaskManager.upcoming(TaskManager.forDate(tasks, selectedKey));
+    }
+    return TaskManager.upcoming(tasks);
+  }
 
-    const body = el(
-      "div",
-      "planner-task__body",
-      '<p class="planner-task__title">' + task.title + "</p>" +
-        '<p class="planner-task__meta">' + task.subject + " · " + PriorityEngine.getScoreLabel(task) +
-        " · " + task.estimatedMinutes + " min</p>"
-    );
+  function renderTaskList() {
+    renderListHeading();
+    const list = qs("#task-list");
+    const emptyState = qs("#task-empty");
+    if (!list) return;
+    list.innerHTML = "";
 
-    const priority = el(
-      "span",
-      "task-item__priority task-item__priority--" + task.priority,
-      task.priority.charAt(0).toUpperCase() + task.priority.slice(1)
-    );
-
-    const actions = el("div", "planner-task__actions");
-    const editBtn = el("button", "btn btn--icon btn--sm", MindBloomUtils.icon("edit", "icon--sm"));
-    editBtn.type = "button";
-    editBtn.setAttribute("aria-label", "Edit task");
-    editBtn.addEventListener("click", function () {
-      openModal(task, editBtn);
-    });
-
-    const deleteBtn = el("button", "btn btn--icon btn--sm", MindBloomUtils.icon("trash", "icon--sm"));
-    deleteBtn.type = "button";
-    deleteBtn.setAttribute("aria-label", "Delete task");
-    deleteBtn.addEventListener("click", function () {
-      if (window.confirm("Delete '" + task.title + "'?")) {
-        TaskManager.remove(task.id);
-        refreshAll();
-        showToast("Task deleted");
+    const visible = tasksForCurrentView();
+    const isEmpty = !visible.length;
+    if (emptyState) {
+      emptyState.hidden = !isEmpty;
+      const heading = emptyState.querySelector("h3");
+      const body = emptyState.querySelector("p");
+      if (isEmpty && viewMode === "day") {
+        if (heading) heading.textContent = "Nothing here";
+        if (body) body.textContent = "Tap the + button to add a task for this day.";
+      } else if (isEmpty) {
+        if (heading) heading.textContent = "No tasks yet";
+        if (body) body.textContent = "Tap the + button to add your first task.";
       }
-    });
-
-    actions.appendChild(editBtn);
-    actions.appendChild(deleteBtn);
-
-    row.appendChild(checkbox);
-    row.appendChild(body);
-    row.appendChild(priority);
-    row.appendChild(actions);
-
-    return row;
-  }
-
-  function renderTaskList(dateKey) {
-    els.listHeading.textContent =
-      viewMode === "upcoming" ? "All upcoming tasks" : formatDateLabel(dateKey);
-
-    const tasks = getTasksForView(dateKey);
-    els.taskList.innerHTML = "";
-
-    if (tasks.length === 0) {
-      els.emptyState.hidden = false;
-      return;
     }
+    list.hidden = isEmpty;
+    if (isEmpty) return;
 
-    els.emptyState.hidden = true;
-    tasks.forEach(function (task) {
-      els.taskList.appendChild(buildTaskRow(task));
-    });
-  }
+    visible.forEach(function (task, index) {
+      const metaParts = [];
+      if (task.subject) metaParts.push(task.subject);
+      metaParts.push(MindBloomData.formatTaskDue(task.due));
+      if (task.estimatedMinutes) metaParts.push("~" + task.estimatedMinutes + " min");
 
-  /* ----------------------------------------------------------------------
-     VIEW TOGGLE
-     ---------------------------------------------------------------------- */
-  function renderViewToggle() {
-    els.viewToggle.querySelectorAll("[data-view]").forEach(function (btn) {
-      btn.setAttribute("aria-pressed", String(btn.dataset.view === viewMode));
+      const li = el("li", "planner-task card anim-stagger" + (task.done ? " planner-task--done" : ""));
+      li.style.setProperty("--delay", index * 40 + "ms");
+
+      const checkbox = el("button", "checkbox");
+      checkbox.type = "button";
+      checkbox.setAttribute("role", "checkbox");
+      checkbox.setAttribute("aria-checked", String(task.done));
+      checkbox.setAttribute("aria-label", "Mark '" + task.title + "' as done");
+      if (task.done) checkbox.innerHTML = MindBloomUtils.icon("check", "icon--sm");
+      checkbox.addEventListener("click", function () {
+        TaskManager.toggle(task.id);
+        refresh();
+        renderTaskList();
+        renderFocusCard();
+        renderWorkload();
+        renderCalendar();
+        MindBloomUtils.showToast(!task.done ? "Nice work — task complete!" : "Marked as not done yet.", !task.done ? "success" : null);
+      });
+
+      const body = el(
+        "div",
+        "planner-task__body",
+        '<div class="planner-task__title">' +
+          task.title +
+          "</div>" +
+          '<div class="planner-task__meta">' +
+          metaParts.join(" • ") +
+          "</div>"
+      );
+
+      const actions = el(
+        "div",
+        "planner-task__actions",
+        '<span class="chip planner-task__priority planner-task__priority--' +
+          task.priority +
+          '">' +
+          task.priority.charAt(0).toUpperCase() +
+          task.priority.slice(1) +
+          "</span>"
+      );
+
+      const editBtn = el("button", "btn btn--icon", MindBloomUtils.icon("edit", "icon--sm"));
+      editBtn.type = "button";
+      editBtn.setAttribute("aria-label", "Edit task");
+      editBtn.addEventListener("click", function () {
+        openModal(task);
+      });
+
+      const deleteBtn = el("button", "btn btn--icon", MindBloomUtils.icon("trash", "icon--sm"));
+      deleteBtn.type = "button";
+      deleteBtn.setAttribute("aria-label", "Delete task");
+      deleteBtn.addEventListener("click", function () {
+        TaskManager.remove(task.id);
+        refresh();
+        renderTaskList();
+        renderFocusCard();
+        renderWorkload();
+        renderCalendar();
+        MindBloomUtils.showToast("Task deleted.", null);
+      });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(deleteBtn);
+
+      li.appendChild(checkbox);
+      li.appendChild(body);
+      li.appendChild(actions);
+      list.appendChild(li);
     });
   }
 
   function wireViewToggle() {
-    els.viewToggle.querySelectorAll("[data-view]").forEach(function (btn) {
+    document.querySelectorAll("#view-toggle .chip").forEach(function (btn) {
       btn.addEventListener("click", function () {
         viewMode = btn.dataset.view;
-        renderViewToggle();
-        renderTaskList(calendar.getSelectedDateKey());
+        document.querySelectorAll("#view-toggle .chip").forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        });
+        renderTaskList();
       });
     });
   }
 
-  /* ----------------------------------------------------------------------
+  /* ======================================================================
      ADD / EDIT MODAL
-     ---------------------------------------------------------------------- */
-  let editingTaskId = null;
-  let modalTriggerEl = null;
-
-  function openModal(task, triggerEl) {
+     ====================================================================== */
+  function openModal(task) {
     editingTaskId = task ? task.id : null;
-    modalTriggerEl = triggerEl || document.activeElement;
-    els.modalTitle.textContent = task ? "Edit task" : "New task";
-    els.titleInput.value = task ? task.title : "";
-    els.subjectInput.value = task ? task.subject : "";
-    els.dueInput.value = task ? task.dueDate : calendar.getSelectedDateKey();
-    els.priorityInput.value = task ? task.priority : "medium";
-    els.minutesInput.value = task ? task.estimatedMinutes : 30;
-    els.notesInput.value = task ? task.notes : "";
-    els.modalOverlay.hidden = false;
-    els.titleInput.focus();
-    document.addEventListener("keydown", handleModalKeydown);
+    qs("#modal-title").textContent = task ? "Edit task" : "New task";
+    qs("#task-title").value = task ? task.title : "";
+    qs("#task-subject").value = task ? task.subject || "" : "";
+    qs("#task-due").value = task ? task.due || "" : selectedKey;
+    qs("#task-priority").value = task ? task.priority : "medium";
+    qs("#task-minutes").value = task ? task.estimatedMinutes || 30 : 30;
+    qs("#task-notes").value = task ? task.notes || "" : "";
+    qs("#task-modal-overlay").hidden = false;
   }
 
   function closeModal() {
-    els.modalOverlay.hidden = true;
+    qs("#task-modal-overlay").hidden = true;
+    qs("#task-form").reset();
     editingTaskId = null;
-    els.modalForm.reset();
-    document.removeEventListener("keydown", handleModalKeydown);
-    if (modalTriggerEl && typeof modalTriggerEl.focus === "function") {
-      modalTriggerEl.focus();
-    }
-    modalTriggerEl = null;
-  }
-
-  function handleModalKeydown(event) {
-    if (event.key === "Escape") {
-      closeModal();
-    }
-  }
-
-  function handleModalSubmit(event) {
-    event.preventDefault();
-
-    const payload = {
-      title: els.titleInput.value.trim(),
-      subject: els.subjectInput.value.trim() || "General",
-      dueDate: els.dueInput.value,
-      priority: els.priorityInput.value,
-      estimatedMinutes: Number(els.minutesInput.value) || 30,
-      notes: els.notesInput.value.trim(),
-    };
-
-    if (!payload.title || !payload.dueDate) return;
-
-    if (editingTaskId) {
-      TaskManager.update(editingTaskId, payload);
-      showToast("Task updated");
-    } else {
-      TaskManager.add(payload);
-      showToast("Task added");
-    }
-
-    closeModal();
-    calendar.goToDate(new Date(payload.dueDate + "T00:00:00"));
-    refreshAll();
   }
 
   function wireModal() {
-    els.addBtn.addEventListener("click", function () {
-      openModal(null, els.addBtn);
-    });
-    els.modalCancel.addEventListener("click", closeModal);
-    els.modalOverlay.addEventListener("click", function (e) {
-      if (e.target === els.modalOverlay) closeModal();
-    });
-    els.modalForm.addEventListener("submit", handleModalSubmit);
+    const addBtn = qs("#add-task-btn");
+    const cancelBtn = qs("#modal-cancel");
+    const overlay = qs("#task-modal-overlay");
+    const form = qs("#task-form");
+
+    if (addBtn) addBtn.addEventListener("click", function () { openModal(null); });
+    if (cancelBtn) cancelBtn.addEventListener("click", closeModal);
+    if (overlay) {
+      overlay.addEventListener("click", function (e) {
+        if (e.target === overlay) closeModal();
+      });
+    }
+
+    if (form) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const payload = {
+          title: qs("#task-title").value.trim(),
+          subject: qs("#task-subject").value.trim(),
+          due: qs("#task-due").value,
+          priority: qs("#task-priority").value,
+          estimatedMinutes: parseInt(qs("#task-minutes").value, 10) || null,
+          notes: qs("#task-notes").value.trim(),
+        };
+        if (!payload.title || !payload.due) {
+          MindBloomUtils.showToast("A title and due date are required.", "error");
+          return;
+        }
+
+        if (editingTaskId) {
+          TaskManager.update(editingTaskId, payload);
+          MindBloomUtils.showToast("Task updated.", "success");
+        } else {
+          TaskManager.add(payload);
+          MindBloomUtils.showToast("Task added.", "success");
+        }
+
+        refresh();
+        closeModal();
+        renderCalendar();
+        renderFocusCard();
+        renderWorkload();
+        renderTaskList();
+      });
+    }
   }
 
-  /* ----------------------------------------------------------------------
-     REFRESH / INIT
-     ---------------------------------------------------------------------- */
-  function refreshAll() {
-    calendar.setTasksByDate(TaskManager.getGroupedByDate());
-    const dateKey = calendar.getSelectedDateKey();
-    renderFocusCard();
-    renderWorkloadMeter(dateKey);
-    renderTaskList(dateKey);
-  }
-
+  /* ======================================================================
+     INIT
+     ====================================================================== */
   function init() {
-    cacheElements();
-
-    calendar = MindBloomCalendar.create(els.calendarContainer, {
-      initialDate: new Date(),
-      tasksByDate: TaskManager.getGroupedByDate(),
-      onSelectDate: function (dateKey) {
-        viewMode = "day";
-        renderViewToggle();
-        renderWorkloadMeter(dateKey);
-        renderTaskList(dateKey);
-      },
-      onMonthChange: function () {
-        /* grid re-renders itself; nothing extra needed since data is
-           already loaded in full */
-      },
-    });
-
-    calendar.render();
-    renderViewToggle();
+    refresh();
+    renderCalendar();
+    renderFocusCard();
+    renderWorkload();
     wireViewToggle();
+    renderTaskList();
     wireModal();
-    refreshAll();
+    MindBloomUtils.initShell("academic");
   }
+
+  window.MindBloomPlanner = { init: init };
 
   document.addEventListener("DOMContentLoaded", init);
 })(window, document);
