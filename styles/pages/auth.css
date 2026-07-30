@@ -8,6 +8,15 @@
 /* ---------------------------------------------------------------------
    1. PAGE SHELL
    --------------------------------------------------------------------- */
+/* #app's own rule (global.css) intentionally leaves flex-direction unset
+   since sidebar shells need a row — auth pages are the one shell type
+   that wants the default single stacked column, set explicitly here. */
+.auth-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .auth-page {
   position: relative;
   min-height: 100vh;
@@ -141,7 +150,7 @@
 }
 
 [data-theme="dark"] .form-message--error {
-  background: rgba(216, 99, 71, 0.16);
+  background: rgba(255, 59, 78, 0.16);
 }
 
 /* ---------------------------------------------------------------------

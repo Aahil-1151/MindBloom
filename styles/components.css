@@ -24,6 +24,31 @@
   box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* HUD corner-brackets — the shared "viewfinder" mark that replaces a plain
+   border as the signal that something is interactive/focused. Hidden by
+   default, drawn in on hover/emphasis so cards stay calm at rest. */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  width: var(--bracket-size);
+  height: var(--bracket-size);
+  border: var(--bracket-width) solid var(--color-glow);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-signal);
+  pointer-events: none;
+}
+.card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.card::after  { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+.card--interactive:hover::before,
+.card--interactive:hover::after {
+  opacity: 1;
+}
+.card--glow::before,
+.card--glow::after {
+  opacity: 0.85;
+}
+
 .card--elevated {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border-subtle);
@@ -121,12 +146,19 @@
   transform: scale(0.97);
 }
 
-/* Primary — gradient fill with a soft cyan glow, refined hover-lift
-   instead of a chunky 3D press effect */
+/* Primary — gradient fill, chamfered corners (no plain rounded rectangle),
+   with a soft cyan glow and a refined hover-lift instead of a chunky 3D
+   press effect. The cut corners are this system's signature button shape. */
 .btn--primary {
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  clip-path: polygon(
+    var(--chamfer-sm) 0, 100% 0,
+    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
+    0 100%, 0 var(--chamfer-sm)
+  );
 }
 .btn--primary:hover {
   box-shadow: var(--shadow-glow-primary);
@@ -157,11 +189,19 @@
   background: var(--color-bg-surface-alt);
 }
 
-/* Accent — coral, used for streak/celebration CTAs */
+/* Accent — coral, used for streak/celebration CTAs. Chamfered on the
+   opposite pair of corners from --primary so the two read as a matched
+   but distinct pair rather than a copy-paste. */
 .btn--accent {
   background: var(--color-accent);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, calc(100% - var(--chamfer-sm)) 0,
+    100% var(--chamfer-sm), 100% 100%,
+    var(--chamfer-sm) 100%, 0 calc(100% - var(--chamfer-sm))
+  );
 }
 .btn--accent:hover {
   box-shadow: var(--shadow-glow-coral);
@@ -280,10 +320,11 @@
   transition: transform var(--duration-base) var(--ease-out-soft);
 }
 .toggle[aria-checked="true"] {
-  background: var(--color-primary);
+  background: var(--gradient-primary);
 }
 .toggle[aria-checked="true"]::after {
   transform: translateX(20px);
+  box-shadow: 0 0 0 3px rgba(0, 230, 160, 0.22), var(--shadow-xs);
 }
 
 /* Checkbox — task completion */
@@ -378,10 +419,22 @@
   overflow: hidden;
 }
 .progress-bar__fill {
+  position: relative;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--color-primary);
+  background: var(--gradient-primary);
+  overflow: hidden;
   transition: width var(--duration-slow) var(--ease-out-soft);
+}
+/* Ambient signal sweep — a soft light pass drifting through the fill so
+   progress reads as "alive," not a static bar. */
+.progress-bar__fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: signal-sweep 2600ms var(--ease-signal) infinite;
 }
 .progress-bar__fill--accent { background: var(--color-accent); }
 .progress-bar__fill--secondary { background: var(--color-secondary); }
@@ -506,12 +559,17 @@
 .icon-badge {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-primary-tint);
   color: var(--color-primary);
+  border: 1px solid rgba(22, 194, 209, 0.24);
+  clip-path: polygon(
+    var(--chamfer-sm) 0, 100% 0,
+    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
+    0 100%, 0 var(--chamfer-sm)
+  );
 }
 
 /* ---------------------------------------------------------------------
@@ -531,6 +589,17 @@
   padding-bottom: env(safe-area-inset-bottom);
   z-index: var(--z-nav);
 }
+/* Signal hairline — a faint aurora gradient thread along the shell's
+   nav/header seams, the same quiet accent everywhere the UI meets its
+   own edge. */
+.nav-bar::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient-aurora);
+  opacity: 0.5;
+}
 .nav-item {
   display: flex;
   flex-direction: column;
@@ -542,6 +611,10 @@
 }
 .nav-item[aria-current="page"] {
   color: var(--color-primary);
+}
+.nav-item[aria-current="page"] .icon {
+  color: var(--color-glow);
+  filter: drop-shadow(0 0 5px rgba(22, 194, 209, 0.7));
 }
 
 .top-header {
@@ -558,6 +631,14 @@
   -webkit-backdrop-filter: blur(var(--glass-blur));
   border-bottom: 1px solid var(--glass-border);
   z-index: var(--z-header);
+}
+.top-header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient-aurora);
+  opacity: 0.5;
 }
 
 /* ---------------------------------------------------------------------

@@ -6,8 +6,20 @@
    Load after components.css and before any page-specific stylesheet.
    ========================================================================== */
 
-.app-shell {
+/* Every sidebar-based page shell (dashboard, chat, journal, planner,
+   wellbeing, settings, analytics) needs this exact rule: a row so the
+   sidebar sits beside the content instead of stacking above it. Listed
+   explicitly (not via a #app default) because #app is also reused by
+   .auth-shell, which needs the opposite — a column. */
+.app-shell,
+.chat-shell,
+.journal-shell,
+.planner-shell,
+.wellbeing-shell,
+.settings-shell,
+.analytics-shell {
   display: flex;
+  flex-direction: row;
   min-height: 100vh;
   width: 100%;
 }
@@ -83,6 +95,14 @@
   color: var(--color-primary-pressed);
   font-weight: var(--fw-semibold);
   box-shadow: inset 2px 0 0 var(--color-glow);
+}
+
+/* Signature "futuristic" touch: the active nav icon itself glows in the
+   accent cyan rather than just the label tinting teal — a small HUD-like
+   detail that reads as deliberate rather than a plain color swap. */
+.sidebar__link[aria-current="page"] .icon {
+  color: var(--color-glow);
+  filter: drop-shadow(0 0 5px rgba(22, 194, 209, 0.7));
 }
 
 .sidebar__icon {

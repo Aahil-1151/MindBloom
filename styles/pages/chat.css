@@ -68,15 +68,21 @@
   color: var(--color-text-secondary);
 }
 
+/* Bloom's identity mark — the hex "signal crystal" on a live gradient
+   field with a permanent slow breathing glow, so the assistant always
+   reads as present rather than a static icon. This is the one avatar
+   treatment reused everywhere Bloom appears (header, message rows). */
 .chat-avatar--header {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-circle);
-  background: var(--color-primary-tint);
+  flex-shrink: 0;
+  background: var(--gradient-glow);
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary-pressed);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  animation: thinking-glow 3.6s var(--ease-signal) infinite;
 }
 
 .chat-avatar--header .icon {
@@ -117,12 +123,24 @@
   flex-shrink: 0;
   width: 28px;
   height: 28px;
-  border-radius: var(--radius-circle);
-  background: var(--color-primary-tint);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-primary-pressed);
+  background: var(--color-primary-tint);
+}
+
+/* Bloom's rows carry the same hex signal mark as the header (in its live
+   gradient form); the user's own rows keep a plain tinted circle so the
+   two speakers stay visually distinct at a glance. */
+.chat-row--bloom .chat-avatar {
+  background: var(--gradient-glow);
+  color: var(--color-text-inverse);
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.chat-row--user .chat-avatar {
+  border-radius: var(--radius-circle);
 }
 
 .chat-avatar .icon {
@@ -151,13 +169,15 @@
 }
 
 .chat-bubble--bloom {
+  position: relative;
   background: var(--color-bg-surface-alt);
   color: var(--color-text-primary);
   border-bottom-left-radius: var(--radius-sm);
+  border-left: 2px solid var(--color-glow);
 }
 
 .chat-bubble--user {
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   color: var(--color-text-inverse);
   border-bottom-right-radius: var(--radius-sm);
 }
@@ -176,14 +196,17 @@
   align-items: center;
   gap: 5px;
   padding: var(--space-3) var(--space-4);
+  color: var(--color-glow);
 }
 
+/* Kept as an alias so any existing markup using .typing-dot still animates
+   correctly — same motion as the shared .ai-thinking__dot in animations.css. */
 .typing-dot {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-circle);
-  background: var(--color-text-muted);
-  animation: pulseDot 1.2s ease-in-out infinite;
+  background: currentColor;
+  animation: thinking-dot 1.2s ease-in-out infinite;
 }
 
 .typing-dot:nth-child(2) { animation-delay: 0.15s; }
@@ -251,21 +274,30 @@
   flex-shrink: 0;
   width: var(--touch-target);
   height: var(--touch-target);
-  border-radius: var(--radius-circle);
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: var(--fs-md);
-  box-shadow: 0 3px 0 var(--color-primary-pressed);
+  clip-path: polygon(
+    var(--chamfer-sm) 0, 100% 0,
+    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
+    0 100%, 0 var(--chamfer-sm)
+  );
+  box-shadow: var(--shadow-sm);
   transition: transform var(--duration-fast) var(--ease-standard),
-              box-shadow var(--duration-fast) var(--ease-standard);
+              box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.chat-send:hover:not(:disabled) {
+  box-shadow: var(--shadow-glow-primary);
+  transform: translateY(-1px);
 }
 
 .chat-send:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 var(--color-primary-pressed);
+  transform: translateY(0) scale(0.95);
+  box-shadow: var(--shadow-xs);
 }
 
 .chat-send:disabled {

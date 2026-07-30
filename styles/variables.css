@@ -2,82 +2,116 @@
    MindBloom — variables.css
    Design Tokens: the single source of truth for every visual decision.
 
-   Direction: "editorial botanical" — professional, but not boring.
-   A confident deep-forest green + aubergine + terracotta palette on warm
-   paper neutrals, paired with a soft-serif display face (Fraunces) for
-   headings against clean Inter body copy. Replaces the earlier cool
-   teal/cyan "SaaS" palette, which read correct but generic. Glow accents,
-   glassmorphism and motion tokens are kept — just re-tinted warmer.
+   DESIGN LANGUAGE: "AURORA SIGNAL"
+   ---------------------------------------------------------------------
+   A ground-up original system built around one idea: MindBloom is a living
+   signal, not a dashboard. The palette is drawn from bioluminescence and
+   aurora light — deliberately NOT the blue-to-purple gradient every AI
+   product defaults to. Five distinct hues sweep the spectrum instead:
+   phosphor green (Signal — intelligence/focus), aqua cyan (Mist — calm),
+   coral-pink (Pulse — motivation), ember orange (Ember — optimism/energy),
+   and solar gold (Solar — celebration). No blue. No purple.
+
+   Shape language is "faceted", not "rounded rectangle everywhere": hero
+   panels are cut hex-chamfered polygons; everyday cards carry thin HUD
+   corner-brackets (a viewfinder/target-lock mark) instead of a uniform
+   border. Typography is a 3-family system — Unbounded (bold, geometric,
+   unmistakably synthetic) for display, Manrope (warm, highly legible) for
+   body copy, JetBrains Mono for numbers/data — so the futurism never
+   costs readability.
+
+   Light is the default surface (readable in a bright classroom / on a
+   judging stage); dark is the fully-realized flagship "signal at night"
+   mode, not an afterthought.
    ========================================================================== */
 
 :root {
 
   /* ---------------------------------------------------------------------
-     1. BRAND COLOR PALETTE (raw values — reference via semantic tokens
-     in section 3)
+     1. BRAND COLOR PALETTE — five distinct hues, an aurora spectrum.
+     (Family names kept from the prior system for internal continuity;
+     values are entirely new. See the mapping note on each family.)
      --------------------------------------------------------------------- */
-  --color-bloom-50:  #E9F4EE;
-  --color-bloom-100: #C9E6D4;
-  --color-bloom-300: #6FB58C;
-  --color-bloom-500: #1F7A5C;   /* Bloom — primary: deep botanical green */
-  --color-bloom-600: #196449;
-  --color-bloom-700: #134E39;   /* Deep Bloom — primary pressed */
-  --color-bloom-900: #0A2A1F;
 
-  --color-lavender-50:  #F2EAF7;
-  --color-lavender-100: #E0CBEE;
-  --color-lavender-300: #B183CC;
-  --color-lavender-500: #7A3FA3;  /* Aubergine — mental/emotional, secondary */
-  --color-lavender-700: #582D79;
-  --color-lavender-900: #2F1842;
+  /* SIGNAL — phosphor/bioluminescent green. Primary: intelligence, focus,
+     growth. This is "Bloom" made literal — the color of something alive. */
+  --color-bloom-50:  #E4FFF3;
+  --color-bloom-100: #B9FADD;
+  --color-bloom-300: #5CEBB2;
+  --color-bloom-500: #00E6A0;
+  --color-bloom-600: #00BD84;
+  --color-bloom-700: #009269;
+  --color-bloom-900: #024A36;
 
-  --color-cyan-50:  #FDF5E2;
-  --color-cyan-100: #F9E6B8;
-  --color-cyan-300: #EFC363;
-  --color-cyan-500: #DDA02A;   /* Warm Gold — glow / signature accent */
-  --color-cyan-700: #A8781A;
+  /* MIST — aqua cyan. The "glow" signature accent: calm, cool, the color
+     of the halo around the signal. */
+  --color-cyan-50:  #E4FBFC;
+  --color-cyan-100: #B9F2F5;
+  --color-cyan-300: #5FE0E8;
+  --color-cyan-500: #16C2D1;
+  --color-cyan-700: #0D8C97;
 
-  --color-coral-50:  #FBEEE7;
-  --color-coral-100: #F4D1BC;
-  --color-coral-300: #E5966A;
-  --color-coral-500: #C85A2C;   /* Terracotta — energy/streaks */
-  --color-coral-700: #984523;
-  --color-coral-900: #4F2412;
+  /* PULSE — coral-pink. Secondary: motivation, the "mental/emotional"
+     note. (Family kept the historical token name "lavender" — there is
+     no lavender/purple left in this palette by design.) */
+  --color-lavender-50:  #FFEFF3;
+  --color-lavender-100: #FFD2DE;
+  --color-lavender-300: #FF8FAA;
+  --color-lavender-500: #FF4D73;
+  --color-lavender-700: #D9315A;
+  --color-lavender-900: #6E1730;
 
-  --color-gold-50:  #FCEDEF;
-  --color-gold-300: #EEA3AF;
-  --color-gold-500: #D65770;   /* Berry rose — celebration accent */
-  --color-gold-700: #A73954;
+  /* EMBER — warm orange. Accent: optimism and energy, streaks/effort. */
+  --color-coral-50:  #FFF2E7;
+  --color-coral-100: #FFDBB8;
+  --color-coral-300: #FFA35C;
+  --color-coral-500: #FF7A2E;
+  --color-coral-700: #D65B14;
+  --color-coral-900: #6E2C05;
 
-  --color-ink-950: #17130F;
-  --color-ink-900: #201B15;
-  --color-ink-800: #2E2820;
-  --color-ink-700: #453D32;
-  --color-ink-500: #746A5A;
-  --color-ink-300: #A99E8B;
-  --color-ink-100: #E6E0D2;
+  /* SOLAR — gold. Celebration and warmth. */
+  --color-gold-50:  #FFF9E0;
+  --color-gold-300: #FFDE6E;
+  --color-gold-500: #FFC93C;
+  --color-gold-700: #CC8F00;
 
+  /* ALERT — a true red, distinct from Ember, reserved for errors only. */
+  --color-alert-100: #FFDEE0;
+  --color-alert-500: #FF3B4E;
+  --color-alert-700: #D6142A;
+
+  /* VOID — deep green-black neutrals. Dark-mode canvas & the "always dark"
+     chip surfaces (toasts/tooltips) in every theme. */
+  --color-ink-950: #05100C;
+  --color-ink-900: #0A1712;
+  --color-ink-800: #101F19;
+  --color-ink-700: #1A2B23;
+  --color-ink-500: #4C6156;
+  --color-ink-300: #8CA296;
+  --color-ink-100: #DCE9E2;
+
+  /* MIST-PAPER — light-mode surfaces. Cool pale green-white, not sterile
+     gray — daylight should still feel like it's part of the same world. */
   --color-cloud-000: #FFFFFF;
-  --color-cloud-050: #FAF7F0;
-  --color-cloud-100: #F1EBDD;
-  --color-cloud-200: #E3DAC4;
+  --color-cloud-050: #F3FAF6;
+  --color-cloud-100: #E5F2EB;
+  --color-cloud-200: #D2E6DA;
 
   /* ---------------------------------------------------------------------
-     2. MOOD COLOR SCALE — a distinct, accessible 5-point emotional palette,
-     warmed to sit with the new neutral base while staying clearly
-     distinguishable. Used by moodPicker, chartLine, streakBadge.
+     2. MOOD COLOR SCALE — sweeps the full aurora spectrum, rough → great,
+     so the scale itself tells a story (red → orange → gold → green → cyan).
      --------------------------------------------------------------------- */
-  --mood-rough:  #D9634F;
-  --mood-low:    #DD9A4A;
-  --mood-okay:   #D8BB45;
-  --mood-good:   #4E9E6C;
-  --mood-great:  #DDA02A;
+  --mood-rough:  #FF3B4E;
+  --mood-low:    #FF7A2E;
+  --mood-okay:   #FFC93C;
+  --mood-good:   #00E6A0;
+  --mood-great:  #16C2D1;
 
-  --mood-rough-bg: #FBEEEC;
-  --mood-low-bg:   #FBF1E7;
-  --mood-okay-bg:  #FBF6E3;
-  --mood-good-bg:  #E9F5EE;
-  --mood-great-bg: #FDF5E2;
+  --mood-rough-bg: #FFE7E9;
+  --mood-low-bg:   #FFEADC;
+  --mood-okay-bg:  #FFF6DC;
+  --mood-good-bg:  #DEFAEE;
+  --mood-great-bg: #DEF7F9;
 
   /* ---------------------------------------------------------------------
      3. SEMANTIC COLOR TOKENS — light theme defaults.
@@ -114,45 +148,65 @@
   --color-celebrate-tint:  var(--color-gold-50);
 
   --color-success: var(--color-bloom-500);
-  --color-warning: var(--color-cyan-700);
-  --color-danger:  var(--color-coral-700);
-  --color-info:    var(--color-lavender-500);
+  --color-warning: var(--color-gold-700);
+  --color-danger:  var(--color-alert-500);
+  --color-info:    var(--color-cyan-700);
 
-  /* Gradient tokens — the core "editorial botanical" signature: forest-to-
-     gold for primary actions ("growth to bloom"), aubergine-to-terracotta
-     for glow/highlight moments. */
-  --gradient-primary: linear-gradient(135deg, var(--color-bloom-500), var(--color-cyan-500));
-  --gradient-glow:    linear-gradient(135deg, var(--color-lavender-500), var(--color-coral-500));
+  /* Gradient tokens — the "Aurora" signature sweep (green → cyan → coral)
+     replaces any blue/purple gradient entirely. --gradient-primary is the
+     2-stop workhorse (buttons); --gradient-glow is the AI/intelligence
+     duo (cyan → green) for the assistant's identity and glow panels. */
+  --gradient-primary: linear-gradient(135deg, var(--color-bloom-600), var(--color-cyan-500));
+  --gradient-glow:    linear-gradient(135deg, var(--color-cyan-500), var(--color-bloom-500));
+  --gradient-aurora:  linear-gradient(120deg, var(--color-bloom-500) 0%, var(--color-cyan-500) 45%, var(--color-lavender-500) 100%);
 
-  /* Glassmorphism surface tokens (light) — warm paper-tinted glass */
-  --glass-bg:        rgba(250, 247, 240, 0.65);
+  /* Glassmorphism surface tokens (light) — cool mist-tinted glass */
+  --glass-bg:        rgba(243, 250, 246, 0.68);
   --glass-border:    rgba(255, 255, 255, 0.55);
   --glass-blur:      20px;
   --glass-saturate:  180%;
-  --glass-shadow:    0 8px 32px rgba(23, 19, 15, 0.10);
+  --glass-shadow:    0 8px 32px rgba(5, 16, 12, 0.10);
 
   /* ---------------------------------------------------------------------
      4. TYPOGRAPHY
-     A soft-serif display face gives headings real character (the
-     "not boring" signal) while Inter keeps body copy clean and highly
-     legible — a professional editorial pairing rather than all-sans SaaS.
+     Three-family system: Unbounded (display) is bold and geometric on
+     purpose — it is the single loudest signal that this isn't a template.
+     Manrope (body) exists to make sure that boldness never costs anyone's
+     ability to actually read their journal entry. JetBrains Mono (numbers)
+     gives every metric a technical, "measured" feel.
      --------------------------------------------------------------------- */
-  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
-  --font-body:    "Inter", "SF Pro Text", -apple-system, sans-serif;
-  --font-mono:    "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
+  --font-display: "Unbounded", "Manrope", -apple-system, sans-serif;
+  --font-body:    "Manrope", "SF Pro Text", -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
+  /* Named hierarchy (Hero / Heading / Title / Subtitle / Body / Caption /
+     Label / Metric / AI) — the historical --fs-* scale below still powers
+     every existing component unchanged; these are the semantic names for
+     new flagship usage (dashboard hero number, page heroes, etc). */
+  --fs-hero:     3.5rem;    /* Unbounded 700 — the one big number/moment per screen */
+  --fs-heading:  2.25rem;   /* Unbounded 600 — page-level h1 */
+  --fs-title:    1.5rem;    /* Unbounded 600 — section/card h2 */
+  --fs-subtitle: 1.125rem;  /* Manrope 700 — h3/h4 */
+  --fs-body:     1rem;      /* Manrope 400/500 */
+  --fs-caption:  0.8125rem; /* Manrope 500 */
+  --fs-label:    0.75rem;   /* Manrope 700, uppercase, wide tracking */
+  --fs-metric:   2rem;      /* JetBrains Mono 700 — dashboard stat numbers */
+  --fs-ai:        1rem;     /* Manrope 500, roomier line-height — chat bubbles */
+
+  /* Legacy scale — unchanged names, kept so every existing component
+     (buttons, chips, forms, nav…) inherits the new system automatically. */
   --fs-2xs:  0.6875rem;
   --fs-xs:   0.75rem;
   --fs-sm:   0.875rem;
   --fs-base: 1rem;
   --fs-md:   1.125rem;
-  --fs-lg:   1.4375rem;
-  --fs-xl:   1.875rem;
-  --fs-2xl:  2.5rem;
-  --fs-3xl:  3.25rem;
+  --fs-lg:   1.375rem;
+  --fs-xl:   1.75rem;
+  --fs-2xl:  2.25rem;
+  --fs-3xl:  3rem;
 
-  --lh-tight:  1.15;
-  --lh-snug:   1.35;
+  --lh-tight:  1.1;
+  --lh-snug:   1.3;
   --lh-normal: 1.5;
   --lh-loose:  1.7;
 
@@ -162,9 +216,9 @@
   --fw-bold:     700;
   --fw-extrabold:800;
 
-  --ls-tight: -0.015em;
+  --ls-tight: -0.03em;
   --ls-normal: -0.01em;
-  --ls-wide:  0.06em;
+  --ls-wide:  0.09em;
 
   /* ---------------------------------------------------------------------
      5. SPACING SCALE (4px base unit)
@@ -183,8 +237,12 @@
   --space-24: 6rem;
 
   /* ---------------------------------------------------------------------
-     6. RADIUS SCALE — structured, formal geometry. Pill kept only for
-     chips/badges.
+     6. SHAPE SYSTEM — faceted geometry instead of uniform rounded rects.
+     --radius-* still covers ordinary rounded corners (inputs, chips,
+     small controls). --chamfer-* is new: the size of the angled cut used
+     on hero panels, primary buttons and the brand mark (clip-path
+     polygon). --bracket-* sizes the HUD corner-bracket accent used on
+     everyday cards in place of a plain border.
      --------------------------------------------------------------------- */
   --radius-sm:   6px;
   --radius-md:   10px;
@@ -193,17 +251,26 @@
   --radius-pill: 999px;
   --radius-circle: 50%;
 
+  --chamfer-sm: 8px;
+  --chamfer-md: 16px;
+  --chamfer-lg: 28px;
+
+  --bracket-size:  16px;
+  --bracket-width: 2px;
+
   /* ---------------------------------------------------------------------
-     7. ELEVATION / SHADOW SCALE — including colored "glow" shadows, the
-     key signature accent, now warmed from cyan to gold/forest.
+     7. ELEVATION / GLOW SCALE — glow is load-bearing in this system, not
+     a decorative extra. Signal green + Mist cyan do most of the work;
+     Pulse coral is reserved for energy/streak moments.
      --------------------------------------------------------------------- */
-  --shadow-xs: 0 1px 2px rgba(23, 19, 15, 0.06);
-  --shadow-sm: 0 2px 10px rgba(23, 19, 15, 0.07);
-  --shadow-md: 0 8px 24px rgba(23, 19, 15, 0.10);
-  --shadow-lg: 0 20px 48px rgba(23, 19, 15, 0.16);
-  --shadow-glow-primary: 0 0 0 1px rgba(31, 122, 92, 0.4), 0 8px 28px rgba(221, 160, 42, 0.30);
-  --shadow-glow-coral:   0 8px 24px rgba(200, 90, 44, 0.28);
-  --shadow-inset: inset 0 1px 2px rgba(23, 19, 15, 0.08);
+  --shadow-xs: 0 1px 2px rgba(5, 16, 12, 0.06);
+  --shadow-sm: 0 2px 10px rgba(5, 16, 12, 0.08);
+  --shadow-md: 0 8px 24px rgba(5, 16, 12, 0.12);
+  --shadow-lg: 0 24px 56px rgba(5, 16, 12, 0.20);
+  --shadow-glow-primary: 0 0 0 1px rgba(0, 230, 160, 0.35), 0 8px 32px rgba(22, 194, 209, 0.35);
+  --shadow-glow-coral:   0 8px 24px rgba(255, 122, 46, 0.32);
+  --shadow-glow-pulse:   0 8px 28px rgba(255, 77, 115, 0.32);
+  --shadow-inset: inset 0 1px 2px rgba(5, 16, 12, 0.08);
 
   /* ---------------------------------------------------------------------
      8. MOTION TOKENS
@@ -211,22 +278,25 @@
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-bounce:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-signal:   cubic-bezier(0.22, 1, 0.36, 1);
 
   --duration-fast:   120ms;
   --duration-base:   220ms;
   --duration-slow:   400ms;
   --duration-breath: 4000ms;
+  --duration-drift:  24000ms;
 
   /* ---------------------------------------------------------------------
      9. LAYOUT / Z-INDEX
      --------------------------------------------------------------------- */
   --container-max: 480px;
-  --sidebar-width: 232px;
+  --sidebar-width: 240px;
   --nav-height:    64px;
   --header-height: 56px;
   --touch-target:  44px;
 
   --z-base:     0;
+  --z-ambient:  1;
   --z-card:     10;
   --z-header:   100;
   --z-nav:      200;
@@ -236,8 +306,8 @@
 
 /* ==========================================================================
    DARK MODE — attribute-based (data-theme="dark") with prefers-color-scheme
-   fallback. Dark mode is a first-class theme here — the gold glow accents
-   read strongest against the warm near-black canvas.
+   fallback. This is the flagship "signal at night" surface: deep void
+   green-black canvas, phosphor glow doing the heavy lifting.
    ========================================================================== */
 
 [data-theme="dark"] {
@@ -246,7 +316,7 @@
   --color-bg-surface-alt: var(--color-ink-800);
   --color-bg-sunken:      var(--color-ink-700);
 
-  --color-text-primary:   var(--color-cloud-050);
+  --color-text-primary:   #EEFBF4;
   --color-text-secondary: var(--color-ink-300);
   --color-text-muted:     var(--color-ink-500);
   --color-text-inverse:   var(--color-ink-950);
@@ -254,27 +324,27 @@
   --color-border-subtle:  var(--color-ink-800);
   --color-border-default: var(--color-ink-700);
 
-  --color-primary-tint:    rgba(31, 122, 92, 0.18);
-  --color-secondary-tint:  rgba(122, 63, 163, 0.18);
-  --color-accent-tint:     rgba(200, 90, 44, 0.18);
-  --color-glow-tint:       rgba(221, 160, 42, 0.16);
-  --color-celebrate-tint:  rgba(214, 87, 112, 0.18);
+  --color-primary-tint:    rgba(0, 230, 160, 0.16);
+  --color-secondary-tint:  rgba(255, 77, 115, 0.16);
+  --color-accent-tint:     rgba(255, 122, 46, 0.18);
+  --color-glow-tint:       rgba(22, 194, 209, 0.16);
+  --color-celebrate-tint:  rgba(255, 201, 60, 0.18);
 
-  --mood-rough-bg: rgba(217, 99, 79, 0.16);
-  --mood-low-bg:   rgba(221, 154, 74, 0.16);
-  --mood-okay-bg:  rgba(216, 187, 69, 0.16);
-  --mood-good-bg:  rgba(78, 158, 108, 0.16);
-  --mood-great-bg: rgba(221, 160, 42, 0.16);
+  --mood-rough-bg: rgba(255, 59, 78, 0.18);
+  --mood-low-bg:   rgba(255, 122, 46, 0.18);
+  --mood-okay-bg:  rgba(255, 201, 60, 0.18);
+  --mood-good-bg:  rgba(0, 230, 160, 0.18);
+  --mood-great-bg: rgba(22, 194, 209, 0.18);
 
-  --glass-bg:       rgba(30, 27, 21, 0.6);
-  --glass-border:   rgba(239, 195, 99, 0.14);
+  --glass-bg:       rgba(10, 23, 18, 0.62);
+  --glass-border:   rgba(0, 230, 160, 0.16);
   --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.5);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.55);
-  --shadow-glow-primary: 0 0 0 1px rgba(221, 160, 42, 0.35), 0 0 32px rgba(221, 160, 42, 0.22);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.6);
+  --shadow-glow-primary: 0 0 0 1px rgba(0, 230, 160, 0.4), 0 0 40px rgba(22, 194, 209, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -284,7 +354,7 @@
     --color-bg-surface-alt: var(--color-ink-800);
     --color-bg-sunken:      var(--color-ink-700);
 
-    --color-text-primary:   var(--color-cloud-050);
+    --color-text-primary:   #EEFBF4;
     --color-text-secondary: var(--color-ink-300);
     --color-text-muted:     var(--color-ink-500);
     --color-text-inverse:   var(--color-ink-950);
@@ -292,8 +362,8 @@
     --color-border-subtle:  var(--color-ink-800);
     --color-border-default: var(--color-ink-700);
 
-    --glass-bg:     rgba(30, 27, 21, 0.6);
-    --glass-border: rgba(239, 195, 99, 0.14);
+    --glass-bg:     rgba(10, 23, 18, 0.62);
+    --glass-border: rgba(0, 230, 160, 0.16);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   }
 }

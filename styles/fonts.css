@@ -3,60 +3,39 @@
    Self-hosted webfonts (no external CDN dependency — loads reliably even
    offline/on flaky wifi, which matters for a live judged demo).
    Load this before variables.css. Files live in assets/fonts/.
+
+   Type system: Unbounded (hero/display — bold, geometric, unmistakably
+   futuristic) + Manrope (body/UI — clean and highly legible so the
+   futurism never costs readability) + JetBrains Mono (numbers/data —
+   technical, precise, built for the dashboard's metrics).
    ========================================================================== */
 
-/* Fraunces — variable font, weight axis 100–900. Used for --font-display. */
+/* Unbounded — variable font, weight axis 200–900. Used for --font-display. */
 @font-face {
-  font-family: "Fraunces";
+  font-family: "Unbounded";
   font-style: normal;
   font-display: swap;
-  font-weight: 100 900;
-  src: url("../assets/fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations"),
-       url("../assets/fonts/fraunces-latin-wght-normal.woff2") format("woff2");
+  font-weight: 200 900;
+  src: url("../assets/fonts/unbounded-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/unbounded-latin-wght-normal.woff2") format("woff2");
 }
 
-/* Inter — used for --font-body. */
+/* Manrope — variable font, weight axis 200–800. Used for --font-body. */
 @font-face {
-  font-family: "Inter";
+  font-family: "Manrope";
   font-style: normal;
   font-display: swap;
-  font-weight: 400;
-  src: url("../assets/fonts/inter-latin-400-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 500;
-  src: url("../assets/fonts/inter-latin-500-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 600;
-  src: url("../assets/fonts/inter-latin-600-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "Inter";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 700;
-  src: url("../assets/fonts/inter-latin-700-normal.woff2") format("woff2");
+  font-weight: 200 800;
+  src: url("../assets/fonts/manrope-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/manrope-latin-wght-normal.woff2") format("woff2");
 }
 
-/* IBM Plex Mono — used for --font-mono (stat numbers). */
+/* JetBrains Mono — variable font, weight axis 100–800. Used for --font-mono. */
 @font-face {
-  font-family: "IBM Plex Mono";
+  font-family: "JetBrains Mono";
   font-style: normal;
   font-display: swap;
-  font-weight: 500;
-  src: url("../assets/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
-}
-@font-face {
-  font-family: "IBM Plex Mono";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 600;
-  src: url("../assets/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+  font-weight: 100 800;
+  src: url("../assets/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
 }

@@ -60,7 +60,7 @@
   right: -20%;
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, rgba(221, 160, 42, 0.18), transparent 70%);
+  background: radial-gradient(circle, rgba(22, 194, 209, 0.20), transparent 70%);
   pointer-events: none;
 }
 
@@ -407,4 +407,52 @@
 @media (max-width: 479px) {
   .quick-actions-row { grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
   .quick-action__label { font-size: 10px; }
+}
+
+/* ---------------------------------------------------------------------
+   12. DESKTOP BENTO — an asymmetric grid instead of a single centered
+   column of stacked cards: the score and a tall Quick Actions module
+   share the top row, Recent Activity and Daily Motivation sit side by
+   side, and Upcoming Tasks closes the width. Every module keeps the same
+   markup/IDs — only its position in the grid changes here.
+   --------------------------------------------------------------------- */
+@media (min-width: 1024px) {
+  .dashboard-page {
+    max-width: 1180px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-areas:
+      "score  score  score  quick"
+      "summary summary summary quick"
+      "activity activity motivation motivation"
+      "tasks  tasks  tasks  tasks";
+    gap: var(--space-5);
+  }
+
+  .dash-grid__score     { grid-area: score; }
+  .dash-grid__quick     { grid-area: quick; display: flex; flex-direction: column; }
+  .dash-grid__summary   { grid-area: summary; }
+  .dash-grid__activity  { grid-area: activity; }
+  .dash-grid__motivation{ grid-area: motivation; display: flex; flex-direction: column; }
+  .dash-grid__tasks     { grid-area: tasks; }
+
+  /* Sections lose the vertical stacking margin now that the grid supplies
+     spacing in both directions. */
+  .dashboard-page .section + .section { margin-top: 0; }
+
+  .dash-grid__quick .quick-actions-row {
+    grid-template-columns: repeat(2, 1fr);
+    flex: 1;
+  }
+  .dash-grid__quick .quick-action {
+    height: 100%;
+    justify-content: center;
+  }
+
+  .dash-grid__motivation .motivation-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 }

@@ -90,7 +90,13 @@
   }
 
   /**
-   * Renders an <svg> referencing a symbol from assets/icons/icons.svg.
+   * Renders an <svg> referencing a symbol from the icon sprite that's
+   * inlined at the top of every page's <body> (see pages/*.html). We
+   * reference it as a same-document fragment ("#icon-x") rather than an
+   * external file ("assets/icons/icons.svg#icon-x") because <use> against
+   * an external SVG document does not resolve when a page is opened
+   * directly via file:// (no server) — inlining is the fix that works
+   * everywhere.
    * @param {string} name - icon name without the "icon-" prefix, e.g. "home"
    * @param {string} extraClass - additional classes appended to "icon"
    */
@@ -98,7 +104,7 @@
     const cls = "icon" + (extraClass ? " " + extraClass : "");
     return (
       '<svg class="' + cls + '" aria-hidden="true">' +
-      '<use href="../assets/icons/icons.svg#icon-' + name + '"></use>' +
+      '<use href="#icon-' + name + '"></use>' +
       "</svg>"
     );
   }
