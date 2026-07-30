@@ -9,7 +9,6 @@
    3. HEADER
    --------------------------------------------------------------------- */
 .dashboard-header {
-  position: sticky;
   justify-content: space-between;
 }
 
