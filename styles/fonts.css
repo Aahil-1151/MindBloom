@@ -1,0 +1,62 @@
+/* ==========================================================================
+   MindBloom — fonts.css
+   Self-hosted webfonts (no external CDN dependency — loads reliably even
+   offline/on flaky wifi, which matters for a live judged demo).
+   Load this before variables.css. Files live in assets/fonts/.
+   ========================================================================== */
+
+/* Fraunces — variable font, weight axis 100–900. Used for --font-display. */
+@font-face {
+  font-family: "Fraunces";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("../assets/fonts/fraunces-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/fraunces-latin-wght-normal.woff2") format("woff2");
+}
+
+/* Inter — used for --font-body. */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("../assets/fonts/inter-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("../assets/fonts/inter-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("../assets/fonts/inter-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("../assets/fonts/inter-latin-700-normal.woff2") format("woff2");
+}
+
+/* IBM Plex Mono — used for --font-mono (stat numbers). */
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("../assets/fonts/ibm-plex-mono-latin-500-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src: url("../assets/fonts/ibm-plex-mono-latin-600-normal.woff2") format("woff2");
+}

@@ -60,7 +60,7 @@
   right: -20%;
   width: 260px;
   height: 260px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%);
+  background: radial-gradient(circle, rgba(221, 160, 42, 0.18), transparent 70%);
   pointer-events: none;
 }
 

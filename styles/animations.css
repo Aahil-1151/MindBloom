@@ -76,9 +76,9 @@
 
 /* Guided breathing circle: 4s inhale/hold/exhale rhythm, used by breathingAnimator */
 @keyframes breathe {
-  0%   { transform: scale(0.75); box-shadow: 0 0 0 rgba(63, 166, 107, 0.25); }
-  50%  { transform: scale(1.15); box-shadow: 0 0 40px rgba(63, 166, 107, 0.35); }
-  100% { transform: scale(0.75); box-shadow: 0 0 0 rgba(63, 166, 107, 0.25); }
+  0%   { transform: scale(0.75); box-shadow: 0 0 0 rgba(31, 122, 92, 0.25); }
+  50%  { transform: scale(1.15); box-shadow: 0 0 40px rgba(31, 122, 92, 0.35); }
+  100% { transform: scale(0.75); box-shadow: 0 0 0 rgba(31, 122, 92, 0.25); }
 }
 
 /* Streak flame flicker — subtle, not distracting */

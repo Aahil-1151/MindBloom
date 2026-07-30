@@ -1,9 +1,13 @@
 /* ==========================================================================
    MindBloom — variables.css
    Design Tokens: the single source of truth for every visual decision.
-   Direction: futuristic, formal, professional — a cooler, more technical
-   palette (deep teal/indigo + electric cyan glow accents) replacing the
-   earlier warm/playful direction, on tighter, more structured geometry.
+
+   Direction: "editorial botanical" — professional, but not boring.
+   A confident deep-forest green + aubergine + terracotta palette on warm
+   paper neutrals, paired with a soft-serif display face (Fraunces) for
+   headings against clean Inter body copy. Replaces the earlier cool
+   teal/cyan "SaaS" palette, which read correct but generic. Glow accents,
+   glassmorphism and motion tokens are kept — just re-tinted warmer.
    ========================================================================== */
 
 :root {
@@ -12,68 +16,68 @@
      1. BRAND COLOR PALETTE (raw values — reference via semantic tokens
      in section 3)
      --------------------------------------------------------------------- */
-  --color-bloom-50:  #E6FBF8;
-  --color-bloom-100: #C3F5EE;
-  --color-bloom-300: #5FDDD0;
-  --color-bloom-500: #0D9488;   /* Bloom — primary: deep professional teal */
-  --color-bloom-600: #0B7A70;
-  --color-bloom-700: #086159;   /* Deep Bloom — primary pressed */
-  --color-bloom-900: #04302C;
+  --color-bloom-50:  #E9F4EE;
+  --color-bloom-100: #C9E6D4;
+  --color-bloom-300: #6FB58C;
+  --color-bloom-500: #1F7A5C;   /* Bloom — primary: deep botanical green */
+  --color-bloom-600: #196449;
+  --color-bloom-700: #134E39;   /* Deep Bloom — primary pressed */
+  --color-bloom-900: #0A2A1F;
 
-  --color-lavender-50:  #EEEDFC;
-  --color-lavender-100: #DAD7F8;
-  --color-lavender-300: #A79EEF;
-  --color-lavender-500: #6D5FE8;  /* Indigo — mental/emotional, secondary */
-  --color-lavender-700: #4C3FC4;
-  --color-lavender-900: #241E5E;
+  --color-lavender-50:  #F2EAF7;
+  --color-lavender-100: #E0CBEE;
+  --color-lavender-300: #B183CC;
+  --color-lavender-500: #7A3FA3;  /* Aubergine — mental/emotional, secondary */
+  --color-lavender-700: #582D79;
+  --color-lavender-900: #2F1842;
 
-  --color-cyan-50:  #E5FBFE;
-  --color-cyan-100: #C3F5FC;
-  --color-cyan-300: #67E8F9;
-  --color-cyan-500: #22D3EE;   /* Electric Cyan — glow / futuristic accent */
-  --color-cyan-700: #0E7490;
+  --color-cyan-50:  #FDF5E2;
+  --color-cyan-100: #F9E6B8;
+  --color-cyan-300: #EFC363;
+  --color-cyan-500: #DDA02A;   /* Warm Gold — glow / signature accent */
+  --color-cyan-700: #A8781A;
 
-  --color-coral-50:  #FCEEE9;
-  --color-coral-100: #F7D4C7;
-  --color-coral-300: #EE9E7F;
-  --color-coral-500: #E8623F;   /* muted, formal coral — energy/streaks */
-  --color-coral-700: #B8472A;
-  --color-coral-900: #5C2314;
+  --color-coral-50:  #FBEEE7;
+  --color-coral-100: #F4D1BC;
+  --color-coral-300: #E5966A;
+  --color-coral-500: #C85A2C;   /* Terracotta — energy/streaks */
+  --color-coral-700: #984523;
+  --color-coral-900: #4F2412;
 
-  --color-gold-50:  #FCF3E1;
-  --color-gold-300: #F0CE86;
-  --color-gold-500: #E8AE3D;   /* deep amber — celebration accent */
-  --color-gold-700: #B9852355;
+  --color-gold-50:  #FCEDEF;
+  --color-gold-300: #EEA3AF;
+  --color-gold-500: #D65770;   /* Berry rose — celebration accent */
+  --color-gold-700: #A73954;
 
-  --color-ink-950: #080B10;
-  --color-ink-900: #10141C;
-  --color-ink-800: #1A1F2B;
-  --color-ink-700: #262D3D;
-  --color-ink-500: #626C82;
-  --color-ink-300: #9CA5B8;
-  --color-ink-100: #DDE2EB;
+  --color-ink-950: #17130F;
+  --color-ink-900: #201B15;
+  --color-ink-800: #2E2820;
+  --color-ink-700: #453D32;
+  --color-ink-500: #746A5A;
+  --color-ink-300: #A99E8B;
+  --color-ink-100: #E6E0D2;
 
   --color-cloud-000: #FFFFFF;
-  --color-cloud-050: #F5F7FA;
-  --color-cloud-100: #ECEFF3;
-  --color-cloud-200: #DEE3EA;
+  --color-cloud-050: #FAF7F0;
+  --color-cloud-100: #F1EBDD;
+  --color-cloud-200: #E3DAC4;
 
   /* ---------------------------------------------------------------------
      2. MOOD COLOR SCALE — a distinct, accessible 5-point emotional palette,
-     cooled slightly to sit with the new neutral base while staying clearly
+     warmed to sit with the new neutral base while staying clearly
      distinguishable. Used by moodPicker, chartLine, streakBadge.
      --------------------------------------------------------------------- */
-  --mood-rough:  #E0685F;
-  --mood-low:    #E29A5C;
-  --mood-okay:   #E3C662;
-  --mood-good:   #6FC48A;
-  --mood-great:  #22D3EE;
+  --mood-rough:  #D9634F;
+  --mood-low:    #DD9A4A;
+  --mood-okay:   #D8BB45;
+  --mood-good:   #4E9E6C;
+  --mood-great:  #DDA02A;
 
   --mood-rough-bg: #FBEEEC;
-  --mood-low-bg:   #FBF2E8;
-  --mood-okay-bg:  #FCF7E5;
-  --mood-good-bg:  #EAF7EE;
-  --mood-great-bg: #E5FBFE;
+  --mood-low-bg:   #FBF1E7;
+  --mood-okay-bg:  #FBF6E3;
+  --mood-good-bg:  #E9F5EE;
+  --mood-great-bg: #FDF5E2;
 
   /* ---------------------------------------------------------------------
      3. SEMANTIC COLOR TOKENS — light theme defaults.
@@ -110,26 +114,30 @@
   --color-celebrate-tint:  var(--color-gold-50);
 
   --color-success: var(--color-bloom-500);
-  --color-warning: var(--color-gold-500);
+  --color-warning: var(--color-cyan-700);
   --color-danger:  var(--color-coral-700);
   --color-info:    var(--color-lavender-500);
 
-  /* Gradient tokens — the core "futuristic" signature: teal-to-cyan for
-     primary actions, indigo-to-cyan for glow/highlight moments. */
+  /* Gradient tokens — the core "editorial botanical" signature: forest-to-
+     gold for primary actions ("growth to bloom"), aubergine-to-terracotta
+     for glow/highlight moments. */
   --gradient-primary: linear-gradient(135deg, var(--color-bloom-500), var(--color-cyan-500));
-  --gradient-glow:    linear-gradient(135deg, var(--color-lavender-500), var(--color-cyan-500));
+  --gradient-glow:    linear-gradient(135deg, var(--color-lavender-500), var(--color-coral-500));
 
-  /* Glassmorphism surface tokens (light) — cool-tinted glass */
-  --glass-bg:        rgba(245, 247, 250, 0.65);
-  --glass-border:    rgba(255, 255, 255, 0.5);
+  /* Glassmorphism surface tokens (light) — warm paper-tinted glass */
+  --glass-bg:        rgba(250, 247, 240, 0.65);
+  --glass-border:    rgba(255, 255, 255, 0.55);
   --glass-blur:      20px;
   --glass-saturate:  180%;
-  --glass-shadow:    0 8px 32px rgba(8, 11, 16, 0.10);
+  --glass-shadow:    0 8px 32px rgba(23, 19, 15, 0.10);
 
   /* ---------------------------------------------------------------------
      4. TYPOGRAPHY
+     A soft-serif display face gives headings real character (the
+     "not boring" signal) while Inter keeps body copy clean and highly
+     legible — a professional editorial pairing rather than all-sans SaaS.
      --------------------------------------------------------------------- */
-  --font-display: "Plus Jakarta Sans", "SF Pro Display", -apple-system, sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", "Georgia", serif;
   --font-body:    "Inter", "SF Pro Text", -apple-system, sans-serif;
   --font-mono:    "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
 
@@ -138,10 +146,10 @@
   --fs-sm:   0.875rem;
   --fs-base: 1rem;
   --fs-md:   1.125rem;
-  --fs-lg:   1.375rem;
-  --fs-xl:   1.75rem;
-  --fs-2xl:  2.25rem;
-  --fs-3xl:  3rem;
+  --fs-lg:   1.4375rem;
+  --fs-xl:   1.875rem;
+  --fs-2xl:  2.5rem;
+  --fs-3xl:  3.25rem;
 
   --lh-tight:  1.15;
   --lh-snug:   1.35;
@@ -154,7 +162,7 @@
   --fw-bold:     700;
   --fw-extrabold:800;
 
-  --ls-tight: -0.03em;
+  --ls-tight: -0.015em;
   --ls-normal: -0.01em;
   --ls-wide:  0.06em;
 
@@ -175,8 +183,8 @@
   --space-24: 6rem;
 
   /* ---------------------------------------------------------------------
-     6. RADIUS SCALE — tightened from the previous "bubbly" scale for a
-     more structured, formal geometry. Pill kept only for chips/badges.
+     6. RADIUS SCALE — structured, formal geometry. Pill kept only for
+     chips/badges.
      --------------------------------------------------------------------- */
   --radius-sm:   6px;
   --radius-md:   10px;
@@ -186,16 +194,16 @@
   --radius-circle: 50%;
 
   /* ---------------------------------------------------------------------
-     7. ELEVATION / SHADOW SCALE — including new colored "glow" shadows,
-     the key signature of the futuristic direction.
+     7. ELEVATION / SHADOW SCALE — including colored "glow" shadows, the
+     key signature accent, now warmed from cyan to gold/forest.
      --------------------------------------------------------------------- */
-  --shadow-xs: 0 1px 2px rgba(8, 11, 16, 0.06);
-  --shadow-sm: 0 2px 10px rgba(8, 11, 16, 0.07);
-  --shadow-md: 0 8px 24px rgba(8, 11, 16, 0.10);
-  --shadow-lg: 0 20px 48px rgba(8, 11, 16, 0.16);
-  --shadow-glow-primary: 0 0 0 1px rgba(13, 148, 136, 0.4), 0 8px 28px rgba(34, 211, 238, 0.28);
-  --shadow-glow-coral:   0 8px 24px rgba(232, 98, 63, 0.28);
-  --shadow-inset: inset 0 1px 2px rgba(8, 11, 16, 0.08);
+  --shadow-xs: 0 1px 2px rgba(23, 19, 15, 0.06);
+  --shadow-sm: 0 2px 10px rgba(23, 19, 15, 0.07);
+  --shadow-md: 0 8px 24px rgba(23, 19, 15, 0.10);
+  --shadow-lg: 0 20px 48px rgba(23, 19, 15, 0.16);
+  --shadow-glow-primary: 0 0 0 1px rgba(31, 122, 92, 0.4), 0 8px 28px rgba(221, 160, 42, 0.30);
+  --shadow-glow-coral:   0 8px 24px rgba(200, 90, 44, 0.28);
+  --shadow-inset: inset 0 1px 2px rgba(23, 19, 15, 0.08);
 
   /* ---------------------------------------------------------------------
      8. MOTION TOKENS
@@ -227,9 +235,8 @@
 
 /* ==========================================================================
    DARK MODE — attribute-based (data-theme="dark") with prefers-color-scheme
-   fallback. In the futuristic-professional direction, dark mode is a
-   first-class, fully considered theme, not an afterthought — the glow
-   accents read strongest here.
+   fallback. Dark mode is a first-class theme here — the gold glow accents
+   read strongest against the warm near-black canvas.
    ========================================================================== */
 
 [data-theme="dark"] {
@@ -246,27 +253,27 @@
   --color-border-subtle:  var(--color-ink-800);
   --color-border-default: var(--color-ink-700);
 
-  --color-primary-tint:    rgba(13, 148, 136, 0.16);
-  --color-secondary-tint:  rgba(109, 95, 232, 0.16);
-  --color-accent-tint:     rgba(232, 98, 63, 0.16);
-  --color-glow-tint:       rgba(34, 211, 238, 0.14);
-  --color-celebrate-tint:  rgba(232, 174, 61, 0.16);
+  --color-primary-tint:    rgba(31, 122, 92, 0.18);
+  --color-secondary-tint:  rgba(122, 63, 163, 0.18);
+  --color-accent-tint:     rgba(200, 90, 44, 0.18);
+  --color-glow-tint:       rgba(221, 160, 42, 0.16);
+  --color-celebrate-tint:  rgba(214, 87, 112, 0.18);
 
-  --mood-rough-bg: rgba(224, 104, 95, 0.14);
-  --mood-low-bg:   rgba(226, 154, 92, 0.14);
-  --mood-okay-bg:  rgba(227, 198, 98, 0.14);
-  --mood-good-bg:  rgba(111, 196, 138, 0.14);
-  --mood-great-bg: rgba(34, 211, 238, 0.14);
+  --mood-rough-bg: rgba(217, 99, 79, 0.16);
+  --mood-low-bg:   rgba(221, 154, 74, 0.16);
+  --mood-okay-bg:  rgba(216, 187, 69, 0.16);
+  --mood-good-bg:  rgba(78, 158, 108, 0.16);
+  --mood-great-bg: rgba(221, 160, 42, 0.16);
 
-  --glass-bg:       rgba(16, 20, 28, 0.6);
-  --glass-border:   rgba(103, 232, 249, 0.14);
+  --glass-bg:       rgba(30, 27, 21, 0.6);
+  --glass-border:   rgba(239, 195, 99, 0.14);
   --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.5);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.55);
-  --shadow-glow-primary: 0 0 0 1px rgba(34, 211, 238, 0.35), 0 0 32px rgba(34, 211, 238, 0.22);
+  --shadow-glow-primary: 0 0 0 1px rgba(221, 160, 42, 0.35), 0 0 32px rgba(221, 160, 42, 0.22);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -284,8 +291,8 @@
     --color-border-subtle:  var(--color-ink-800);
     --color-border-default: var(--color-ink-700);
 
-    --glass-bg:     rgba(16, 20, 28, 0.6);
-    --glass-border: rgba(103, 232, 249, 0.14);
+    --glass-bg:     rgba(30, 27, 21, 0.6);
+    --glass-border: rgba(239, 195, 99, 0.14);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   }
 }
