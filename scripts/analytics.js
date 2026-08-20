@@ -209,6 +209,85 @@
   }
 
   /* ----------------------------------------------------------------------
+     BURNOUT TREND — direction over time, not just today's snapshot.
+     Mirrors buildDataBundle's burnout-signal derivation (real journal/task
+     data, the same deterministic demo-fallback for sleep/mood gaps) but
+     applied to several past 7-day windows instead of just the currently
+     selected range, so "this week" here always matches what the gauge
+     above shows on a 7-day range. Kept as its own pass rather than
+     threaded through buildDataBundle so the range toggle (7/30/90) can
+     keep driving the snapshot score independently of this weekly series.
+     ---------------------------------------------------------------------- */
+  function computeBurnoutForWeek(weekEndDate, journalEntries, tasks) {
+    const weekDates = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(weekEndDate);
+      d.setDate(d.getDate() - i);
+      weekDates.push(d);
+    }
+    const weekStart = weekDates[0];
+
+    const moodSum = weekDates.reduce(function (sum, date) {
+      const key = toDateKey(date);
+      const entriesToday = journalEntries.filter(function (e) {
+        return toDateKey(new Date(e.createdAt)) === key;
+      });
+      if (entriesToday.length) {
+        return sum + entriesToday.reduce(function (s, e) {
+          return s + (SENTIMENT_TO_SCORE[e.sentimentLabel] || 3);
+        }, 0) / entriesToday.length;
+      }
+      return sum + seededWave(dayOfYear(date), 3.4, 0.9, 6);
+    }, 0);
+    const avgMood = moodSum / weekDates.length;
+
+    const avgSleep = weekDates.reduce(function (sum, date) {
+      return sum + seededWave(dayOfYear(date) + 3, 7.1, 1.1, 5);
+    }, 0) / weekDates.length;
+
+    const weekEntries = journalEntries.filter(function (e) {
+      const d = new Date(e.createdAt);
+      return d >= weekStart && d <= weekEndDate;
+    });
+    const negativeCount = weekEntries.filter(function (e) {
+      return ["sadness", "stress", "anger", "fear", "crisis"].indexOf(e.sentimentLabel) !== -1;
+    }).length;
+    const negativeRatio = weekEntries.length > 0 ? negativeCount / weekEntries.length : 0.2;
+
+    const weekTasks = tasks.filter(function (t) {
+      const d = new Date(t.dueDate);
+      return d >= weekStart && d <= weekEndDate;
+    });
+    const overdueCount = weekTasks.filter(function (t) {
+      return t.status !== "done" && new Date(t.dueDate) < new Date();
+    }).length;
+    const avgWorkloadMinutes = weekTasks.length > 0
+      ? weekTasks.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / 7
+      : 65;
+
+    return BurnoutScore.computeScore({
+      avgWorkloadMinutesPerDay: avgWorkloadMinutes,
+      avgMoodScore: avgMood,
+      avgSleepHours: avgSleep,
+      negativeEntryRatio: negativeRatio,
+      overdueTaskCount: overdueCount,
+    });
+  }
+
+  function computeBurnoutHistory(weeksBack) {
+    const journalEntries = readJournalEntries();
+    const tasks = readTasks();
+    const points = [];
+    for (let w = weeksBack - 1; w >= 0; w--) {
+      const weekEndDate = new Date();
+      weekEndDate.setDate(weekEndDate.getDate() - w * 7);
+      const result = computeBurnoutForWeek(weekEndDate, journalEntries, tasks);
+      points.push({ label: w === 0 ? "This week" : w + "w ago", score: result.score });
+    }
+    return points;
+  }
+
+  /* ----------------------------------------------------------------------
      DOM helpers
      ---------------------------------------------------------------------- */
   const el = window.MindBloomUtils.el;
@@ -220,6 +299,8 @@
       burnoutLevel: document.getElementById("burnout-level"),
       burnoutMessage: document.getElementById("burnout-message"),
       burnoutFactors: document.getElementById("burnout-factors"),
+      burnoutTrendArrow: document.getElementById("burnout-trend-arrow"),
+      burnoutTrendText: document.getElementById("burnout-trend-text"),
       streakCurrent: document.getElementById("streak-current"),
       streakLongest: document.getElementById("streak-longest"),
       consistencyPercent: document.getElementById("consistency-percent"),
@@ -247,6 +328,31 @@
     els.burnoutFactors.innerHTML = "";
     burnout.factors.forEach(function (factor) {
       els.burnoutFactors.appendChild(el("li", "burnout-factor", factor));
+    });
+  }
+
+  function renderBurnoutTrend() {
+    const points = computeBurnoutHistory(4);
+    const scores = points.map(function (p) { return p.score; });
+    const trend = BurnoutScore.describeTrend(scores);
+    const t = ChartsFactory.theme();
+
+    if (els.burnoutTrendArrow) {
+      els.burnoutTrendArrow.textContent = trend.direction === "up" ? "↑" : trend.direction === "down" ? "↓" : "→";
+      els.burnoutTrendArrow.style.color =
+        trend.direction === "up" ? t.accent : trend.direction === "down" ? t.primary : t.textSecondary;
+    }
+    if (els.burnoutTrendText) els.burnoutTrendText.textContent = trend.message;
+
+    // Deliberately not pinned to the gauge's 0-100 scale — the sparkline's
+    // job is to make the shape of the change legible (the arrow/message
+    // already state the absolute score), and a fixed 0-100 range flattens
+    // most real trends into an almost-straight line.
+    ChartsFactory.createLineChart("chart-burnout-trend", {
+      labels: points.map(function (p) { return p.label; }),
+      data: scores,
+      label: "Burnout risk",
+      color: t.accent,
     });
   }
 
@@ -325,6 +431,7 @@
 
     renderCharts(bundle);
     renderBurnout(bundle.burnout);
+    renderBurnoutTrend();
     renderHabits(bundle.habitStats);
     await renderSummary(bundle, periodLabel);
   }

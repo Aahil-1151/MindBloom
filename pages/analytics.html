@@ -323,6 +323,17 @@
             <p class="burnout-card__message" id="burnout-message"></p>
             <ul class="burnout-factors" id="burnout-factors"></ul>
           </div>
+
+          <!-- BURNOUT TREND — direction over the last 4 weeks, not just today's snapshot -->
+          <div class="burnout-card__trend">
+            <div class="burnout-card__trend-header">
+              <span class="burnout-card__trend-arrow" id="burnout-trend-arrow">→</span>
+              <p class="burnout-card__trend-text" id="burnout-trend-text">Not enough history yet to show a trend.</p>
+            </div>
+            <div class="burnout-card__trend-canvas-wrap">
+              <canvas id="chart-burnout-trend" role="img" aria-label="Burnout risk trend over the last 4 weeks"></canvas>
+            </div>
+          </div>
         </div>
       </section>
 

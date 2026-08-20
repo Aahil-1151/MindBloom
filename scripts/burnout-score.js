@@ -136,6 +136,50 @@
       if (level === "moderate") return "--color-gold-500";
       return "--color-bloom-500";
     },
+
+    /**
+     * Direction-over-time on top of computeScore's snapshot: given a
+     * series of past scores (oldest first, same engine/signals each
+     * time), describes whether risk is climbing, easing, or holding
+     * steady. Pure function — no storage or DOM access, same as
+     * computeScore, so any caller (analytics.js's weekly trend,
+     * dashboard.js's chip) can feed it whatever window of scores it computed.
+     * @param {number[]} scores - oldest to newest
+     * @returns {{direction:"up"|"down"|"flat", delta:number, message:string}}
+     */
+    describeTrend(scores) {
+      if (!scores || scores.length < 2) {
+        return { direction: "flat", delta: 0, message: "Not enough history yet to show a trend." };
+      }
+
+      const first = scores[0];
+      const last = scores[scores.length - 1];
+      const delta = last - first;
+      const periods = scores.length - 1;
+      const periodLabel = periods === 1 ? "week" : periods + " weeks";
+
+      if (Math.abs(delta) < 5) {
+        return {
+          direction: "flat",
+          delta: delta,
+          message: "Burnout risk has held steady over the last " + periodLabel + ".",
+        };
+      }
+
+      if (delta > 0) {
+        return {
+          direction: "up",
+          delta: delta,
+          message: "Risk has climbed " + Math.round(delta) + " pts over the last " + periodLabel + " — worth keeping an eye on.",
+        };
+      }
+
+      return {
+        direction: "down",
+        delta: delta,
+        message: "Risk has eased " + Math.round(Math.abs(delta)) + " pts over the last " + periodLabel + " — whatever you're doing is working.",
+      };
+    },
   };
 
   window.BurnoutScore = BurnoutScore;

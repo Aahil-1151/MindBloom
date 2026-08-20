@@ -203,11 +203,21 @@
     return Math.round((startOfToday - startOfThen) / 86400000);
   }
 
-  function computeBurnoutSignals(rec) {
-    const recentPhysical = rec.physicalLogs.filter(function (p) { return daysAgo(p.timestamp) <= 6; });
-    const recentMoods = rec.moodLogs.filter(function (m) { return daysAgo(m.timestamp) <= 6; });
-    const recentStress = rec.stressLogs.filter(function (s) { return daysAgo(s.timestamp) <= 6; });
-    const recentJournal = rec.journalEntries.filter(function (e) { return daysAgo(e.timestamp) <= 6; });
+  /**
+   * @param {object} rec - MindBloomData record
+   * @param {number} minDaysAgo - inclusive, 0 = today
+   * @param {number} maxDaysAgo - inclusive; (0,6) = this week, (7,13) = the week before
+   */
+  function computeBurnoutSignals(rec, minDaysAgo, maxDaysAgo) {
+    function inWindow(timestamp) {
+      const d = daysAgo(timestamp);
+      return d >= minDaysAgo && d <= maxDaysAgo;
+    }
+
+    const recentPhysical = rec.physicalLogs.filter(function (p) { return inWindow(p.timestamp); });
+    const recentMoods = rec.moodLogs.filter(function (m) { return inWindow(m.timestamp); });
+    const recentStress = rec.stressLogs.filter(function (s) { return inWindow(s.timestamp); });
+    const recentJournal = rec.journalEntries.filter(function (e) { return inWindow(e.timestamp); });
     const openTasks = rec.upcomingTasks.filter(function (t) { return !t.done; });
 
     const avgSleepHours = recentPhysical.length
@@ -251,21 +261,36 @@
     const chip = qs("#burnout-chip");
     const label = qs("#burnout-chip-label");
     const dot = qs(".burnout-chip__dot", chip);
+    const arrow = qs("#burnout-chip-arrow");
     if (!chip || !label) return;
 
-    const computed = computeBurnoutSignals(record);
+    const thisWeek = computeBurnoutSignals(record, 0, 6);
 
-    if (!computed.hasEnoughData) {
+    if (!thisWeek.hasEnoughData) {
       chip.dataset.level = "unknown";
       label.textContent = "Log a few days to see burnout risk";
+      if (arrow) arrow.textContent = "";
       return;
     }
 
-    const burnout = BurnoutScore.computeScore(computed.signals);
+    const burnout = BurnoutScore.computeScore(thisWeek.signals);
     chip.dataset.level = burnout.level;
     if (dot) dot.style.background = "var(" + BurnoutScore.getLevelColorVar(burnout.level) + ")";
     label.textContent =
       burnout.score + "/100 · " + burnout.level.charAt(0).toUpperCase() + burnout.level.slice(1) + " risk";
+
+    if (arrow) {
+      const lastWeek = computeBurnoutSignals(record, 7, 13);
+      if (lastWeek.hasEnoughData) {
+        const lastBurnout = BurnoutScore.computeScore(lastWeek.signals);
+        const trend = BurnoutScore.describeTrend([lastBurnout.score, burnout.score]);
+        arrow.textContent = trend.direction === "up" ? "↑" : trend.direction === "down" ? "↓" : "";
+        arrow.style.color = trend.direction === "up" ? "var(--color-coral-500)" : "var(--color-bloom-500)";
+        arrow.title = trend.message;
+      } else {
+        arrow.textContent = "";
+      }
+    }
   }
 
   /* ======================================================================

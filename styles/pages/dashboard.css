@@ -186,6 +186,13 @@
   flex-shrink: 0;
 }
 
+/* Week-over-week direction (BurnoutScore.describeTrend) — empty unless
+   there's a prior week to compare against. */
+.burnout-chip__arrow {
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
 .wellbeing-score__message {
   color: var(--color-text-secondary);
   font-size: var(--fs-sm);
