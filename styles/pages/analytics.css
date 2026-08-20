@@ -1,20 +1,27 @@
 /* ==========================================================================
-   MindBloom — analytics.css
-   Styles for analytics.html: range toggle, weekly summary card, burnout
-   gauge, and the chart card grid. Chart canvases are sized here; Chart.js
-   itself handles what's drawn inside them (see charts.js).
+   MindBloom — pages/analytics.css
+   Insights: range toggle, weekly-summary card, burnout gauge, and a set
+   of Chart.js canvases wrapped in consistent card chrome.
    ========================================================================== */
 
-/* ---------------------------------------------------------------------
-   1. PAGE
-   --------------------------------------------------------------------- */
 .analytics-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
   max-width: 720px;
   margin-inline: auto;
 }
 
+.offline-notice {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-celebrate-tint);
+  color: var(--color-warning);
+  font-size: var(--fs-sm);
+}
+
 /* ---------------------------------------------------------------------
-   2. RANGE TOGGLE
+   RANGE TOGGLE
    --------------------------------------------------------------------- */
 .range-toggle {
   display: flex;
@@ -28,70 +35,58 @@
 }
 
 /* ---------------------------------------------------------------------
-   3. WEEKLY SUMMARY CARD
+   WEEKLY SUMMARY
    --------------------------------------------------------------------- */
 .summary-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-5);
 }
 
 .summary-card__icon {
-  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-glow);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  color: var(--color-glow);
 }
 
 .summary-card__text {
-  font-family: var(--font-display);
   font-size: var(--fs-sm);
-  font-weight: var(--fw-medium);
-  line-height: var(--lh-snug);
-  color: var(--color-text-primary);
+  line-height: var(--lh-normal);
 }
 
 /* ---------------------------------------------------------------------
-   4. BURNOUT GAUGE CARD
+   BURNOUT GAUGE
    --------------------------------------------------------------------- */
 .burnout-card {
   display: flex;
   align-items: center;
-  gap: var(--space-6);
+  gap: var(--space-5);
   flex-wrap: wrap;
-  padding: var(--space-5);
 }
 
 .burnout-card__gauge-wrap {
   position: relative;
-  width: 180px;
-  height: 100px;
+  width: 140px;
+  height: 140px;
   flex-shrink: 0;
-}
-
-.offline-notice {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  background: var(--color-coral-50);
-  color: var(--color-coral-700);
-  font-size: var(--fs-sm);
 }
 
 .burnout-card__value {
   position: absolute;
-  bottom: 8px;
-  left: 0;
-  right: 0;
+  inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 }
 
-.burnout-card__value .stat-number {
-  font-size: var(--fs-2xl);
-  line-height: 1;
-  color: var(--color-text-primary);
-}
+.burnout-card__value .stat-number { font-size: var(--fs-2xl); }
 
 .burnout-card__unit {
   font-size: var(--fs-2xs);
@@ -100,7 +95,7 @@
 
 .burnout-card__details {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 
 .burnout-card__level {
@@ -113,40 +108,43 @@
 .burnout-card__message {
   font-size: var(--fs-sm);
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .burnout-factors {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-}
-
-.burnout-factor {
+  gap: 4px;
   font-size: var(--fs-xs);
   color: var(--color-text-secondary);
-  padding-left: var(--space-4);
-  position: relative;
 }
 
-.burnout-factor::before {
-  content: "•";
+.burnout-factors li {
+  padding-left: var(--space-3);
+  position: relative;
+}
+.burnout-factors li::before {
+  content: "";
   position: absolute;
-  left: var(--space-1);
-  color: var(--color-text-muted);
+  left: 0;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: var(--radius-circle);
+  background: var(--color-text-muted);
 }
 
 /* ---------------------------------------------------------------------
-   5. CHART CARDS
+   CHART CARDS
    --------------------------------------------------------------------- */
 .chart-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--space-4);
+  gap: var(--space-5);
 }
 
-.chart-card {
-  padding: var(--space-4);
+@media (min-width: 640px) {
+  .chart-grid { grid-template-columns: 1fr 1fr; }
 }
 
 .chart-card__header {
@@ -159,8 +157,7 @@
 
 .chart-card__canvas-wrap {
   position: relative;
-  height: 220px;
-  width: 100%;
+  height: 240px;
 }
 
 .chart-card__canvas-wrap--short {
@@ -168,7 +165,7 @@
 }
 
 /* ---------------------------------------------------------------------
-   6. HABIT STATS ROW
+   HABIT CONSISTENCY
    --------------------------------------------------------------------- */
 .habit-stats {
   display: grid;
@@ -181,34 +178,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-1);
-  padding: var(--space-3);
-  background: var(--color-bg-surface-alt);
-  border-radius: var(--radius-md);
+  text-align: center;
 }
 
 .habit-stat__value {
   font-family: var(--font-mono);
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-xl);
   color: var(--color-primary);
 }
 
 .habit-stat__label {
   font-size: var(--fs-2xs);
-  color: var(--color-text-secondary);
-  text-align: center;
-}
-
-/* ---------------------------------------------------------------------
-   7. RESPONSIVE
-   --------------------------------------------------------------------- */
-@media (min-width: 768px) {
-  .chart-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .chart-card__canvas-wrap {
-    height: 260px;
-  }
+  color: var(--color-text-muted);
 }

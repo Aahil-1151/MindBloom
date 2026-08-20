@@ -1,106 +1,78 @@
 /* ==========================================================================
    MindBloom — core/data-store.js
-   The single, shared, per-user wellbeing record. Every page that logs
-   something real — mood (physical.html + journal.html), sleep/water/
-   activity (physical.html), stress (physical.html), journal entries
-   (journal.html) — reads and writes through this module, so a mood
-   logged on one page is reflected immediately everywhere else that
-   reads the same record (dashboard's Today's Summary, Recent Activity,
-   wellbeing pillars, and the Tips card).
-
-   Persisted to localStorage under mindbloom_data_<userId> — keyed by the
-   signed-in account's id (see auth.js), so every user's history is their
-   own and nothing is pre-seeded: every array starts empty at signup and
-   only grows from real log*()/add*() calls the person makes.
-
-   Storage holds only the raw logs (moodLogs, physicalLogs, stressLogs,
-   journalEntries, upcomingTasks) — today's summary, the wellbeing
-   pillars, the recent-activity feed, and tips are all *derived* from
-   those logs on read (compute*() below), so there's nothing to keep in
-   sync by hand.
+   The single shared, per-device data layer (localStorage-backed) behind
+   the dashboard, wellbeing hub (physical.html), journal, and planner.
+   Every "log"/"save"/"add" action here is the one place that actually
+   writes; journal-storage.js and task-manager.js are thin query layers on
+   top of this. Nothing is pre-seeded — a new signup starts with every log
+   empty until the person actually logs something (see dashboard.js).
+   Load this after core/utils.js and before any page controller that uses
+   MindBloomData.
    ========================================================================== */
+
 (function (window) {
   "use strict";
 
+  const KEYS = {
+    journal: "mindbloom_journal",
+    tasks: "mindbloom_academic_tasks",
+    physical: "mindbloom_physical_logs",
+    stress: "mindbloom_mental_checkins",
+    moods: "mindbloom_moods",
+  };
+
+  /* Five moods, sweeping the app's mood color scale (--mood-rough ...
+     --mood-great in variables.css) rough -> great, each with a 0-100
+     wellbeing-score weight used by computePillars/computeTodaySummary. */
   const MOOD_META = [
-    { key: "rough", label: "Rough", value: 1 },
-    { key: "low", label: "Low", value: 2 },
-    { key: "okay", label: "Okay", value: 3 },
-    { key: "good", label: "Good", value: 4 },
-    { key: "great", label: "Great", value: 5 },
+    { key: "rough", label: "Rough", score: 15 },
+    { key: "low", label: "Low", score: 38 },
+    { key: "okay", label: "Okay", score: 60 },
+    { key: "good", label: "Good", score: 82 },
+    { key: "great", label: "Great", score: 100 },
   ];
 
-  function moodMeta(key) {
-    return (
-      MOOD_META.find(function (m) {
-        return m.key === key;
-      }) || null
-    );
-  }
-
-  /* ---------------------------------------------------------------------
-     STORAGE — keyed per signed-in user
-     --------------------------------------------------------------------- */
-  function getUserId() {
-    if (window.AuthService && typeof window.AuthService.getSession === "function") {
-      // AuthService._createSession() stores the account id under `userId`.
-      const session = window.AuthService.getSession();
-      if (session && session.userId) return session.userId;
+  /* ======================================================================
+     LOW-LEVEL STORAGE
+     ====================================================================== */
+  function readJSON(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (err) {
+      return fallback;
     }
-    return "guest";
   }
 
-  function storageKey() {
-    return "mindbloom_data_" + getUserId();
+  function writeJSON(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
   }
 
-  function emptyData() {
-    return {
-      moodLogs: [],
-      physicalLogs: [],
-      stressLogs: [],
-      journalEntries: [],
-      upcomingTasks: [],
-    };
-  }
-
-  function normalize(parsed) {
-    return {
-      moodLogs: Array.isArray(parsed.moodLogs) ? parsed.moodLogs : [],
-      physicalLogs: Array.isArray(parsed.physicalLogs) ? parsed.physicalLogs : [],
-      stressLogs: Array.isArray(parsed.stressLogs) ? parsed.stressLogs : [],
-      journalEntries: Array.isArray(parsed.journalEntries) ? parsed.journalEntries : [],
-      upcomingTasks: Array.isArray(parsed.upcomingTasks) ? parsed.upcomingTasks : [],
-    };
+  function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
   function load() {
-    try {
-      const raw = localStorage.getItem(storageKey());
-      if (!raw) return emptyData();
-      return normalize(JSON.parse(raw));
-    } catch (e) {
-      return emptyData();
-    }
+    return {
+      journalEntries: readJSON(KEYS.journal, []),
+      upcomingTasks: readJSON(KEYS.tasks, []),
+      physicalLogs: readJSON(KEYS.physical, []),
+      stressLogs: readJSON(KEYS.stress, []),
+      moodLogs: readJSON(KEYS.moods, []),
+    };
   }
 
-  function save(data) {
-    try {
-      localStorage.setItem(storageKey(), JSON.stringify(data));
-    } catch (e) {
-      /* localStorage unavailable — fail quietly, the page still works for
-         this load. */
-    }
+  function moodMeta(key) {
+    return MOOD_META.find(function (m) {
+      return m.key === key;
+    }) || null;
   }
 
-  function genId() {
-    return "id_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 8);
-  }
-
-  /* ---------------------------------------------------------------------
+  /* ======================================================================
      TIME HELPERS
-     --------------------------------------------------------------------- */
+     ====================================================================== */
   function isToday(timestamp) {
+    if (!timestamp) return false;
     const d = new Date(timestamp);
     const now = new Date();
     return (
@@ -110,501 +82,401 @@
     );
   }
 
-  function withinDays(timestamp, days) {
-    const then = new Date(timestamp).getTime();
-    const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-    return then >= cutoff;
+  function startOfDay(date) {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
   }
 
-  function average(values) {
-    if (!values.length) return null;
-    return (
-      values.reduce(function (sum, v) {
-        return sum + v;
-      }, 0) / values.length
-    );
-  }
-
-  /**
-   * Formats a task's `due` field (a plain "YYYY-MM-DD" string from a
-   * date input) into short, human copy — "Today", "Tomorrow", a weekday
-   * name within the next week, "N days overdue", or "Mon D" further out.
-   * Shared by the planner's task list and the dashboard's Upcoming Tasks
-   * card so the two never say different things about the same task.
-   */
-  function formatTaskDue(dueDateStr) {
-    if (!dueDateStr) return "No due date";
-    const parts = dueDateStr.split("-").map(Number);
-    const due = new Date(parts[0], parts[1] - 1, parts[2]);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((due - today) / (24 * 60 * 60 * 1000));
-
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Tomorrow";
-    if (diffDays === -1) return "Yesterday";
-    if (diffDays < 0) return Math.abs(diffDays) + " days overdue";
-    if (diffDays < 7) return due.toLocaleDateString(undefined, { weekday: "long" });
-    return due.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-  }
-
-  /**
-   * Open tasks first (soonest due date first, undated tasks last), then
-   * completed tasks (most recently completed first). Shared by the
-   * dashboard's Upcoming Tasks card and the planner's "All upcoming" view
-   * so both agree on what "upcoming" means.
-   */
-  function sortTasksForDisplay(tasks) {
-    const open = tasks.filter(function (t) {
-      return !t.done;
-    });
-    const done = tasks.filter(function (t) {
-      return t.done;
-    });
-
-    open.sort(function (a, b) {
-      if (!a.due && !b.due) return 0;
-      if (!a.due) return 1;
-      if (!b.due) return -1;
-      return a.due < b.due ? -1 : a.due > b.due ? 1 : 0;
-    });
-    done.sort(function (a, b) {
-      return new Date(b.completedAt || 0) - new Date(a.completedAt || 0);
-    });
-
-    return open.concat(done);
+  function daysAgo(timestamp) {
+    const ms = startOfDay(new Date()) - startOfDay(new Date(timestamp));
+    return Math.round(ms / 86400000);
   }
 
   function formatRelativeTime(timestamp) {
-    const then = new Date(timestamp).getTime();
-    const diffMs = Date.now() - then;
-    const minutes = Math.round(diffMs / 60000);
-    if (minutes < 1) return "Just now";
-    if (minutes < 60) return minutes + "m ago";
-    const hours = Math.round(minutes / 60);
-    if (hours < 24) return hours + "h ago";
-    const days = Math.round(hours / 24);
-    if (days === 1) return "Yesterday";
-    if (days < 7) return days + "d ago";
-    return new Date(timestamp).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (!timestamp) return "";
+    const then = new Date(timestamp);
+    const diffMs = Date.now() - then.getTime();
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin < 1) return "Just now";
+    if (diffMin < 60) return diffMin + (diffMin === 1 ? " minute ago" : " minutes ago");
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return diffHr + (diffHr === 1 ? " hour ago" : " hours ago");
+    const diffDay = daysAgo(timestamp);
+    if (diffDay === 1) return "Yesterday";
+    if (diffDay < 7) return diffDay + " days ago";
+    return then.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }
 
-  /* ---------------------------------------------------------------------
-     LOGGING ACTIONS — mutate + persist + return the fresh record
-     --------------------------------------------------------------------- */
-  function logMood(mood, opts) {
-    const meta = moodMeta(mood);
-    if (!meta) return load();
-    const data = load();
-    data.moodLogs.unshift({
-      id: genId(),
-      mood: mood,
-      timestamp: new Date().toISOString(),
-      viaJournal: !!(opts && opts.viaJournal),
-    });
-    data.moodLogs = data.moodLogs.slice(0, 500);
-    save(data);
-    return data;
+  function formatTaskDue(due) {
+    if (!due) return "No due date";
+    const parts = due.split("-").map(Number);
+    const date = new Date(parts[0], parts[1] - 1, parts[2]);
+    const diffDays = Math.round((startOfDay(date) - startOfDay(new Date())) / 86400000);
+
+    if (diffDays === 0) return "Due today";
+    if (diffDays === 1) return "Due tomorrow";
+    if (diffDays === -1) return "1 day overdue";
+    if (diffDays < 0) return Math.abs(diffDays) + " days overdue";
+    if (diffDays <= 6) return date.toLocaleDateString(undefined, { weekday: "long" });
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }
 
-  function logPhysical(entry) {
-    const data = load();
-    data.physicalLogs.unshift({
-      id: genId(),
-      sleepHours: typeof entry.sleepHours === "number" ? entry.sleepHours : null,
-      waterCups: typeof entry.waterCups === "number" ? entry.waterCups : 0,
-      activityMinutes: typeof entry.activityMinutes === "number" ? entry.activityMinutes : 0,
-      timestamp: new Date().toISOString(),
-    });
-    data.physicalLogs = data.physicalLogs.slice(0, 500);
-    save(data);
-    return data;
-  }
-
-  function logStress(level) {
-    const data = load();
-    data.stressLogs.unshift({ id: genId(), level: level, timestamp: new Date().toISOString() });
-    data.stressLogs = data.stressLogs.slice(0, 500);
-    save(data);
-    return data;
-  }
-
+  /* ======================================================================
+     JOURNAL — timestamp is canonical; createdAt is kept alongside it
+     purely so analytics.js's direct localStorage read (which looks for
+     entry.createdAt) can also pick these entries up.
+     ====================================================================== */
   function addJournalEntry(entry) {
-    const data = load();
-    const record = {
-      id: genId(),
-      text: entry.text,
-      mood: entry.mood || null,
-      emotion: entry.emotion || null,
-      reflection: entry.reflection || "",
-      timestamp: new Date().toISOString(),
-    };
-    data.journalEntries.unshift(record);
-    // A journal entry with a mood attached also counts as that day's mood
-    // check-in, so it shows up in the mood history / emotional pillar too.
-    if (entry.mood) {
-      data.moodLogs.unshift({
-        id: genId(),
-        mood: entry.mood,
-        timestamp: record.timestamp,
-        viaJournal: true,
-      });
-    }
-    save(data);
-    return { data: data, entry: record };
+    const entries = readJSON(KEYS.journal, []);
+    const timestamp = new Date().toISOString();
+    const record = Object.assign(
+      { id: generateId(), timestamp: timestamp, createdAt: timestamp },
+      entry
+    );
+    entries.unshift(record);
+    writeJSON(KEYS.journal, entries);
+    return record;
   }
 
   function deleteJournalEntry(id) {
-    const data = load();
-    data.journalEntries = data.journalEntries.filter(function (e) {
+    const entries = readJSON(KEYS.journal, []).filter(function (e) {
       return e.id !== id;
     });
-    save(data);
-    return data;
+    writeJSON(KEYS.journal, entries);
+    return load();
   }
 
+  /* ======================================================================
+     TASKS — due is canonical ("YYYY-MM-DD"); dueDate mirrors it for
+     analytics.js's direct read, same reasoning as journal above.
+     ====================================================================== */
   function addTask(task) {
-    const data = load();
-    data.upcomingTasks.unshift({
-      id: genId(),
-      title: task.title,
-      subject: task.subject || "",
-      due: task.due || "",
-      priority: task.priority || "medium",
-      estimatedMinutes: typeof task.estimatedMinutes === "number" ? task.estimatedMinutes : null,
-      notes: task.notes || "",
-      done: false,
-      createdAt: new Date().toISOString(),
-      completedAt: null,
-    });
-    save(data);
-    return data;
+    const tasks = readJSON(KEYS.tasks, []);
+    const record = Object.assign(
+      { id: generateId(), done: false },
+      task,
+      { dueDate: task.due }
+    );
+    tasks.push(record);
+    writeJSON(KEYS.tasks, tasks);
+    return load();
   }
 
   function updateTask(id, patch) {
-    const data = load();
-    const task = data.upcomingTasks.find(function (t) {
-      return t.id === id;
+    const tasks = readJSON(KEYS.tasks, []).map(function (t) {
+      if (t.id !== id) return t;
+      const merged = Object.assign({}, t, patch);
+      if (patch.due) merged.dueDate = patch.due;
+      return merged;
     });
-    if (task) {
-      ["title", "subject", "due", "priority", "estimatedMinutes", "notes"].forEach(function (key) {
-        if (patch[key] !== undefined) task[key] = patch[key];
-      });
-    }
-    save(data);
-    return data;
+    writeJSON(KEYS.tasks, tasks);
+    return load();
   }
 
   function deleteTask(id) {
-    const data = load();
-    data.upcomingTasks = data.upcomingTasks.filter(function (t) {
+    const tasks = readJSON(KEYS.tasks, []).filter(function (t) {
       return t.id !== id;
     });
-    save(data);
-    return data;
+    writeJSON(KEYS.tasks, tasks);
+    return load();
   }
 
   function toggleTask(id) {
-    const data = load();
-    const task = data.upcomingTasks.find(function (t) {
-      return t.id === id;
+    const tasks = readJSON(KEYS.tasks, []).map(function (t) {
+      return t.id === id ? Object.assign({}, t, { done: !t.done }) : t;
     });
-    if (task) {
-      task.done = !task.done;
-      task.completedAt = task.done ? new Date().toISOString() : null;
-    }
-    save(data);
-    return data;
+    writeJSON(KEYS.tasks, tasks);
+    return load();
   }
 
-  /* ---------------------------------------------------------------------
-     DERIVED VIEWS — computed fresh from the raw logs, never stored
-     --------------------------------------------------------------------- */
-  function computeTodaySummary(data) {
-    const todaysPhysical =
-      data.physicalLogs.find(function (p) {
-        return isToday(p.timestamp);
-      }) || null;
-    const todaysMood =
-      data.moodLogs.find(function (m) {
-        return isToday(m.timestamp);
-      }) || null;
-    const doneTasks = data.upcomingTasks.filter(function (t) {
-      return t.done;
-    }).length;
+  function sortTasksForDisplay(tasks) {
+    const priorityRank = { high: 0, medium: 1, low: 2 };
+    return tasks.slice().sort(function (a, b) {
+      if (a.done !== b.done) return a.done ? 1 : -1;
+      const aDue = a.due || "9999-99-99";
+      const bDue = b.due || "9999-99-99";
+      if (aDue !== bDue) return aDue < bDue ? -1 : 1;
+      const aRank = priorityRank[a.priority] === undefined ? 1 : priorityRank[a.priority];
+      const bRank = priorityRank[b.priority] === undefined ? 1 : priorityRank[b.priority];
+      return aRank - bRank;
+    });
+  }
+
+  /* ======================================================================
+     PHYSICAL — one record per calendar day; logging again today overwrites
+     today's entry instead of stacking duplicates.
+     ====================================================================== */
+  function logPhysical(patch) {
+    const logs = readJSON(KEYS.physical, []);
+    const idx = logs.findIndex(function (p) {
+      return isToday(p.timestamp);
+    });
+    if (idx !== -1) {
+      logs[idx] = Object.assign({}, logs[idx], patch, { timestamp: new Date().toISOString() });
+    } else {
+      logs.unshift(Object.assign({ id: generateId(), timestamp: new Date().toISOString() }, patch));
+    }
+    writeJSON(KEYS.physical, logs);
+    return load();
+  }
+
+  /* ======================================================================
+     STRESS + MOOD — every check-in is its own log entry (history matters
+     for these two, unlike the one-per-day physical check-in).
+     ====================================================================== */
+  function logStress(level) {
+    const logs = readJSON(KEYS.stress, []);
+    logs.unshift({ id: generateId(), timestamp: new Date().toISOString(), level: level });
+    writeJSON(KEYS.stress, logs);
+    return load();
+  }
+
+  function logMood(mood) {
+    const logs = readJSON(KEYS.moods, []);
+    logs.unshift({ id: generateId(), timestamp: new Date().toISOString(), mood: mood });
+    writeJSON(KEYS.moods, logs);
+    return load();
+  }
+
+  /* ======================================================================
+     DERIVED: TODAY'S SUMMARY (dashboard.js)
+     ====================================================================== */
+  function computeTodaySummary(record) {
+    const todaysMood = record.moodLogs.find(function (m) {
+      return isToday(m.timestamp);
+    });
+    const todaysPhysical = record.physicalLogs.find(function (p) {
+      return isToday(p.timestamp);
+    });
+    const meta = todaysMood ? moodMeta(todaysMood.mood) : null;
 
     return {
-      mood: todaysMood ? moodMeta(todaysMood.mood).label : null,
-      sleepHours: todaysPhysical ? todaysPhysical.sleepHours : null,
+      mood: meta ? meta.label : null,
+      sleepHours: todaysPhysical && typeof todaysPhysical.sleepHours === "number" ? todaysPhysical.sleepHours : null,
       sleepGoal: 8,
-      waterCups: todaysPhysical ? todaysPhysical.waterCups : 0,
+      waterCups: (todaysPhysical && todaysPhysical.waterCups) || 0,
       waterGoal: 8,
-      tasksDone: doneTasks,
-      tasksTotal: data.upcomingTasks.length,
+      tasksDone: record.upcomingTasks.filter(function (t) {
+        return t.done;
+      }).length,
+      tasksTotal: record.upcomingTasks.length,
     };
   }
 
-  function computePillars(data) {
-    const recentPhysical = data.physicalLogs.filter(function (p) {
-      return withinDays(p.timestamp, 7);
-    });
-    const recentStress = data.stressLogs.filter(function (s) {
-      return withinDays(s.timestamp, 7);
-    });
-    const recentMood = data.moodLogs.filter(function (m) {
-      return withinDays(m.timestamp, 7);
-    });
-    const totalTasks = data.upcomingTasks.length;
-    const doneTasks = data.upcomingTasks.filter(function (t) {
-      return t.done;
-    }).length;
+  /* ======================================================================
+     DERIVED: WELLBEING PILLARS — each 0-100 or omitted if untracked.
+     ====================================================================== */
+  function computePillars(record) {
+    const pillars = {};
 
-    let physical = null;
+    const recentPhysical = record.physicalLogs.filter(function (p) {
+      return daysAgo(p.timestamp) <= 6;
+    });
     if (recentPhysical.length) {
-      const avgSleep = average(
-        recentPhysical.map(function (p) {
-          return p.sleepHours || 0;
-        })
-      );
-      const avgWater = average(
-        recentPhysical.map(function (p) {
-          return p.waterCups || 0;
-        })
-      );
-      const avgActivity = average(
-        recentPhysical.map(function (p) {
-          return p.activityMinutes || 0;
-        })
-      );
-      physical = Math.round(
-        Math.min(100, (avgSleep / 8) * 100) * 0.5 +
-          Math.min(100, (avgWater / 8) * 100) * 0.3 +
-          Math.min(100, (avgActivity / 30) * 100) * 0.2
-      );
+      const avg = recentPhysical.reduce(function (sum, p) {
+        const sleepScore = Math.min(100, ((p.sleepHours || 0) / 8) * 100);
+        const waterScore = Math.min(100, ((p.waterCups || 0) / 8) * 100);
+        const activityScore = Math.min(100, ((p.activityMinutes || 0) / 30) * 100);
+        return sum + (sleepScore + waterScore + activityScore) / 3;
+      }, 0) / recentPhysical.length;
+      pillars.physical = Math.round(avg);
     }
 
-    let mental = null;
+    const recentStress = record.stressLogs.filter(function (s) {
+      return daysAgo(s.timestamp) <= 6;
+    });
     if (recentStress.length) {
-      const avgStress = average(
-        recentStress.map(function (s) {
-          return s.level;
-        })
-      );
-      mental = Math.round(((5 - avgStress) / 4) * 100);
+      const avgLevel = recentStress.reduce(function (sum, s) {
+        return sum + s.level;
+      }, 0) / recentStress.length;
+      pillars.mental = Math.round(100 - ((avgLevel - 1) / 4) * 100);
     }
 
-    let emotional = null;
-    if (recentMood.length) {
-      const avgMood = average(
-        recentMood.map(function (m) {
-          return moodMeta(m.mood).value;
-        })
-      );
-      emotional = Math.round(((avgMood - 1) / 4) * 100);
+    const recentMoods = record.moodLogs.filter(function (m) {
+      return daysAgo(m.timestamp) <= 6;
+    });
+    if (recentMoods.length) {
+      const avg = recentMoods.reduce(function (sum, m) {
+        const meta = moodMeta(m.mood);
+        return sum + (meta ? meta.score : 60);
+      }, 0) / recentMoods.length;
+      pillars.emotional = Math.round(avg);
     }
 
-    const academic = totalTasks ? Math.round((doneTasks / totalTasks) * 100) : null;
+    const recentTasks = record.upcomingTasks.filter(function (t) {
+      return t.due && daysAgo(t.due + "T00:00:00") >= -6 && daysAgo(t.due + "T00:00:00") <= 0;
+    });
+    if (recentTasks.length) {
+      const done = recentTasks.filter(function (t) {
+        return t.done;
+      }).length;
+      pillars.academic = Math.round((done / recentTasks.length) * 100);
+    }
 
-    return { physical: physical, mental: mental, emotional: emotional, academic: academic };
+    return pillars;
   }
 
-  function computeRecentActivity(data, limit) {
-    limit = limit || 6;
-    const events = [];
+  /* ======================================================================
+     DERIVED: TIPS — up to 3 short, data-driven nudges from the last 7
+     days. tip.level drives the tip-item--<level> CSS modifier.
+     ====================================================================== */
+  function computeTips(record) {
+    const tips = [];
+    const recentPhysical = record.physicalLogs.filter(function (p) {
+      return daysAgo(p.timestamp) <= 6;
+    });
+    const recentStress = record.stressLogs.filter(function (s) {
+      return daysAgo(s.timestamp) <= 6;
+    });
+    const recentMoods = record.moodLogs.filter(function (m) {
+      return daysAgo(m.timestamp) <= 6;
+    });
 
-    data.moodLogs.forEach(function (m) {
-      if (m.viaJournal) return; // already represented by the journal entry itself
-      events.push({
+    if (recentPhysical.length) {
+      const avgSleep = recentPhysical.reduce(function (s, p) {
+        return s + (p.sleepHours || 0);
+      }, 0) / recentPhysical.length;
+      if (avgSleep < 6.5) {
+        tips.push({
+          level: "warning",
+          icon: "moon",
+          title: "Sleep's been light",
+          message: "You've averaged " + avgSleep.toFixed(1) + "h this week — aim for a bit earlier tonight.",
+        });
+      }
+    }
+
+    if (recentStress.length) {
+      const avgStress = recentStress.reduce(function (s, r) {
+        return s + r.level;
+      }, 0) / recentStress.length;
+      if (avgStress >= 3.5) {
+        tips.push({
+          level: "warning",
+          icon: "wind",
+          title: "Stress has been high",
+          message: "Try a guided breathing session on the Wellbeing page — even 2 minutes helps.",
+        });
+      }
+    }
+
+    if (recentMoods.length >= 3) {
+      const goodMoods = recentMoods.filter(function (m) {
+        return m.mood === "good" || m.mood === "great";
+      }).length;
+      if (goodMoods / recentMoods.length >= 0.7) {
+        tips.push({
+          level: "positive",
+          icon: "sparkle",
+          title: "You're on a roll",
+          message: "Your mood's been trending up this week. Keep doing what's working.",
+        });
+      }
+    }
+
+    const overdue = record.upcomingTasks.filter(function (t) {
+      return !t.done && t.due && t.due < new Date().toISOString().slice(0, 10);
+    }).length;
+    if (overdue > 0) {
+      tips.push({
+        level: "info",
+        icon: "clock",
+        title: overdue === 1 ? "1 task is overdue" : overdue + " tasks are overdue",
+        message: "Clear a little space in Planner when you get a moment.",
+      });
+    }
+
+    return tips.slice(0, 3);
+  }
+
+  /* ======================================================================
+     DERIVED: RECENT ACTIVITY — merges every log type into one
+     most-recent-first feed.
+     ====================================================================== */
+  function computeRecentActivity(record, limit) {
+    const items = [];
+
+    record.moodLogs.forEach(function (m) {
+      const meta = moodMeta(m.mood);
+      items.push({
         icon: "mood-" + m.mood,
-        text: "Logged mood as " + moodMeta(m.mood).label,
+        text: "Logged mood: " + (meta ? meta.label : m.mood),
         timestamp: m.timestamp,
       });
     });
-    data.physicalLogs.forEach(function (p) {
-      const parts = [];
-      if (p.sleepHours) parts.push(p.sleepHours + "h sleep");
-      if (p.waterCups) parts.push(p.waterCups + " cups of water");
-      if (p.activityMinutes) parts.push(p.activityMinutes + " active min");
-      events.push({
+
+    record.physicalLogs.forEach(function (p) {
+      items.push({
         icon: "activity",
-        text: "Logged " + (parts.join(", ") || "a physical check-in"),
+        text: "Logged today's check-in",
         timestamp: p.timestamp,
       });
     });
-    data.stressLogs.forEach(function (s) {
-      events.push({ icon: "wind", text: "Stress check-in: " + s.level + " / 5", timestamp: s.timestamp });
-    });
-    data.journalEntries.forEach(function (j) {
-      events.push({
-        icon: "edit",
-        text: "Wrote a journal entry" + (j.mood ? " (feeling " + moodMeta(j.mood).label.toLowerCase() + ")" : ""),
-        timestamp: j.timestamp,
+
+    record.stressLogs.forEach(function (s) {
+      items.push({
+        icon: "wind",
+        text: "Logged a stress check-in",
+        timestamp: s.timestamp,
       });
     });
-    data.upcomingTasks.forEach(function (t) {
-      if (t.done && t.completedAt) {
-        events.push({ icon: "check", text: 'Completed "' + t.title + '"', timestamp: t.completedAt });
-      }
+
+    record.journalEntries.forEach(function (e) {
+      items.push({
+        icon: "edit",
+        text: "Wrote a journal entry",
+        timestamp: e.timestamp,
+      });
     });
 
-    events.sort(function (a, b) {
+    record.upcomingTasks
+      .filter(function (t) {
+        return t.done;
+      })
+      .forEach(function (t) {
+        items.push({
+          icon: "check",
+          text: 'Completed "' + t.title + '"',
+          timestamp: t.completedAt || t.due || t.id,
+        });
+      });
+
+    items.sort(function (a, b) {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
-    return events.slice(0, limit).map(function (e) {
-      return { icon: e.icon, text: e.text, time: formatRelativeTime(e.timestamp) };
+
+    return items.slice(0, limit).map(function (item) {
+      return { icon: item.icon, text: item.text, time: formatRelativeTime(item.timestamp) };
     });
-  }
-
-  /**
-   * Short, data-driven nudges based on the last 7 days of logs — the more
-   * a person has actually logged, the more specific these get. Returns []
-   * until there's enough real history to say anything meaningful.
-   */
-  function computeTips(data) {
-    const tips = [];
-    const recentPhysical = data.physicalLogs.filter(function (p) {
-      return withinDays(p.timestamp, 7);
-    });
-    const recentStress = data.stressLogs.filter(function (s) {
-      return withinDays(s.timestamp, 7);
-    });
-    const recentMood = data.moodLogs.filter(function (m) {
-      return withinDays(m.timestamp, 7);
-    });
-    const recentJournal = data.journalEntries.filter(function (j) {
-      return withinDays(j.timestamp, 7);
-    });
-
-    if (recentPhysical.length) {
-      const avgSleep = average(
-        recentPhysical.map(function (p) {
-          return p.sleepHours || 0;
-        })
-      );
-      if (avgSleep < 6) {
-        tips.push({
-          id: "sleep-low",
-          icon: "moon",
-          level: "warning",
-          title: "You're running low on sleep",
-          message:
-            "You've averaged " +
-            avgSleep.toFixed(1) +
-            "h a night over the last week — try winding down 30 minutes earlier tonight.",
-        });
-      } else if (avgSleep >= 8) {
-        tips.push({
-          id: "sleep-good",
-          icon: "moon",
-          level: "positive",
-          title: "Solid sleep streak",
-          message: "You've averaged " + avgSleep.toFixed(1) + "h a night this week. Keep the rhythm going.",
-        });
-      }
-
-      const avgWater = average(
-        recentPhysical.map(function (p) {
-          return p.waterCups || 0;
-        })
-      );
-      if (avgWater < 4) {
-        tips.push({
-          id: "water-low",
-          icon: "droplet",
-          level: "info",
-          title: "Hydration's been light",
-          message:
-            "Averaging " + avgWater.toFixed(1) + " cups a day this week — keep a bottle nearby between classes.",
-        });
-      }
-    }
-
-    if (recentStress.length) {
-      const avgStress = average(
-        recentStress.map(function (s) {
-          return s.level;
-        })
-      );
-      if (avgStress >= 3.5) {
-        tips.push({
-          id: "stress-high",
-          icon: "wind",
-          level: "warning",
-          title: "Stress has been running high",
-          message:
-            "Your check-ins average " +
-            avgStress.toFixed(1) +
-            "/5 this week — a 5-minute breathing session on the Wellbeing page can help reset.",
-        });
-      }
-    }
-
-    if (recentMood.length) {
-      const avgMood = average(
-        recentMood.map(function (m) {
-          return moodMeta(m.mood).value;
-        })
-      );
-      if (avgMood <= 2.4) {
-        tips.push({
-          id: "mood-low",
-          icon: "heart",
-          level: "warning",
-          title: "Your mood's been on the lower side",
-          message:
-            "A few rough days in a row — consider writing about it in your journal, or reaching out to someone you trust.",
-        });
-      }
-    }
-
-    if (!recentJournal.length && (data.moodLogs.length || data.physicalLogs.length || data.stressLogs.length)) {
-      tips.push({
-        id: "journal-nudge",
-        icon: "edit",
-        level: "info",
-        title: "Haven't journaled this week",
-        message: "Even two or three sentences can help you spot patterns over time.",
-      });
-    }
-
-    const overdueTasks = data.upcomingTasks.filter(function (t) {
-      return !t.done;
-    }).length;
-    if (overdueTasks >= 4) {
-      tips.push({
-        id: "tasks-heavy",
-        icon: "check",
-        level: "info",
-        title: "Your task list is stacking up",
-        message: overdueTasks + " open tasks right now — tackling the smallest one first can build momentum.",
-      });
-    }
-
-    return tips;
   }
 
   window.MindBloomData = {
     MOOD_META: MOOD_META,
-    moodMeta: moodMeta,
     load: load,
-    save: save,
-    logMood: logMood,
-    logPhysical: logPhysical,
-    logStress: logStress,
+    moodMeta: moodMeta,
+
     addJournalEntry: addJournalEntry,
     deleteJournalEntry: deleteJournalEntry,
+
     addTask: addTask,
     updateTask: updateTask,
     deleteTask: deleteTask,
     toggleTask: toggleTask,
+    sortTasksForDisplay: sortTasksForDisplay,
+
+    logPhysical: logPhysical,
+    logStress: logStress,
+    logMood: logMood,
+
+    isToday: isToday,
+    formatTaskDue: formatTaskDue,
+    formatRelativeTime: formatRelativeTime,
+
     computeTodaySummary: computeTodaySummary,
     computePillars: computePillars,
-    computeRecentActivity: computeRecentActivity,
     computeTips: computeTips,
-    sortTasksForDisplay: sortTasksForDisplay,
-    formatRelativeTime: formatRelativeTime,
-    formatTaskDue: formatTaskDue,
-    isToday: isToday,
-    withinDays: withinDays,
+    computeRecentActivity: computeRecentActivity,
   };
 })(window);

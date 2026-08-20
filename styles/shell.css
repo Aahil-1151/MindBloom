@@ -102,7 +102,7 @@
    detail that reads as deliberate rather than a plain color swap. */
 .sidebar__link[aria-current="page"] .icon {
   color: var(--color-glow);
-  filter: drop-shadow(0 0 5px rgba(22, 194, 209, 0.7));
+  filter: drop-shadow(0 0 5px rgba(127, 163, 224, 0.7));
 }
 
 .sidebar__icon {

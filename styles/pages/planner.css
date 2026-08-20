@@ -1,20 +1,19 @@
 /* ==========================================================================
-   MindBloom — planner.css
-   Styles for planner.html: calendar grid, focus card, workload meter,
-   task list, view toggle, and the add/edit task modal. Built entirely on
-   tokens from variables.css.
+   MindBloom — pages/planner.css
+   Smart Planner: month calendar, focus-task suggestion, workload meter,
+   and the day/upcoming task list + add/edit modal.
    ========================================================================== */
 
-/* ---------------------------------------------------------------------
-   1. PAGE
-   --------------------------------------------------------------------- */
 .planner-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
   max-width: 640px;
   margin-inline: auto;
 }
 
 /* ---------------------------------------------------------------------
-   2. CALENDAR
+   CALENDAR
    --------------------------------------------------------------------- */
 .calendar {
   padding: var(--space-4);
@@ -30,21 +29,20 @@
 .calendar__month-label {
   font-family: var(--font-display);
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-md);
+  font-size: var(--fs-sm);
 }
 
 .calendar__weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .calendar__weekday {
   text-align: center;
   font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold);
   color: var(--color-text-muted);
-  padding-block: var(--space-1);
+  font-weight: var(--fw-semibold);
 }
 
 .calendar__grid {
@@ -59,19 +57,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
   color: var(--color-text-primary);
-  border-radius: var(--radius-md);
-  transition: background-color var(--duration-fast) var(--ease-standard),
-              color var(--duration-fast) var(--ease-standard);
+  transition: background-color var(--duration-fast) var(--ease-standard);
 }
 
-.calendar__cell:not(.calendar__cell--empty):hover {
+.calendar__cell:hover:not(.calendar__cell--empty) {
   background: var(--color-bg-surface-alt);
 }
 
 .calendar__cell--empty {
-  pointer-events: none;
+  visibility: hidden;
 }
 
 .calendar__cell--today {
@@ -80,82 +77,58 @@
 }
 
 .calendar__cell--selected {
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   color: var(--color-text-inverse);
-}
-
-.calendar__cell--selected:hover {
-  background: var(--color-primary);
 }
 
 .calendar__dot {
   position: absolute;
-  bottom: 5px;
-  width: 5px;
-  height: 5px;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
   border-radius: var(--radius-circle);
-  background: var(--color-accent);
-}
-
-.calendar__cell--selected .calendar__dot {
-  background: var(--color-text-inverse);
+  background: currentColor;
+  opacity: 0.7;
 }
 
 .calendar__dot--multi {
-  box-shadow: 3px 0 0 var(--color-accent);
-}
-
-.calendar__cell--selected .calendar__dot--multi {
-  box-shadow: 3px 0 0 var(--color-text-inverse);
+  box-shadow: 3px 0 0 currentColor;
 }
 
 /* ---------------------------------------------------------------------
-   3. FOCUS CARD
+   FOCUS CARD + WORKLOAD METER
    --------------------------------------------------------------------- */
 .focus-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
-  padding: var(--space-4);
 }
 
 .focus-card__icon {
-  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  color: var(--color-coral-700);
-}
-
-.focus-card__icon .icon {
-  width: 26px;
-  height: 26px;
 }
 
 .focus-card__label {
   font-size: var(--fs-2xs);
   text-transform: uppercase;
   letter-spacing: var(--ls-wide);
-  color: var(--color-coral-700);
-  font-weight: var(--fw-semibold);
+  color: var(--color-text-secondary);
 }
 
 .focus-card__title {
-  font-family: var(--font-display);
-  font-size: var(--fs-md);
   font-weight: var(--fw-semibold);
-  margin-top: 2px;
 }
 
 .focus-card__rationale {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
-  margin-top: var(--space-1);
-}
-
-/* ---------------------------------------------------------------------
-   4. WORKLOAD METER
-   --------------------------------------------------------------------- */
-.workload-meter {
-  padding: var(--space-4);
 }
 
 .workload-meter__row {
@@ -169,26 +142,23 @@
   width: 10px;
   height: 10px;
   border-radius: var(--radius-circle);
-  flex-shrink: 0;
 }
 
 .workload-meter__label {
-  font-family: var(--font-mono);
-  font-size: var(--fs-sm);
   font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
 }
 
 .workload-meter__message {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
 }
 
 /* ---------------------------------------------------------------------
-   5. LIST HEADER + VIEW TOGGLE
+   TASK LIST
    --------------------------------------------------------------------- */
 .planner-list-header {
-  flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: center;
 }
 
 .view-toggle {
@@ -196,9 +166,6 @@
   gap: var(--space-2);
 }
 
-/* ---------------------------------------------------------------------
-   6. TASK LIST
-   --------------------------------------------------------------------- */
 .planner-task-list {
   display: flex;
   flex-direction: column;
@@ -209,31 +176,21 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
 }
 
-.planner-task--done {
-  opacity: 0.55;
-}
+.planner-task--done { opacity: 0.55; }
+.planner-task--done .planner-task__title { text-decoration: line-through; }
 
-.planner-task--done .planner-task__title {
-  text-decoration: line-through;
-}
-
-.planner-task__body {
-  flex: 1;
-  min-width: 0;
-}
+.planner-task__body { flex: 1; min-width: 0; }
 
 .planner-task__title {
-  font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
 }
 
 .planner-task__meta {
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  margin-top: 2px;
 }
 
 .planner-task__actions {
@@ -243,12 +200,12 @@
   flex-shrink: 0;
 }
 
-.planner-task__priority--high   { background: var(--color-coral-50); color: var(--color-coral-700); }
-.planner-task__priority--medium { background: var(--color-gold-50);  color: var(--color-gold-700); }
-.planner-task__priority--low    { background: var(--color-bloom-50); color: var(--color-bloom-700); }
+.planner-task__priority--high   { color: var(--color-coral-700); background: var(--color-accent-tint); }
+.planner-task__priority--medium { color: var(--color-gold-700); background: var(--color-celebrate-tint); }
+.planner-task__priority--low    { color: var(--color-primary-pressed); background: var(--color-primary-tint); }
 
 /* ---------------------------------------------------------------------
-   7. ADD / EDIT MODAL FORM
+   ADD/EDIT MODAL FORM
    --------------------------------------------------------------------- */
 .planner-form__row {
   display: grid;
@@ -265,11 +222,4 @@
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-2);
-}
-
-/* ---------------------------------------------------------------------
-   8. RESPONSIVE
-   --------------------------------------------------------------------- */
-@media (max-width: 359px) {
-  .planner-form__row { grid-template-columns: 1fr; }
 }

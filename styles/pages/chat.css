@@ -1,21 +1,16 @@
 /* ==========================================================================
-   MindBloom — chat.css
-   Styles for chat.html: header, message bubbles, typing indicator,
-   suggestion chips, and the auto-growing input bar. Built entirely on
-   tokens from variables.css.
+   MindBloom — pages/chat.css
+   Bloom AI Chat (chat.html). A calm, full-height conversation layout:
+   sidebar + header stay put, the message list scrolls, suggestions and the
+   composer stay pinned to the bottom. Rounded (not chamfered) bubbles on
+   purpose — chat is the one surface where softness should win over the
+   HUD language used elsewhere.
    ========================================================================== */
 
-/* ---------------------------------------------------------------------
-   1. PAGE SHELL
-   --------------------------------------------------------------------- */
-.chat-body {
-  overflow: hidden;
-}
-
 .chat-shell {
+  width: 100%;
+  min-height: 100%;
   display: flex;
-  height: 100vh;
-  height: 100dvh;
 }
 
 .chat-main {
@@ -24,24 +19,17 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  height: 100dvh;
-  background: var(--color-bg-canvas);
-}
-
-.chat-page {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  padding: calc(var(--header-height) + var(--space-3)) 0 var(--space-2);
 }
 
 /* ---------------------------------------------------------------------
-   2. HEADER
+   HEADER
    --------------------------------------------------------------------- */
 .chat-header {
-  justify-content: flex-start;
+  display: flex;
+  align-items: center;
   gap: var(--space-3);
+  padding-inline: var(--space-5);
+  flex-shrink: 0;
 }
 
 .chat-header__info {
@@ -59,48 +47,48 @@
 .chat-header__name {
   font-family: var(--font-display);
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-base);
-  line-height: var(--lh-tight);
+  font-size: var(--fs-md);
 }
 
 .chat-header__status {
-  font-size: var(--fs-2xs);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
 }
 
-/* Bloom's identity mark — the hex "signal crystal" on a live gradient
-   field with a permanent slow breathing glow, so the assistant always
-   reads as present rather than a static icon. This is the one avatar
-   treatment reused everywhere Bloom appears (header, message rows). */
-.chat-avatar--header {
+.chat-avatar {
   width: 36px;
   height: 36px;
   flex-shrink: 0;
+  border-radius: var(--radius-circle);
   background: var(--gradient-glow);
-  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-  animation: thinking-glow 3.6s var(--ease-signal) infinite;
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-glow-primary);
 }
 
-.chat-avatar--header .icon {
-  width: 20px;
-  height: 20px;
+.chat-avatar--header {
+  width: 40px;
+  height: 40px;
 }
 
 /* ---------------------------------------------------------------------
-   3. MESSAGE LIST
+   MESSAGE LIST
    --------------------------------------------------------------------- */
-.chat-messages {
+.chat-page {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  padding: var(--space-5);
+}
+
+.chat-messages {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-5);
-  scroll-behavior: smooth;
+  gap: var(--space-4);
+  max-width: 720px;
+  margin-inline: auto;
 }
 
 .chat-row {
@@ -119,35 +107,6 @@
   flex-direction: row-reverse;
 }
 
-.chat-avatar {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary-pressed);
-  background: var(--color-primary-tint);
-}
-
-/* Bloom's rows carry the same hex signal mark as the header (in its live
-   gradient form); the user's own rows keep a plain tinted circle so the
-   two speakers stay visually distinct at a glance. */
-.chat-row--bloom .chat-avatar {
-  background: var(--gradient-glow);
-  color: var(--color-text-inverse);
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-
-.chat-row--user .chat-avatar {
-  border-radius: var(--radius-circle);
-}
-
-.chat-avatar .icon {
-  width: 16px;
-  height: 16px;
-}
-
 .chat-bubble-wrap {
   display: flex;
   flex-direction: column;
@@ -161,19 +120,18 @@
 
 .chat-bubble {
   padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   font-size: var(--fs-sm);
   line-height: var(--lh-normal);
-  word-wrap: break-word;
   white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .chat-bubble--bloom {
-  position: relative;
-  background: var(--color-bg-surface-alt);
-  color: var(--color-text-primary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
   border-bottom-left-radius: var(--radius-sm);
-  border-left: 2px solid var(--color-glow);
+  box-shadow: var(--shadow-xs);
 }
 
 .chat-bubble--user {
@@ -185,46 +143,41 @@
 .chat-bubble__time {
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  padding-inline: var(--space-1);
+  padding-inline: var(--space-2);
 }
 
-/* ---------------------------------------------------------------------
-   4. TYPING INDICATOR
-   --------------------------------------------------------------------- */
+/* Typing indicator */
 .chat-bubble--typing {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: var(--space-3) var(--space-4);
-  color: var(--color-glow);
+  gap: 4px;
+  padding-block: var(--space-3);
 }
 
-/* Kept as an alias so any existing markup using .typing-dot still animates
-   correctly — same motion as the shared .ai-thinking__dot in animations.css. */
 .typing-dot {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-circle);
-  background: currentColor;
-  animation: thinking-dot 1.2s ease-in-out infinite;
+  background: var(--color-text-muted);
+  animation: typing-bounce 1.1s ease-in-out infinite;
 }
-
 .typing-dot:nth-child(2) { animation-delay: 0.15s; }
 .typing-dot:nth-child(3) { animation-delay: 0.3s; }
 
+@keyframes typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-4px); opacity: 1; }
+}
+
 /* ---------------------------------------------------------------------
-   5. SUGGESTION CHIPS
+   SUGGESTIONS
    --------------------------------------------------------------------- */
 .chat-suggestions {
   display: flex;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-5);
   overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.chat-suggestions::-webkit-scrollbar {
-  display: none;
+  padding: 0 var(--space-5) var(--space-3);
+  flex-shrink: 0;
 }
 
 .chat-suggestion {
@@ -233,91 +186,55 @@
 }
 
 /* ---------------------------------------------------------------------
-   6. INPUT BAR
+   COMPOSER
    --------------------------------------------------------------------- */
 .chat-input-bar {
+  flex-shrink: 0;
   display: flex;
   align-items: flex-end;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-5);
-  padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
-  background: var(--color-bg-surface);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-5) calc(var(--space-4) + env(safe-area-inset-bottom));
   border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface);
 }
 
 .chat-input {
   flex: 1;
   resize: none;
   max-height: 140px;
-  min-height: var(--touch-target);
   padding: var(--space-3) var(--space-4);
-  background: var(--color-bg-surface-alt);
   border-radius: var(--radius-lg);
-  font-size: var(--fs-base);
-  line-height: var(--lh-snug);
-  color: var(--color-text-primary);
-  border: 1.5px solid transparent;
+  background: var(--color-bg-surface-alt);
+  border: 1px solid transparent;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
   transition: border-color var(--duration-fast) var(--ease-standard);
-}
-
-.chat-input::placeholder {
-  color: var(--color-text-muted);
 }
 
 .chat-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  background: var(--color-bg-surface);
 }
 
 .chat-send {
   flex-shrink: 0;
-  width: var(--touch-target);
-  height: var(--touch-target);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-circle);
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-md);
-  clip-path: polygon(
-    var(--chamfer-sm) 0, 100% 0,
-    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
-    0 100%, 0 var(--chamfer-sm)
-  );
   box-shadow: var(--shadow-sm);
-  transition: transform var(--duration-fast) var(--ease-standard),
-              box-shadow var(--duration-base) var(--ease-standard);
-}
-
-.chat-send:hover:not(:disabled) {
-  box-shadow: var(--shadow-glow-primary);
-  transform: translateY(-1px);
+  transition: transform var(--duration-fast) var(--ease-bounce);
 }
 
 .chat-send:active {
-  transform: translateY(0) scale(0.95);
-  box-shadow: var(--shadow-xs);
+  transform: scale(0.92);
 }
 
 .chat-send:disabled {
   opacity: 0.5;
-  box-shadow: none;
-}
-
-/* ---------------------------------------------------------------------
-   7. RESPONSIVE
-   --------------------------------------------------------------------- */
-@media (min-width: 768px) {
-  .chat-messages,
-  .chat-suggestions,
-  .chat-input-bar {
-    max-width: 640px;
-    margin-inline: auto;
-    width: 100%;
-  }
-}
-
-@media (min-width: 1024px) {
-  .chat-row { max-width: 75%; }
+  cursor: not-allowed;
 }

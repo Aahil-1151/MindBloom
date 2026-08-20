@@ -1,24 +1,19 @@
 /* ==========================================================================
    MindBloom — fonts.css
-   Self-hosted webfonts (no external CDN dependency — loads reliably even
-   offline/on flaky wifi, which matters for a live judged demo).
-   Load this before variables.css. Files live in assets/fonts/.
+   Manrope and JetBrains Mono stay self-hosted (files live in
+   assets/fonts/, no external CDN dependency for those two). Fraunces
+   (the new display face, swapped in for the old "Unbounded") is loaded
+   from Google Fonts instead, since no local woff2 exists for it in this
+   checkout — drop a matching variable woff2 into assets/fonts/ and
+   replace this @import with a local @font-face to go fully offline.
+   Load this before variables.css.
 
-   Type system: Unbounded (hero/display — bold, geometric, unmistakably
-   futuristic) + Manrope (body/UI — clean and highly legible so the
-   futurism never costs readability) + JetBrains Mono (numbers/data —
+   Type system: Fraunces (hero/display — warm, editorial serif) + Manrope
+   (body/UI — clean and highly legible) + JetBrains Mono (numbers/data —
    technical, precise, built for the dashboard's metrics).
    ========================================================================== */
 
-/* Unbounded — variable font, weight axis 200–900. Used for --font-display. */
-@font-face {
-  font-family: "Unbounded";
-  font-style: normal;
-  font-display: swap;
-  font-weight: 200 900;
-  src: url("../assets/fonts/unbounded-latin-wght-normal.woff2") format("woff2-variations"),
-       url("../assets/fonts/unbounded-latin-wght-normal.woff2") format("woff2");
-}
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&display=swap");
 
 /* Manrope — variable font, weight axis 200–800. Used for --font-body. */
 @font-face {

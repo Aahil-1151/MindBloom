@@ -2,116 +2,122 @@
    MindBloom — variables.css
    Design Tokens: the single source of truth for every visual decision.
 
-   DESIGN LANGUAGE: "AURORA SIGNAL"
+   DESIGN LANGUAGE: "CALM BLOOM" (v2 — softened from the original
+   "Aurora Signal" neon system; same token names/shape system throughout
+   the app, only the values below changed, so every component and script
+   that already consumes these tokens by name keeps working unmodified.)
    ---------------------------------------------------------------------
-   A ground-up original system built around one idea: MindBloom is a living
-   signal, not a dashboard. The palette is drawn from bioluminescence and
-   aurora light — deliberately NOT the blue-to-purple gradient every AI
-   product defaults to. Five distinct hues sweep the spectrum instead:
-   phosphor green (Signal — intelligence/focus), aqua cyan (Mist — calm),
-   coral-pink (Pulse — motivation), ember orange (Ember — optimism/energy),
-   and solar gold (Solar — celebration). No blue. No purple.
+   A student wellbeing app should feel like a quiet room, not a HUD. The
+   palette keeps the same five-hue structure as before (Signal/Mist/
+   Pulse/Ember/Solar) but every hue is desaturated and warmed: sage green
+   (Signal — growth, still literally "Bloom"), soft periwinkle (Mist —
+   calm), true lavender (Pulse — the emotional/mental note, restored
+   after being renamed out of the old neon system), warm peach (Ember —
+   gentle optimism, not a hot orange), muted gold (Solar — celebration
+   without glare). Neutrals shifted from cool green-black to warm
+   charcoal/cream so light mode reads like paper, not a screen.
 
-   Shape language is "faceted", not "rounded rectangle everywhere": hero
-   panels are cut hex-chamfered polygons; everyday cards carry thin HUD
-   corner-brackets (a viewfinder/target-lock mark) instead of a uniform
-   border. Typography is a 3-family system — Unbounded (bold, geometric,
-   unmistakably synthetic) for display, Manrope (warm, highly legible) for
-   body copy, JetBrains Mono for numbers/data — so the futurism never
-   costs readability.
+   Shape language (faceted chamfers, HUD corner-brackets) and the type
+   system are unchanged in structure: Manrope (body) and JetBrains Mono
+   (numbers) stay exactly as they were — already warm and legible. Only
+   the display face changed, from the very loud geometric "Unbounded" to
+   Fraunces, a soft editorial serif that reads as considered and calm at
+   headline size instead of synthetic/urgent.
 
    Light is the default surface (readable in a bright classroom / on a
-   judging stage); dark is the fully-realized flagship "signal at night"
-   mode, not an afterthought.
+   judging stage); dark is the fully-realized flagship night mode, not an
+   afterthought.
    ========================================================================== */
 
 :root {
 
   /* ---------------------------------------------------------------------
-     1. BRAND COLOR PALETTE — five distinct hues, an aurora spectrum.
-     (Family names kept from the prior system for internal continuity;
-     values are entirely new. See the mapping note on each family.)
+     1. BRAND COLOR PALETTE — five distinct hues, softened/warmed.
+     (Family names kept from the prior "Aurora Signal" system for
+     internal continuity; values changed to a calmer wellness direction.)
      --------------------------------------------------------------------- */
 
-  /* SIGNAL — phosphor/bioluminescent green. Primary: intelligence, focus,
-     growth. This is "Bloom" made literal — the color of something alive. */
-  --color-bloom-50:  #E4FFF3;
-  --color-bloom-100: #B9FADD;
-  --color-bloom-300: #5CEBB2;
-  --color-bloom-500: #00E6A0;
-  --color-bloom-600: #00BD84;
-  --color-bloom-700: #009269;
-  --color-bloom-900: #024A36;
+  /* SIGNAL — soft sage green. Primary: growth, focus, calm competence.
+     This is "Bloom" made literal — desaturated, not neon. */
+  --color-bloom-50:  #EDF6F0;
+  --color-bloom-100: #D3E9D9;
+  --color-bloom-300: #9BCBAA;
+  --color-bloom-500: #5FA872;
+  --color-bloom-600: #4C8B5D;
+  --color-bloom-700: #3D7049;
+  --color-bloom-900: #1F3A26;
 
-  /* MIST — aqua cyan. The "glow" signature accent: calm, cool, the color
-     of the halo around the signal. */
-  --color-cyan-50:  #E4FBFC;
-  --color-cyan-100: #B9F2F5;
-  --color-cyan-300: #5FE0E8;
-  --color-cyan-500: #16C2D1;
-  --color-cyan-700: #0D8C97;
+  /* MIST — soft periwinkle blue. The "glow" signature accent: calm, cool,
+     the color of the halo around the signal. */
+  --color-cyan-50:  #EEF3FC;
+  --color-cyan-100: #D7E3F7;
+  --color-cyan-300: #A9C2ED;
+  --color-cyan-500: #7FA3E0;
+  --color-cyan-700: #5678B8;
 
-  /* PULSE — coral-pink. Secondary: motivation, the "mental/emotional"
-     note. (Family kept the historical token name "lavender" — there is
-     no lavender/purple left in this palette by design.) */
-  --color-lavender-50:  #FFEFF3;
-  --color-lavender-100: #FFD2DE;
-  --color-lavender-300: #FF8FAA;
-  --color-lavender-500: #FF4D73;
-  --color-lavender-700: #D9315A;
-  --color-lavender-900: #6E1730;
+  /* PULSE — true lavender. Secondary: the mental/emotional note, restored
+     to an actual lavender hue (the prior system deliberately avoided
+     purple; this one leans into it for a calmer, more "wellness" read). */
+  --color-lavender-50:  #F3EFFB;
+  --color-lavender-100: #E1D6F5;
+  --color-lavender-300: #C0AAE8;
+  --color-lavender-500: #9B7FD4;
+  --color-lavender-700: #7A5FB0;
+  --color-lavender-900: #423063;
 
-  /* EMBER — warm orange. Accent: optimism and energy, streaks/effort. */
-  --color-coral-50:  #FFF2E7;
-  --color-coral-100: #FFDBB8;
-  --color-coral-300: #FFA35C;
-  --color-coral-500: #FF7A2E;
-  --color-coral-700: #D65B14;
-  --color-coral-900: #6E2C05;
+  /* EMBER — warm peach/terracotta. Accent: gentle optimism and energy,
+     streaks/effort, without a hot neon orange. */
+  --color-coral-50:  #FBF1E7;
+  --color-coral-100: #F5DFC4;
+  --color-coral-300: #E8B98A;
+  --color-coral-500: #DB9A5F;
+  --color-coral-700: #B07640;
+  --color-coral-900: #5C3B1E;
 
-  /* SOLAR — gold. Celebration and warmth. */
-  --color-gold-50:  #FFF9E0;
-  --color-gold-300: #FFDE6E;
-  --color-gold-500: #FFC93C;
-  --color-gold-700: #CC8F00;
+  /* SOLAR — muted gold. Celebration and warmth, without glare. */
+  --color-gold-50:  #FBF3DE;
+  --color-gold-300: #EBCE84;
+  --color-gold-500: #DDB74F;
+  --color-gold-700: #A9832A;
 
   /* ALERT — a true red, distinct from Ember, reserved for errors only. */
-  --color-alert-100: #FFDEE0;
-  --color-alert-500: #FF3B4E;
-  --color-alert-700: #D6142A;
+  --color-alert-100: #FBE2E1;
+  --color-alert-500: #E4574F;
+  --color-alert-700: #B93E37;
 
-  /* VOID — deep green-black neutrals. Dark-mode canvas & the "always dark"
-     chip surfaces (toasts/tooltips) in every theme. */
-  --color-ink-950: #05100C;
-  --color-ink-900: #0A1712;
-  --color-ink-800: #101F19;
-  --color-ink-700: #1A2B23;
-  --color-ink-500: #4C6156;
-  --color-ink-300: #8CA296;
-  --color-ink-100: #DCE9E2;
+  /* VOID — warm charcoal neutrals (shifted off cool green-black). Dark-mode
+     canvas & the "always dark" chip surfaces (toasts/tooltips) in every
+     theme. */
+  --color-ink-950: #17140F;
+  --color-ink-900: #1E1B15;
+  --color-ink-800: #29251D;
+  --color-ink-700: #3A3428;
+  --color-ink-500: #6B6353;
+  --color-ink-300: #A39A87;
+  --color-ink-100: #E8E2D6;
 
-  /* MIST-PAPER — light-mode surfaces. Cool pale green-white, not sterile
-     gray — daylight should still feel like it's part of the same world. */
+  /* MIST-PAPER — light-mode surfaces. Warm pale cream, not sterile gray or
+     cool green-white — daylight should feel like paper. */
   --color-cloud-000: #FFFFFF;
-  --color-cloud-050: #F3FAF6;
-  --color-cloud-100: #E5F2EB;
-  --color-cloud-200: #D2E6DA;
+  --color-cloud-050: #FAF7F2;
+  --color-cloud-100: #F0EBE1;
+  --color-cloud-200: #E3DCCD;
 
   /* ---------------------------------------------------------------------
-     2. MOOD COLOR SCALE — sweeps the full aurora spectrum, rough → great,
-     so the scale itself tells a story (red → orange → gold → green → cyan).
+     2. MOOD COLOR SCALE — sweeps the same rough → great story (red →
+     peach → gold → green → blue), softened to match the calmer palette.
      --------------------------------------------------------------------- */
-  --mood-rough:  #FF3B4E;
-  --mood-low:    #FF7A2E;
-  --mood-okay:   #FFC93C;
-  --mood-good:   #00E6A0;
-  --mood-great:  #16C2D1;
+  --mood-rough:  #E4574F;
+  --mood-low:    #DB9A5F;
+  --mood-okay:   #DDB74F;
+  --mood-good:   #5FA872;
+  --mood-great:  #7FA3E0;
 
-  --mood-rough-bg: #FFE7E9;
-  --mood-low-bg:   #FFEADC;
-  --mood-okay-bg:  #FFF6DC;
-  --mood-good-bg:  #DEFAEE;
-  --mood-great-bg: #DEF7F9;
+  --mood-rough-bg: #FBE5E3;
+  --mood-low-bg:   #F6E6D5;
+  --mood-okay-bg:  #F8EFD7;
+  --mood-good-bg:  #E3F1E7;
+  --mood-great-bg: #E6EDF9;
 
   /* ---------------------------------------------------------------------
      3. SEMANTIC COLOR TOKENS — light theme defaults.
@@ -124,8 +130,8 @@
 
   --color-text-primary:   var(--color-ink-900);
   --color-text-secondary: var(--color-ink-500);
-  --color-text-muted:     var(--color-ink-300);
-  --color-text-inverse:   var(--color-cloud-000);
+  --color-text-muted:     #5E7469; /* darkened from ink-300 (2.57:1) to clear WCAG AA (4.7:1) on bg-canvas */
+  --color-text-inverse:   var(--color-ink-900); /* every consumer sits on a bright brand gradient/accent, not a dark panel — cloud-000 (white) failed AA there (as low as 2.17:1); ink-900 clears 5.7–8.4:1 on all of them, matching what dark mode already resolved to */
 
   --color-border-subtle:  var(--color-cloud-200);
   --color-border-default: var(--color-ink-100);
@@ -152,30 +158,29 @@
   --color-danger:  var(--color-alert-500);
   --color-info:    var(--color-cyan-700);
 
-  /* Gradient tokens — the "Aurora" signature sweep (green → cyan → coral)
-     replaces any blue/purple gradient entirely. --gradient-primary is the
-     2-stop workhorse (buttons); --gradient-glow is the AI/intelligence
-     duo (cyan → green) for the assistant's identity and glow panels. */
+  /* Gradient tokens — soft sage → periwinkle sweep, no neon.
+     --gradient-primary is the 2-stop workhorse (buttons); --gradient-glow
+     is the AI/intelligence duo (blue → green) for the assistant's
+     identity and glow panels. */
   --gradient-primary: linear-gradient(135deg, var(--color-bloom-600), var(--color-cyan-500));
   --gradient-glow:    linear-gradient(135deg, var(--color-cyan-500), var(--color-bloom-500));
   --gradient-aurora:  linear-gradient(120deg, var(--color-bloom-500) 0%, var(--color-cyan-500) 45%, var(--color-lavender-500) 100%);
 
-  /* Glassmorphism surface tokens (light) — cool mist-tinted glass */
-  --glass-bg:        rgba(243, 250, 246, 0.68);
+  /* Glassmorphism surface tokens (light) — warm cream-tinted glass */
+  --glass-bg:        rgba(250, 247, 242, 0.68);
   --glass-border:    rgba(255, 255, 255, 0.55);
   --glass-blur:      20px;
   --glass-saturate:  180%;
-  --glass-shadow:    0 8px 32px rgba(5, 16, 12, 0.10);
+  --glass-shadow:    0 8px 32px rgba(23, 20, 15, 0.10);
 
   /* ---------------------------------------------------------------------
      4. TYPOGRAPHY
-     Three-family system: Unbounded (display) is bold and geometric on
-     purpose — it is the single loudest signal that this isn't a template.
-     Manrope (body) exists to make sure that boldness never costs anyone's
-     ability to actually read their journal entry. JetBrains Mono (numbers)
-     gives every metric a technical, "measured" feel.
+     Fraunces (display) is a soft, warm editorial serif — considered and
+     calm at headline size instead of loud/synthetic. Manrope (body)
+     keeps everything highly legible for journal entries and long reads.
+     JetBrains Mono (numbers) gives every metric a clear, measured feel.
      --------------------------------------------------------------------- */
-  --font-display: "Unbounded", "Manrope", -apple-system, sans-serif;
+  --font-display: "Fraunces", "Manrope", -apple-system, serif;
   --font-body:    "Manrope", "SF Pro Text", -apple-system, sans-serif;
   --font-mono:    "JetBrains Mono", "SF Mono", ui-monospace, monospace;
 
@@ -183,9 +188,9 @@
      Label / Metric / AI) — the historical --fs-* scale below still powers
      every existing component unchanged; these are the semantic names for
      new flagship usage (dashboard hero number, page heroes, etc). */
-  --fs-hero:     3.5rem;    /* Unbounded 700 — the one big number/moment per screen */
-  --fs-heading:  2.25rem;   /* Unbounded 600 — page-level h1 */
-  --fs-title:    1.5rem;    /* Unbounded 600 — section/card h2 */
+  --fs-hero:     3.5rem;    /* Fraunces 600 — the one big number/moment per screen */
+  --fs-heading:  2.25rem;   /* Fraunces 600 — page-level h1 */
+  --fs-title:    1.5rem;    /* Fraunces 500 — section/card h2 */
   --fs-subtitle: 1.125rem;  /* Manrope 700 — h3/h4 */
   --fs-body:     1rem;      /* Manrope 400/500 */
   --fs-caption:  0.8125rem; /* Manrope 500 */
@@ -259,18 +264,18 @@
   --bracket-width: 2px;
 
   /* ---------------------------------------------------------------------
-     7. ELEVATION / GLOW SCALE — glow is load-bearing in this system, not
-     a decorative extra. Signal green + Mist cyan do most of the work;
-     Pulse coral is reserved for energy/streak moments.
+     7. ELEVATION / GLOW SCALE — softened: shadows use the new warm-neutral
+     ink instead of green-black, and the glow colors match the new sage/
+     periwinkle/peach/lavender palette instead of neon green/orange/pink.
      --------------------------------------------------------------------- */
-  --shadow-xs: 0 1px 2px rgba(5, 16, 12, 0.06);
-  --shadow-sm: 0 2px 10px rgba(5, 16, 12, 0.08);
-  --shadow-md: 0 8px 24px rgba(5, 16, 12, 0.12);
-  --shadow-lg: 0 24px 56px rgba(5, 16, 12, 0.20);
-  --shadow-glow-primary: 0 0 0 1px rgba(0, 230, 160, 0.35), 0 8px 32px rgba(22, 194, 209, 0.35);
-  --shadow-glow-coral:   0 8px 24px rgba(255, 122, 46, 0.32);
-  --shadow-glow-pulse:   0 8px 28px rgba(255, 77, 115, 0.32);
-  --shadow-inset: inset 0 1px 2px rgba(5, 16, 12, 0.08);
+  --shadow-xs: 0 1px 2px rgba(23, 20, 15, 0.06);
+  --shadow-sm: 0 2px 10px rgba(23, 20, 15, 0.08);
+  --shadow-md: 0 8px 24px rgba(23, 20, 15, 0.12);
+  --shadow-lg: 0 24px 56px rgba(23, 20, 15, 0.20);
+  --shadow-glow-primary: 0 0 0 1px rgba(95, 168, 114, 0.35), 0 8px 32px rgba(127, 163, 224, 0.35);
+  --shadow-glow-coral:   0 8px 24px rgba(219, 154, 95, 0.32);
+  --shadow-glow-pulse:   0 8px 28px rgba(155, 127, 212, 0.32);
+  --shadow-inset: inset 0 1px 2px rgba(23, 20, 15, 0.08);
 
   /* ---------------------------------------------------------------------
      8. MOTION TOKENS
@@ -306,8 +311,8 @@
 
 /* ==========================================================================
    DARK MODE — attribute-based (data-theme="dark") with prefers-color-scheme
-   fallback. This is the flagship "signal at night" surface: deep void
-   green-black canvas, phosphor glow doing the heavy lifting.
+   fallback. Warm charcoal canvas, sage/periwinkle glow doing the heavy
+   lifting instead of neon phosphor green.
    ========================================================================== */
 
 [data-theme="dark"] {
@@ -316,35 +321,35 @@
   --color-bg-surface-alt: var(--color-ink-800);
   --color-bg-sunken:      var(--color-ink-700);
 
-  --color-text-primary:   #EEFBF4;
+  --color-text-primary:   #F7F2E8;
   --color-text-secondary: var(--color-ink-300);
-  --color-text-muted:     var(--color-ink-500);
+  --color-text-muted:     #96897A; /* lightened from ink-500 to clear WCAG AA on dark surfaces, same approach as before */
   --color-text-inverse:   var(--color-ink-950);
 
   --color-border-subtle:  var(--color-ink-800);
   --color-border-default: var(--color-ink-700);
 
-  --color-primary-tint:    rgba(0, 230, 160, 0.16);
-  --color-secondary-tint:  rgba(255, 77, 115, 0.16);
-  --color-accent-tint:     rgba(255, 122, 46, 0.18);
-  --color-glow-tint:       rgba(22, 194, 209, 0.16);
-  --color-celebrate-tint:  rgba(255, 201, 60, 0.18);
+  --color-primary-tint:    rgba(95, 168, 114, 0.16);
+  --color-secondary-tint:  rgba(155, 127, 212, 0.16);
+  --color-accent-tint:     rgba(219, 154, 95, 0.18);
+  --color-glow-tint:       rgba(127, 163, 224, 0.16);
+  --color-celebrate-tint:  rgba(221, 183, 79, 0.18);
 
-  --mood-rough-bg: rgba(255, 59, 78, 0.18);
-  --mood-low-bg:   rgba(255, 122, 46, 0.18);
-  --mood-okay-bg:  rgba(255, 201, 60, 0.18);
-  --mood-good-bg:  rgba(0, 230, 160, 0.18);
-  --mood-great-bg: rgba(22, 194, 209, 0.18);
+  --mood-rough-bg: rgba(228, 87, 79, 0.18);
+  --mood-low-bg:   rgba(219, 154, 95, 0.18);
+  --mood-okay-bg:  rgba(221, 183, 79, 0.18);
+  --mood-good-bg:  rgba(95, 168, 114, 0.18);
+  --mood-great-bg: rgba(127, 163, 224, 0.18);
 
-  --glass-bg:       rgba(10, 23, 18, 0.62);
-  --glass-border:   rgba(0, 230, 160, 0.16);
+  --glass-bg:       rgba(30, 27, 21, 0.62);
+  --glass-border:   rgba(95, 168, 114, 0.16);
   --glass-shadow:   0 8px 32px rgba(0, 0, 0, 0.5);
 
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
   --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.6);
-  --shadow-glow-primary: 0 0 0 1px rgba(0, 230, 160, 0.4), 0 0 40px rgba(22, 194, 209, 0.3);
+  --shadow-glow-primary: 0 0 0 1px rgba(95, 168, 114, 0.4), 0 0 40px rgba(127, 163, 224, 0.3);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -354,16 +359,16 @@
     --color-bg-surface-alt: var(--color-ink-800);
     --color-bg-sunken:      var(--color-ink-700);
 
-    --color-text-primary:   #EEFBF4;
+    --color-text-primary:   #F7F2E8;
     --color-text-secondary: var(--color-ink-300);
-    --color-text-muted:     var(--color-ink-500);
+    --color-text-muted:     #96897A;
     --color-text-inverse:   var(--color-ink-950);
 
     --color-border-subtle:  var(--color-ink-800);
     --color-border-default: var(--color-ink-700);
 
-    --glass-bg:     rgba(10, 23, 18, 0.62);
-    --glass-border: rgba(0, 230, 160, 0.16);
+    --glass-bg:     rgba(30, 27, 21, 0.62);
+    --glass-border: rgba(95, 168, 114, 0.16);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   }
 }

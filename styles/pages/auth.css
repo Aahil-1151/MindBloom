@@ -1,125 +1,96 @@
 /* ==========================================================================
-   MindBloom — auth.css
-   Page-specific styles for login.html, signup.html, forgot-password.html.
-   Built entirely on tokens from variables.css; depends on global.css,
-   animations.css and components.css already being loaded.
+   MindBloom — pages/auth.css
+   Shared shell for every auth-adjacent screen: login, signup,
+   forgot-password, onboarding, and 404 (all render inside .auth-shell >
+   .auth-page > .auth-card). Centered card, soft drifting ambient blobs,
+   consistent form chrome.
    ========================================================================== */
 
-/* ---------------------------------------------------------------------
-   1. PAGE SHELL
-   --------------------------------------------------------------------- */
-/* #app's own rule (global.css) intentionally leaves flex-direction unset
-   since sidebar shells need a row — auth pages are the one shell type
-   that wants the default single stacked column, set explicitly here. */
 .auth-shell {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
   min-height: 100%;
+  flex-direction: column;
 }
 
-/* Same canvas as every other screen (dot-grid + the shared ambient aurora
-   on body::before) — auth used to run its own heavier gradient wash here,
-   which made the sign-in/sign-up moment feel like a different product.
-   The two blobs below are this page's one bit of extra flourish, layered
-   on top in the same green/cyan signal hues everywhere else uses. */
 .auth-page {
   position: relative;
-  min-height: 100vh;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-6) var(--space-5);
+  padding: var(--space-6) var(--space-4);
   overflow: hidden;
-  background: var(--color-bg-canvas);
 }
 
-/* Soft decorative aurora blobs — ambient, not distracting. Same hue
-   language as the sidebar/dashboard glow (Signal green + Mist cyan), with
-   a slow drift so this entry screen isn't perfectly static. */
+/* Soft ambient blobs drifting behind the card — calmer than the global
+   dot-grid alone, and unique to the auth "front door" of the app. */
 .auth-blob {
   position: absolute;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.35;
-  z-index: var(--z-base);
+  opacity: 0.5;
   pointer-events: none;
   animation: drift var(--duration-drift) var(--ease-standard) infinite;
 }
-
 .auth-blob--one {
-  width: 280px;
-  height: 280px;
-  top: -60px;
-  left: -80px;
-  background: var(--color-bloom-300);
-}
-
-.auth-blob--two {
   width: 320px;
   height: 320px;
+  top: -80px;
+  left: -80px;
+  background: var(--color-primary-tint);
+}
+.auth-blob--two {
+  width: 360px;
+  height: 360px;
   bottom: -100px;
   right: -100px;
-  background: var(--color-cyan-300);
+  background: var(--color-glow-tint);
   animation-delay: -8s;
 }
 
-[data-theme="dark"] .auth-blob {
-  opacity: 0.22;
-}
-
-/* ---------------------------------------------------------------------
-   2. AUTH CARD
-   --------------------------------------------------------------------- */
 .auth-card {
   position: relative;
-  z-index: var(--z-card);
+  z-index: 1;
   width: 100%;
-  max-width: 400px;
+  max-width: 420px;
   padding: var(--space-8) var(--space-6);
 }
 
-/* The single hero card on this screen — same always-on corner-bracket
-   signature as the dashboard's wellbeing-score-card (.card--glow), so the
-   very first screen someone sees already carries the app's signature. */
-.auth-card::before,
-.auth-card::after {
-  opacity: 0.85;
-}
-
+/* ---------------------------------------------------------------------
+   BRAND
+   --------------------------------------------------------------------- */
 .auth-brand {
   text-align: center;
   margin-bottom: var(--space-6);
 }
 
 .auth-brand__mark {
-  width: 56px;
-  height: 56px;
-  margin: 0 auto var(--space-3);
+  width: 48px;
+  height: 48px;
+  margin-inline: auto;
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-xl);
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary);
   box-shadow: var(--shadow-glow-primary);
 }
 
 .auth-brand__name {
   font-family: var(--font-display);
-  font-size: var(--fs-xl);
-  font-weight: var(--fw-extrabold);
-  letter-spacing: var(--ls-tight);
-  color: var(--color-text-primary);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-bold);
 }
 
 .auth-brand__tagline {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
-  margin-top: var(--space-1);
 }
 
 .auth-heading {
-  font-size: var(--fs-lg);
+  font-size: var(--fs-title);
   margin-bottom: var(--space-1);
 }
 
@@ -130,47 +101,17 @@
 }
 
 /* ---------------------------------------------------------------------
-   3. FORM MESSAGE (inline banner — distinct from the global toast, since
-   auth feedback should stay anchored in the card, not float over it)
+   FORM EXTRAS
    --------------------------------------------------------------------- */
 .form-message {
-  font-size: var(--fs-sm);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
-  margin-bottom: var(--space-4);
-  background: var(--color-bg-surface-alt);
-  color: var(--color-text-secondary);
-}
-
-.form-message--success {
-  background: var(--color-primary-tint);
-  color: var(--color-bloom-700);
-}
-
-.form-message--error {
-  background: var(--color-coral-50);
+  background: var(--color-accent-tint);
   color: var(--color-coral-700);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--space-4);
 }
 
-[data-theme="dark"] .form-message--error {
-  background: rgba(255, 59, 78, 0.16);
-}
-
-/* ---------------------------------------------------------------------
-   4. FIELD STATES
-   --------------------------------------------------------------------- */
-.field--invalid .field__label {
-  color: var(--color-danger);
-}
-
-.field__error {
-  display: block;
-  min-height: 16px;
-  font-size: var(--fs-xs);
-  color: var(--color-danger);
-}
-
-/* Password input with an inline show/hide action */
 .input-with-action {
   position: relative;
   display: flex;
@@ -178,81 +119,67 @@
 }
 
 .input-with-action .input {
-  padding-right: var(--space-16);
+  padding-right: 68px;
 }
 
 .input-action {
   position: absolute;
-  right: var(--space-2);
+  right: var(--space-3);
   font-size: var(--fs-xs);
   font-weight: var(--fw-semibold);
   color: var(--color-primary);
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
 }
 
-.input-action:hover {
-  background: var(--color-primary-tint);
-}
-
-/* ---------------------------------------------------------------------
-   5. PASSWORD STRENGTH METER (signup + reset-password step)
-   --------------------------------------------------------------------- */
 .password-strength {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  margin-top: var(--space-1);
+  margin-top: var(--space-2);
 }
 
 .password-strength__track {
   flex: 1;
-  height: 6px;
+  height: 4px;
   border-radius: var(--radius-pill);
-  background: var(--color-bg-sunken);
+  background: var(--color-border-subtle);
   overflow: hidden;
 }
 
 .password-strength__fill {
   height: 100%;
   width: 0%;
-  border-radius: var(--radius-pill);
   background: var(--color-danger);
-  transition: width var(--duration-base) var(--ease-out-soft),
-              background-color var(--duration-base) var(--ease-standard);
+  border-radius: var(--radius-pill);
+  transition: width var(--duration-base) var(--ease-standard), background-color var(--duration-base) var(--ease-standard);
 }
-
-.password-strength__fill[data-level="weak"]   { background: var(--color-coral-500); }
-.password-strength__fill[data-level="medium"] { background: var(--color-gold-500); }
-.password-strength__fill[data-level="strong"] { background: var(--color-bloom-500); }
 
 .password-strength__label {
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  min-width: 48px;
-  text-align: right;
+  white-space: nowrap;
 }
 
-/* ---------------------------------------------------------------------
-   6. LINKS / DIVIDERS / FOOTER SWITCH
-   --------------------------------------------------------------------- */
 .auth-row-between {
   justify-content: flex-end;
-  margin-top: calc(var(--space-2) * -1);
 }
 
 .auth-link {
-  font-size: var(--fs-sm);
   color: var(--color-primary);
-  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
 }
-
-.auth-link:hover {
-  text-decoration: underline;
-}
+.auth-link:hover { text-decoration: underline; }
 
 .auth-link--strong {
   font-weight: var(--fw-semibold);
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-5);
 }
 
 .auth-divider {
@@ -263,15 +190,12 @@
   font-size: var(--fs-xs);
   margin-block: var(--space-5);
 }
-
 .auth-divider::before,
 .auth-divider::after {
   content: "";
   flex: 1;
-  height: 1px;
-  background: var(--color-border-subtle);
+  border-top: 1px solid var(--color-border-subtle);
 }
-
 .auth-divider span {
   padding-inline: var(--space-3);
 }
@@ -282,40 +206,11 @@
   color: var(--color-text-secondary);
 }
 
-/* ---------------------------------------------------------------------
-   7. FORGOT PASSWORD — STEP TRANSITIONS
-   --------------------------------------------------------------------- */
+/* Multi-step forgot-password flow: an author `display` on .auth-step
+   would otherwise out-specificity the [hidden] attribute. */
+.auth-step {
+  display: block;
+}
 .auth-step[hidden] {
-  display: none;
-}
-
-.auth-back-link {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
-  margin-bottom: var(--space-4);
-}
-
-.auth-back-link:hover {
-  color: var(--color-text-primary);
-}
-
-/* ---------------------------------------------------------------------
-   8. RESPONSIVE ADJUSTMENTS
-   --------------------------------------------------------------------- */
-@media (min-width: 480px) {
-  .auth-card {
-    padding: var(--space-10) var(--space-8);
-  }
-}
-
-@media (max-width: 359px) {
-  .auth-card {
-    padding: var(--space-6) var(--space-4);
-  }
-  .auth-brand__name {
-    font-size: var(--fs-lg);
-  }
+  display: none !important;
 }
