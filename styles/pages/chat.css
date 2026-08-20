@@ -32,6 +32,25 @@
   flex-shrink: 0;
 }
 
+/* .hide-desktop's base rule is `display: initial`, which responsive.css
+   loads after components.css's `.btn { display: inline-flex; }` — equal
+   specificity, later source order wins, so the mobile back button loses
+   its flex-centering and touch-target sizing. .hide-mobile/.hide-desktop
+   are otherwise only ever paired with .sidebar/.nav-bar (which need
+   exactly that display:initial reset), so this is the one place the
+   utility's assumption doesn't hold. Higher-specificity override, mirrored
+   at the same >=768px breakpoint so the existing hide-on-desktop behavior
+   is unaffected. */
+.chat-header .btn.hide-desktop {
+  display: inline-flex;
+}
+
+@media (min-width: 768px) {
+  .chat-header .btn.hide-desktop {
+    display: none;
+  }
+}
+
 .chat-header__info {
   display: flex;
   align-items: center;

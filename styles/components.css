@@ -352,6 +352,14 @@
   background: var(--color-bg-sunken);
   outline: none;
 }
+/* The unconditional outline:none above (needed to drop the native track
+   ring some browsers draw at rest) also silently ate the global
+   :focus-visible ring — equal specificity, later in the cascade. Restore
+   it here with matching styling, at higher specificity so it survives. */
+.slider:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 24px; height: 24px;
