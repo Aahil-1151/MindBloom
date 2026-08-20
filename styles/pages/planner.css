@@ -129,6 +129,81 @@
 .focus-card__rationale {
   font-size: var(--fs-xs);
   color: var(--color-text-secondary);
+  margin-top: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------
+   FOCUS TIMER
+   --------------------------------------------------------------------- */
+.focus-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  text-align: center;
+}
+
+.focus-timer__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.focus-timer__mode {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--color-coral-700);
+  font-weight: var(--fw-semibold);
+}
+
+.focus-timer__target {
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.focus-timer__display {
+  font-family: var(--font-mono);
+  font-size: var(--fs-3xl);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-timer__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.focus-timer__config {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-1);
+}
+
+.focus-timer__config-field {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
+}
+
+.focus-timer__config-field .input {
+  width: 56px;
+  min-height: 36px;
+  padding: var(--space-2);
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------
+   WORKLOAD METER
+   --------------------------------------------------------------------- */
+.workload-meter {
+  padding: var(--space-4);
 }
 
 .workload-meter__row {
@@ -155,7 +230,7 @@
 }
 
 /* ---------------------------------------------------------------------
-   TASK LIST
+   LIST HEADER + VIEW TOGGLE
    --------------------------------------------------------------------- */
 .planner-list-header {
   align-items: center;
@@ -166,6 +241,9 @@
   gap: var(--space-2);
 }
 
+/* ---------------------------------------------------------------------
+   TASK LIST
+   --------------------------------------------------------------------- */
 .planner-task-list {
   display: flex;
   flex-direction: column;
@@ -222,4 +300,11 @@
   justify-content: flex-end;
   gap: var(--space-3);
   margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------
+   RESPONSIVE
+   --------------------------------------------------------------------- */
+@media (max-width: 359px) {
+  .planner-form__row { grid-template-columns: 1fr; }
 }

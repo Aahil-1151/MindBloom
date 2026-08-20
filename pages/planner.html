@@ -262,6 +262,9 @@
         <a href="settings.html" class="sidebar__link" data-nav="settings">
           <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg></span> Settings
         </a>
+        <a href="emergency.html" class="sidebar__link" data-nav="emergency">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg></span> Emergency
+        </a>
       </nav>
 
       <button class="sidebar__logout" id="sidebar-logout">
@@ -287,6 +290,34 @@
       <!-- FOCUS SUGGESTION -->
       <section class="section">
         <div class="focus-card card card--pillar-academic" id="focus-card"></div>
+      </section>
+
+      <!-- FOCUS TIMER -->
+      <section class="section">
+        <div class="card focus-timer" id="focus-timer">
+          <div class="focus-timer__header">
+            <p class="focus-timer__mode" id="timer-mode-label">Focus session</p>
+            <p class="focus-timer__target" id="timer-target-label">Add a task to get started</p>
+          </div>
+
+          <p class="focus-timer__display" id="timer-display">25:00</p>
+
+          <div class="focus-timer__controls">
+            <button type="button" class="btn btn--ghost" id="timer-reset-btn">Reset</button>
+            <button type="button" class="btn btn--primary" id="timer-toggle-btn">Start focus</button>
+          </div>
+
+          <div class="focus-timer__config">
+            <label class="focus-timer__config-field">
+              <span>Focus</span>
+              <input class="input" type="number" id="timer-focus-minutes" min="1" max="120" value="25" /> min
+            </label>
+            <label class="focus-timer__config-field">
+              <span>Break</span>
+              <input class="input" type="number" id="timer-break-minutes" min="1" max="60" value="5" /> min
+            </label>
+          </div>
+        </div>
       </section>
 
       <!-- WORKLOAD METER -->
@@ -329,6 +360,9 @@
         </a>
         <a href="analytics.html" class="nav-item" data-nav="insights">
           <svg class="icon" aria-hidden="true"><use href="#icon-chart"></use></svg><span>Insights</span>
+        </a>
+        <a href="emergency.html" class="nav-item" data-nav="emergency">
+          <svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg><span>Help</span>
         </a>
       </nav>
     </div>

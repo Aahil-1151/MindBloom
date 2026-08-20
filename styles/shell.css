@@ -7,7 +7,7 @@
    ========================================================================== */
 
 /* Every sidebar-based page shell (dashboard, chat, journal, planner,
-   wellbeing, settings, analytics) needs this exact rule: a row so the
+   wellbeing, settings, analytics, emergency) needs this exact rule: a row so the
    sidebar sits beside the content instead of stacking above it. Listed
    explicitly (not via a #app default) because #app is also reused by
    .auth-shell, which needs the opposite — a column. */
@@ -17,7 +17,8 @@
 .planner-shell,
 .wellbeing-shell,
 .settings-shell,
-.analytics-shell {
+.analytics-shell,
+.emergency-shell {
   display: flex;
   flex-direction: row;
   min-height: 100vh;

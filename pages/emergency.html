@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link rel="stylesheet" href="../styles/fonts.css" />
-  <title>Settings — MindBloom</title>
+  <title>Emergency Help — MindBloom</title>
 
   <link rel="stylesheet" href="../styles/variables.css" />
   <link rel="stylesheet" href="../styles/global.css" />
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="../styles/components.css" />
   <link rel="stylesheet" href="../styles/shell.css" />
   <link rel="stylesheet" href="../styles/responsive.css" />
-  <link rel="stylesheet" href="../styles/pages/settings.css" />
+  <link rel="stylesheet" href="../styles/pages/emergency.css" />
 </head>
 <body>
   <!-- Icon sprite (inlined so <use> works reliably under file:// as well as http://) -->
@@ -231,10 +231,10 @@
     <path d="M7.7 13.8C9 15.5 10.6 16.3 12 16.3S15 15.5 16.3 13.8" stroke-linecap="round"/>
   </symbol>
 
-</svg>
+  </svg>
 
 
-  <div id="app" class="settings-shell">
+  <div id="app" class="emergency-shell">
 
     <aside class="sidebar hide-mobile" id="sidebar">
       <div class="sidebar__brand">
@@ -274,57 +274,48 @@
     <div class="main-area">
 
       <header class="top-header">
-        <h1 class="page-header__title">Settings</h1>
+        <h1 class="page-header__title">Emergency Help</h1>
       </header>
 
-      <main class="page settings-page">
+      <main class="page emergency-page">
 
         <section class="section">
-          <div class="card settings-profile">
-            <div class="avatar avatar--lg" id="profile-avatar">B</div>
-            <div>
-              <p class="settings-profile__name" id="profile-name">—</p>
-              <p class="settings-profile__email" id="profile-email">—</p>
+          <div class="section__header"><h2>Crisis lines</h2></div>
+          <div class="card card--pillar-mental emergency-crisis-card">
+            <p class="emergency-crisis-card__intro">If you're in immediate danger, call 911. Otherwise, these are free, confidential, and available right now.</p>
+
+            <div class="emergency-crisis-line">
+              <span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg></span>
+              <div>
+                <p class="emergency-crisis-line__title">988 Suicide &amp; Crisis Lifeline</p>
+                <p class="emergency-crisis-line__hint">Call or text 988, anytime, for any kind of crisis.</p>
+              </div>
+              <a class="btn btn--secondary btn--sm" href="tel:988">Call</a>
+            </div>
+
+            <div class="emergency-crisis-line">
+              <span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg></span>
+              <div>
+                <p class="emergency-crisis-line__title">Crisis Text Line</p>
+                <p class="emergency-crisis-line__hint">Text HOME to 741741 to reach a counselor by text.</p>
+              </div>
+              <a class="btn btn--secondary btn--sm" href="sms:741741&body=HOME">Text</a>
             </div>
           </div>
         </section>
 
         <section class="section">
-          <div class="section__header"><h2>Appearance</h2></div>
-          <div class="card settings-row">
-            <div>
-              <p class="settings-row__label">Dark mode</p>
-              <p class="settings-row__hint">Switch between light and dark themes</p>
-            </div>
-            <button class="toggle" id="theme-toggle" role="switch" aria-checked="false" aria-label="Toggle dark mode"></button>
+          <div class="section__header">
+            <h2>Trusted contacts</h2>
+            <button type="button" class="btn btn--icon" id="add-contact-btn" aria-label="Add trusted contact"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
           </div>
-        </section>
 
-        <section class="section">
-          <div class="section__header"><h2>Notifications</h2></div>
-          <div class="card settings-row">
-            <div>
-              <p class="settings-row__label">Daily check-in reminder</p>
-              <p class="settings-row__hint">A gentle nudge to log your mood each day</p>
-            </div>
-            <button class="toggle" id="notif-toggle" role="switch" aria-checked="true" aria-label="Toggle daily reminders"></button>
+          <ul class="emergency-contact-list" id="contact-list"></ul>
+          <div class="empty-state" id="contact-empty" hidden>
+            <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-users"></use></svg></span>
+            <h3>No trusted contacts yet</h3>
+            <p>Add people you'd want to reach out to — a parent, friend, or advisor — so they're one tap away.</p>
           </div>
-        </section>
-
-        <section class="section">
-          <div class="section__header"><h2>Data</h2></div>
-          <div class="card settings-row">
-            <div>
-              <p class="settings-row__label">Clear all local data</p>
-              <p class="settings-row__hint">Removes journal entries, tasks, moods, and chat history from this device</p>
-            </div>
-            <button class="btn btn--danger btn--sm" id="clear-data-btn">Clear</button>
-          </div>
-        </section>
-
-        <section class="section">
-          <button class="btn btn--ghost btn--full" id="logout-btn">Log out</button>
-          <p class="settings-version">MindBloom · v1.0 · local-first build</p>
         </section>
 
       </main>
@@ -352,10 +343,41 @@
     </div>
   </div>
 
+  <!-- ADD CONTACT MODAL -->
+  <div class="modal-overlay" id="contact-modal-overlay" hidden>
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+      <div class="modal-sheet__handle"></div>
+      <h2 id="contact-modal-title">Add trusted contact</h2>
+
+      <form id="contact-form" class="stack emergency-form">
+        <div class="field" data-field="name">
+          <label class="field__label" for="contact-name">Name</label>
+          <input class="input" type="text" id="contact-name" name="name" placeholder="e.g. Mom" required />
+        </div>
+
+        <div class="field" data-field="relationship">
+          <label class="field__label" for="contact-relationship">Relationship</label>
+          <input class="input" type="text" id="contact-relationship" name="relationship" placeholder="e.g. Parent, friend, advisor" />
+        </div>
+
+        <div class="field" data-field="phone">
+          <label class="field__label" for="contact-phone">Phone number</label>
+          <input class="input" type="tel" id="contact-phone" name="phone" placeholder="e.g. (555) 123-4567" required />
+        </div>
+
+        <div class="emergency-form__actions">
+          <button type="button" class="btn btn--ghost" id="contact-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn--primary">Save contact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div id="toast-root" class="toast-root"></div>
 
   <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/core/data-store.js"></script>
   <script src="../scripts/auth.js"></script>
-  <script src="../scripts/settings.js"></script>
+  <script src="../scripts/emergency.js"></script>
 </body>
 </html>

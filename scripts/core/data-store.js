@@ -19,6 +19,8 @@
     physical: "mindbloom_physical_logs",
     stress: "mindbloom_mental_checkins",
     moods: "mindbloom_moods",
+    trustedContacts: "mindbloom_trusted_contacts",
+    focusSessions: "mindbloom_focus_sessions",
   };
 
   /* Five moods, sweeping the app's mood color scale (--mood-rough ...
@@ -59,6 +61,8 @@
       physicalLogs: readJSON(KEYS.physical, []),
       stressLogs: readJSON(KEYS.stress, []),
       moodLogs: readJSON(KEYS.moods, []),
+      trustedContacts: readJSON(KEYS.trustedContacts, []),
+      focusSessions: readJSON(KEYS.focusSessions, []),
     };
   }
 
@@ -205,6 +209,27 @@
   }
 
   /* ======================================================================
+     TRUSTED CONTACTS (emergency.html) — a person's own short list of who
+     to reach out to, independent of the crisis-line resources shown
+     alongside them (those are static, not stored here).
+     ====================================================================== */
+  function addTrustedContact(contact) {
+    const contacts = readJSON(KEYS.trustedContacts, []);
+    const record = Object.assign({ id: generateId() }, contact);
+    contacts.unshift(record);
+    writeJSON(KEYS.trustedContacts, contacts);
+    return load();
+  }
+
+  function deleteTrustedContact(id) {
+    const contacts = readJSON(KEYS.trustedContacts, []).filter(function (c) {
+      return c.id !== id;
+    });
+    writeJSON(KEYS.trustedContacts, contacts);
+    return load();
+  }
+
+  /* ======================================================================
      PHYSICAL — one record per calendar day; logging again today overwrites
      today's entry instead of stacking duplicates.
      ====================================================================== */
@@ -237,6 +262,23 @@
     const logs = readJSON(KEYS.moods, []);
     logs.unshift({ id: generateId(), timestamp: new Date().toISOString(), mood: mood });
     writeJSON(KEYS.moods, logs);
+    return load();
+  }
+
+  /* ======================================================================
+     FOCUS SESSIONS (planner.html's Pomodoro timer) — one entry per
+     completed focus interval; break intervals aren't logged.
+     ====================================================================== */
+  function addFocusSession(session) {
+    const logs = readJSON(KEYS.focusSessions, []);
+    logs.unshift({
+      id: generateId(),
+      taskId: session.taskId || null,
+      taskTitle: session.taskTitle || "",
+      durationMinutes: typeof session.durationMinutes === "number" ? session.durationMinutes : 25,
+      timestamp: new Date().toISOString(),
+    });
+    writeJSON(KEYS.focusSessions, logs);
     return load();
   }
 
@@ -443,6 +485,14 @@
         });
       });
 
+    record.focusSessions.forEach(function (s) {
+      items.push({
+        icon: "clock",
+        text: "Finished a " + s.durationMinutes + "-minute focus session" + (s.taskTitle ? ' on "' + s.taskTitle + '"' : ""),
+        timestamp: s.timestamp,
+      });
+    });
+
     items.sort(function (a, b) {
       return new Date(b.timestamp) - new Date(a.timestamp);
     });
@@ -469,6 +519,10 @@
     logPhysical: logPhysical,
     logStress: logStress,
     logMood: logMood,
+
+    addTrustedContact: addTrustedContact,
+    deleteTrustedContact: deleteTrustedContact,
+    addFocusSession: addFocusSession,
 
     isToday: isToday,
     formatTaskDue: formatTaskDue,

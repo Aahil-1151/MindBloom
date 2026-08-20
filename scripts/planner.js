@@ -80,6 +80,128 @@
   }
 
   /* ======================================================================
+     FOCUS TIMER (Pomodoro) — defaults to PriorityEngine.suggestFocusTask's
+     pick; completed focus sessions log to MindBloomData.addFocusSession so
+     they can feed Recent Activity and, eventually, Analytics.
+     ====================================================================== */
+  const timer = {
+    mode: "focus", // "focus" | "break"
+    running: false,
+    remainingSeconds: 25 * 60,
+    intervalId: null,
+    targetTask: null, // captured at "Start focus", not re-read mid-session
+  };
+
+  function timerModeSeconds(mode) {
+    const input = qs(mode === "focus" ? "#timer-focus-minutes" : "#timer-break-minutes");
+    const minutes = parseInt(input.value, 10) || (mode === "focus" ? 25 : 5);
+    return minutes * 60;
+  }
+
+  function formatTimerClock(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    return String(m).padStart(2, "0") + ":" + String(s).padStart(2, "0");
+  }
+
+  function renderTimer() {
+    qs("#timer-display").textContent = formatTimerClock(timer.remainingSeconds);
+    qs("#timer-mode-label").textContent = timer.mode === "focus" ? "Focus session" : "Break";
+
+    const targetLabel = qs("#timer-target-label");
+    if (timer.mode === "break") {
+      targetLabel.textContent = "Take a breather — back to it after this.";
+    } else if (timer.targetTask) {
+      targetLabel.textContent = timer.targetTask.title;
+    } else {
+      const suggestion = PriorityEngine.suggestFocusTask(tasks);
+      targetLabel.textContent = suggestion ? suggestion.task.title : "Add a task to get started";
+    }
+
+    const toggleBtn = qs("#timer-toggle-btn");
+    if (timer.running) {
+      toggleBtn.textContent = "Pause";
+    } else if (timer.remainingSeconds === timerModeSeconds(timer.mode)) {
+      toggleBtn.textContent = timer.mode === "focus" ? "Start focus" : "Start break";
+    } else {
+      toggleBtn.textContent = "Resume";
+    }
+  }
+
+  function completeTimerInterval() {
+    clearInterval(timer.intervalId);
+    timer.intervalId = null;
+    timer.running = false;
+
+    if (timer.mode === "focus") {
+      MindBloomData.addFocusSession({
+        taskId: timer.targetTask ? timer.targetTask.id : null,
+        taskTitle: timer.targetTask ? timer.targetTask.title : "",
+        durationMinutes: timerModeSeconds("focus") / 60,
+      });
+      MindBloomUtils.showToast("Focus session complete — nice work!", "success");
+      timer.mode = "break";
+      timer.targetTask = null;
+    } else {
+      MindBloomUtils.showToast("Break's over — ready for another round?");
+      timer.mode = "focus";
+    }
+    timer.remainingSeconds = timerModeSeconds(timer.mode);
+    renderTimer();
+  }
+
+  function tickTimer() {
+    timer.remainingSeconds -= 1;
+    if (timer.remainingSeconds <= 0) {
+      completeTimerInterval();
+      return;
+    }
+    renderTimer();
+  }
+
+  function toggleTimer() {
+    if (timer.running) {
+      clearInterval(timer.intervalId);
+      timer.intervalId = null;
+      timer.running = false;
+      renderTimer();
+      return;
+    }
+
+    if (timer.mode === "focus" && !timer.targetTask) {
+      const suggestion = PriorityEngine.suggestFocusTask(tasks);
+      timer.targetTask = suggestion ? suggestion.task : null;
+    }
+
+    timer.running = true;
+    timer.intervalId = setInterval(tickTimer, 1000);
+    renderTimer();
+  }
+
+  function resetTimer() {
+    clearInterval(timer.intervalId);
+    timer.intervalId = null;
+    timer.running = false;
+    timer.mode = "focus";
+    timer.targetTask = null;
+    timer.remainingSeconds = timerModeSeconds("focus");
+    renderTimer();
+  }
+
+  function wireFocusTimer() {
+    qs("#timer-toggle-btn").addEventListener("click", toggleTimer);
+    qs("#timer-reset-btn").addEventListener("click", resetTimer);
+
+    ["#timer-focus-minutes", "#timer-break-minutes"].forEach(function (selector) {
+      qs(selector).addEventListener("change", function () {
+        if (timer.running) return;
+        timer.remainingSeconds = timerModeSeconds(timer.mode);
+        renderTimer();
+      });
+    });
+  }
+
+  /* ======================================================================
      WORKLOAD METER
      ====================================================================== */
   const WORKLOAD_COLOR = {
@@ -175,6 +297,7 @@
         refresh();
         renderTaskList();
         renderFocusCard();
+        renderTimer();
         renderWorkload();
         renderCalendar();
         MindBloomUtils.showToast(!task.done ? "Nice work — task complete!" : "Marked as not done yet.", !task.done ? "success" : null);
@@ -217,6 +340,7 @@
         refresh();
         renderTaskList();
         renderFocusCard();
+        renderTimer();
         renderWorkload();
         renderCalendar();
         MindBloomUtils.showToast("Task deleted.", null);
@@ -307,6 +431,7 @@
         closeModal();
         renderCalendar();
         renderFocusCard();
+        renderTimer();
         renderWorkload();
         renderTaskList();
       });
@@ -320,6 +445,8 @@
     refresh();
     renderCalendar();
     renderFocusCard();
+    renderTimer();
+    wireFocusTimer();
     renderWorkload();
     wireViewToggle();
     renderTaskList();
