@@ -303,7 +303,13 @@
           </div>
 
           <div class="wellbeing-score__details">
-            <h2 class="wellbeing-score__heading" id="wb-score-heading">Your Wellbeing Score</h2>
+            <div class="wellbeing-score__header-row">
+              <h2 class="wellbeing-score__heading" id="wb-score-heading">Your Wellbeing Score</h2>
+              <a href="analytics.html" class="burnout-chip" id="burnout-chip" data-level="unknown" aria-label="Burnout risk — see full breakdown in Insights">
+                <span class="burnout-chip__dot"></span>
+                <span id="burnout-chip-label">Checking risk…</span>
+              </a>
+            </div>
             <p class="wellbeing-score__message" id="wellbeing-score-message">Calculating your balance…</p>
             <div class="wellbeing-score__breakdown" id="wellbeing-breakdown"></div>
           </div>
@@ -411,6 +417,7 @@
   <script src="../scripts/core/utils.js"></script>
   <script src="../scripts/core/data-store.js"></script>
   <script src="../scripts/auth.js"></script>
+  <script src="../scripts/burnout-score.js"></script>
   <script src="../scripts/dashboard.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {

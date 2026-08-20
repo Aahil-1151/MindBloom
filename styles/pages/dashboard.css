@@ -139,9 +139,51 @@
   min-width: 200px;
 }
 
+.wellbeing-score__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-1);
+}
+
+.wellbeing-score__header-row .wellbeing-score__heading {
+  margin-bottom: 0;
+}
+
 .wellbeing-score__heading {
   font-size: var(--fs-title);
   margin-bottom: var(--space-1);
+}
+
+/* Burnout-risk chip — compact link into analytics.html's full gauge, dot
+   colored via BurnoutScore.getLevelColorVar so it reads as the same
+   signal as the risk gauge there, just condensed. */
+.burnout-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface-alt);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.burnout-chip:hover {
+  background: var(--color-bg-sunken);
+}
+
+.burnout-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circle);
+  background: var(--color-text-muted);
+  flex-shrink: 0;
 }
 
 .wellbeing-score__message {

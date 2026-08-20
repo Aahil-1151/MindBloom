@@ -39,7 +39,7 @@
    --------------------------------------------------------------------- */
 .summary-card {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
 }
 
@@ -53,6 +53,19 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.summary-card__body {
+  min-width: 0;
+}
+
+.summary-card__label {
+  font-size: var(--fs-2xs);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--color-text-secondary);
+  font-weight: var(--fw-semibold);
+  margin-bottom: 2px;
 }
 
 .summary-card__text {

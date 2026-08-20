@@ -191,6 +191,84 @@
   }
 
   /* ======================================================================
+     RENDER: BURNOUT-RISK CHIP — a compact read of the same BurnoutScore
+     engine analytics.html's gauge uses, condensed to one dot + one line
+     so the AI-adjacent signal is visible from the home screen, not just
+     on the Insights page. Links through to analytics.html for the full
+     gauge/factor breakdown rather than duplicating it here.
+     ====================================================================== */
+  function daysAgo(timestamp) {
+    const startOfToday = new Date().setHours(0, 0, 0, 0);
+    const startOfThen = new Date(timestamp).setHours(0, 0, 0, 0);
+    return Math.round((startOfToday - startOfThen) / 86400000);
+  }
+
+  function computeBurnoutSignals(rec) {
+    const recentPhysical = rec.physicalLogs.filter(function (p) { return daysAgo(p.timestamp) <= 6; });
+    const recentMoods = rec.moodLogs.filter(function (m) { return daysAgo(m.timestamp) <= 6; });
+    const recentStress = rec.stressLogs.filter(function (s) { return daysAgo(s.timestamp) <= 6; });
+    const recentJournal = rec.journalEntries.filter(function (e) { return daysAgo(e.timestamp) <= 6; });
+    const openTasks = rec.upcomingTasks.filter(function (t) { return !t.done; });
+
+    const avgSleepHours = recentPhysical.length
+      ? recentPhysical.reduce(function (sum, p) { return sum + (p.sleepHours || 0); }, 0) / recentPhysical.length
+      : undefined;
+
+    const moodOrder = MindBloomData.MOOD_META.map(function (m) { return m.key; });
+    const avgMoodScore = recentMoods.length
+      ? recentMoods.reduce(function (sum, m) { return sum + (moodOrder.indexOf(m.mood) + 1); }, 0) / recentMoods.length
+      : undefined;
+
+    const avgWorkloadMinutesPerDay = openTasks.length
+      ? openTasks.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / 7
+      : undefined;
+
+    const negativeEmotions = ["stressed", "sad", "angry", "tired"];
+    const negativeCount =
+      recentJournal.filter(function (e) { return negativeEmotions.indexOf(e.emotion) !== -1; }).length +
+      recentStress.filter(function (s) { return s.level >= 4; }).length;
+    const totalNegativeSignals = recentJournal.length + recentStress.length;
+    const negativeEntryRatio = totalNegativeSignals ? negativeCount / totalNegativeSignals : undefined;
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const overdueTaskCount = openTasks.filter(function (t) {
+      return t.due && t.due < todayKey;
+    }).length;
+
+    return {
+      hasEnoughData: recentPhysical.length > 0 || recentMoods.length > 0 || recentJournal.length > 0,
+      signals: {
+        avgWorkloadMinutesPerDay: avgWorkloadMinutesPerDay,
+        avgMoodScore: avgMoodScore,
+        avgSleepHours: avgSleepHours,
+        negativeEntryRatio: negativeEntryRatio,
+        overdueTaskCount: overdueTaskCount,
+      },
+    };
+  }
+
+  function renderBurnoutChip() {
+    const chip = qs("#burnout-chip");
+    const label = qs("#burnout-chip-label");
+    const dot = qs(".burnout-chip__dot", chip);
+    if (!chip || !label) return;
+
+    const computed = computeBurnoutSignals(record);
+
+    if (!computed.hasEnoughData) {
+      chip.dataset.level = "unknown";
+      label.textContent = "Log a few days to see burnout risk";
+      return;
+    }
+
+    const burnout = BurnoutScore.computeScore(computed.signals);
+    chip.dataset.level = burnout.level;
+    if (dot) dot.style.background = "var(" + BurnoutScore.getLevelColorVar(burnout.level) + ")";
+    label.textContent =
+      burnout.score + "/100 · " + burnout.level.charAt(0).toUpperCase() + burnout.level.slice(1) + " risk";
+  }
+
+  /* ======================================================================
      RENDER: TODAY'S SUMMARY
      ====================================================================== */
   function renderSummary() {
@@ -422,6 +500,7 @@
     applyRealUserIfSignedIn();
     renderHeader();
     renderWellbeingScore();
+    renderBurnoutChip();
     renderSummary();
     renderQuickActions();
     renderTips();
