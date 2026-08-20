@@ -89,7 +89,14 @@ export default async function handler(req, res) {
     if (!openaiResponse.ok) {
       const errBody = await openaiResponse.text();
       console.error("OpenAI API error:", openaiResponse.status, errBody);
-      return res.status(502).json({ error: "The AI provider returned an error." });
+      // Surfacing OpenAI's HTTP status (not its body, which can echo back
+      // account/billing details) is enough to tell a bad/expired key (401)
+      // apart from a quota problem (429) or a bad model name (404) without
+      // needing to open Vercel's function logs for every failure.
+      return res.status(502).json({
+        error: "The AI provider returned an error.",
+        openaiStatus: openaiResponse.status,
+      });
     }
 
     const data = await openaiResponse.json();
