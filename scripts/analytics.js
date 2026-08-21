@@ -79,6 +79,51 @@
   };
 
   /* ----------------------------------------------------------------------
+     RAW HISTORY — for api/analyze.js (BurnoutScore.computeScoreAsync /
+     WeeklySummary's gemini path), which reasons over actual day-by-day
+     data and journal text rather than the pre-aggregated signals object
+     below. Built once per buildDataBundle call and reused for both the
+     burnout call and (via the returned bundle) the weekly summary call.
+     ---------------------------------------------------------------------- */
+  function buildRawHistory(dates, journalEntries, tasks, moodSeries, sleepSeries) {
+    const rangeStart = dates[0];
+
+    const days = dates.map(function (date, index) {
+      return {
+        date: toDateKey(date),
+        mood: moodSeries[index],
+        sleepHours: sleepSeries[index],
+      };
+    });
+
+    const recentJournal = journalEntries
+      .filter(function (e) { return new Date(e.createdAt) >= rangeStart; })
+      .slice(0, 10)
+      .map(function (e) {
+        return {
+          date: toDateKey(new Date(e.createdAt)),
+          text: (e.text || "").slice(0, 300),
+          sentiment: e.sentimentLabel || null,
+        };
+      });
+
+    const overdueTaskCount = tasks.filter(function (t) {
+      return t.status !== "done" && new Date(t.dueDate) < new Date();
+    }).length;
+    const dueSoonTaskCount = tasks.filter(function (t) {
+      const diffDays = (new Date(t.dueDate) - new Date()) / 86400000;
+      return t.status !== "done" && diffDays >= 0 && diffDays <= 3;
+    }).length;
+
+    return {
+      days: days,
+      journalEntries: recentJournal,
+      overdueTaskCount: overdueTaskCount,
+      dueSoonTaskCount: dueSoonTaskCount,
+    };
+  }
+
+  /* ----------------------------------------------------------------------
      BUILD THE DATA BUNDLE FOR THE SELECTED RANGE
      ---------------------------------------------------------------------- */
   function buildDataBundle(days) {
@@ -174,13 +219,18 @@
       ? tasksInRange.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / days
       : 65;
 
-    const burnout = BurnoutScore.computeScore({
+    const rawHistory = buildRawHistory(dates, journalEntries, tasks, moodSeries, sleepSeries);
+
+    // Instant local score first — the AI upgrade (see refreshAll) runs
+    // separately afterward so it never blocks the rest of this page.
+    const burnoutSignals = {
       avgWorkloadMinutesPerDay: avgWorkloadMinutes,
       avgMoodScore: avgMood,
       avgSleepHours: avgSleep,
       negativeEntryRatio: negativeRatio,
       overdueTaskCount: overdueCount,
-    });
+    };
+    const burnout = BurnoutScore.computeScore(burnoutSignals);
 
     // Top recurring theme across journal entries (for the weekly summary line)
     const themeCounts = {};
@@ -205,6 +255,8 @@
       avgSleep: avgSleep,
       taskCompletionRate: taskCompletion.done / Math.max(1, taskCompletion.done + taskCompletion.pending),
       topTheme: topTheme,
+      rawHistory: rawHistory,
+      burnoutSignals: burnoutSignals,
     };
   }
 
@@ -408,6 +460,7 @@
       burnoutLevel: bundle.burnout.level,
       consistencyPercent: bundle.habitStats.consistencyPercent,
       topTheme: bundle.topTheme,
+      rawHistory: bundle.rawHistory,
     });
     els.summaryText.textContent = summary;
   }
@@ -461,7 +514,19 @@
     renderBurnout(bundle.burnout);
     renderBurnoutTrend();
     renderHabits(bundle.habitStats);
+    upgradeBurnoutWithAI(bundle, currentRangeDays);
     await renderSummary(bundle, periodLabel);
+  }
+
+  // Fire-and-forget: re-renders the gauge with the richer AI read if/when it
+  // resolves. computeScoreAsync already falls back to the local score
+  // internally on any failure, so there is nothing to catch here — and if
+  // the user has since switched ranges, the stale result is simply dropped.
+  function upgradeBurnoutWithAI(bundle, requestedRangeDays) {
+    BurnoutScore.computeScoreAsync(bundle.burnoutSignals, bundle.rawHistory).then(function (upgraded) {
+      if (currentRangeDays !== requestedRangeDays) return;
+      renderBurnout(upgraded);
+    });
   }
 
   function wireRangeToggle() {

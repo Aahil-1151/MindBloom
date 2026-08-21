@@ -1,21 +1,29 @@
 /* ==========================================================================
    MindBloom — weekly-summary.js
-   Turns aggregated analytics data into a short natural-language summary.
+   Turns a week of analytics data into a short natural-language summary.
    Same swap-ready pattern as prompt-manager.js / reflection.js:
 
-     - localSummarizer  (ACTIVE TODAY) — template-based, filled in from
-       computed trends. No network call, resolves via Promise for
-       interface parity with the future provider.
+     - localSummarizer  — template-based, filled in from computed trends.
+       No network call, resolves via Promise for interface parity with
+       the AI provider. generate() below falls back to this on any
+       failure, so an undeployed or flaky api/analyze.js never surfaces
+       an error — the summary card just quietly stays template-based.
 
-     - geminiSummarizer (STUBBED)      — same interface, for genuinely
-       generated prose once connected. Flip ACTIVE_SUMMARIZER to "gemini"
-       when implemented; analytics.js does not need to change.
+     - geminiSummarizer — calls api/analyze.js with the week's raw
+       journal entries and day-by-day logs (not just the pre-computed
+       averages localSummarizer works from), so the write-up can
+       reference actual specifics from what the student wrote.
    ========================================================================== */
 
 (function (window) {
   "use strict";
 
-  const ACTIVE_SUMMARIZER = "local";
+  // ---- Provider switch (generate() falls back to local on failure) -------
+  const ACTIVE_SUMMARIZER = "gemini";
+
+  // Full https:// URL for the same reason as burnout-score.js's
+  // ANALYZE_ENDPOINT / prompt-manager.js's BACKEND_URL.
+  const ANALYZE_ENDPOINT = "https://mind-bloom-kp7y.vercel.app/api/analyze";
 
   function describeMoodTrend(first, last) {
     const diff = last - first;
@@ -82,24 +90,41 @@
     return word.charAt(0).toUpperCase() + word.slice(1);
   }
 
-  // ---- Gemini provider (STUBBED — not called while ACTIVE_SUMMARIZER is "local") ----
+  // ---- Gemini provider (api/analyze.js) -----------------------------------
   const geminiSummarizer = {
     /**
-     * Future implementation sketch (left unimplemented on purpose):
-     *
-     *   async generate(bundle) {
-     *     const response = await fetch(GEMINI_ENDPOINT, {
-     *       method: "POST",
-     *       body: JSON.stringify({ prompt: buildWeeklySummaryPrompt(bundle) }),
-     *     });
-     *     const data = await response.json();
-     *     return data.summary; // must resolve to a plain string, same as localSummarizer
-     *   }
+     * @param {object} bundle - localSummarizer's fields (for reference) plus
+     *   bundle.rawHistory: { days: [...], journalEntries: [...] } — the
+     *   caller's own raw week of data, same idea as burnout-score.js's
+     *   rawHistory but for the AI is asked to write a summary, not score.
+     * @returns {Promise<string>}
      */
-    generate() {
-      return Promise.reject(
-        new Error("geminiSummarizer is not implemented yet — set ACTIVE_SUMMARIZER to \"local\".")
-      );
+    async generate(bundle) {
+      const response = await fetch(ANALYZE_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "summary",
+          payload: {
+            periodLabel: bundle.periodLabel,
+            avgSleepHours: bundle.avgSleepHours,
+            taskCompletionRate: bundle.taskCompletionRate,
+            burnoutLevel: bundle.burnoutLevel,
+            consistencyPercent: bundle.consistencyPercent,
+            rawHistory: bundle.rawHistory,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("api/analyze.js responded with status " + response.status);
+      }
+
+      const data = await response.json();
+      if (!data.summary) {
+        throw new Error("api/analyze.js returned no summary text");
+      }
+      return data.summary;
     },
   };
 
@@ -107,12 +132,24 @@
 
   const WeeklySummary = {
     /**
-     * @param {object} bundle - see localSummarizer.generate for shape
+     * Tries the active summarizer (real AI reasoning when rawHistory is
+     * provided) and falls back to the local template on any failure —
+     * network down, endpoint not deployed, bad response — so the summary
+     * card never shows an error, just quietly degrades to template text.
+     * @param {object} bundle - see localSummarizer.generate for the required
+     *   fields; include bundle.rawHistory to allow the AI path to run.
      * @returns {Promise<string>}
      */
-    generate(bundle) {
-      const summarizer = summarizers[ACTIVE_SUMMARIZER] || localSummarizer;
-      return summarizer.generate(bundle);
+    async generate(bundle) {
+      if (ACTIVE_SUMMARIZER === "gemini" && bundle.rawHistory) {
+        try {
+          return await geminiSummarizer.generate(bundle);
+        } catch (err) {
+          console.error("WeeklySummary: gemini summarizer failed, falling back to local.", err);
+          return localSummarizer.generate(bundle);
+        }
+      }
+      return localSummarizer.generate(bundle);
     },
   };
 

@@ -257,6 +257,44 @@
     };
   }
 
+  /**
+   * Raw day-by-day history for BurnoutScore.computeScoreAsync's AI path
+   * (api/analyze.js) — the last 7 days of mood/sleep/stress plus a
+   * handful of recent journal entries, built from the real record shape
+   * (mirrors analytics.js's own buildRawHistory, which reads a
+   * different, pre-existing raw-localStorage shape and so can't be
+   * shared as-is).
+   */
+  function buildRawHistoryForBurnout(rec) {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const moodEntry = rec.moodLogs.find(function (m) { return daysAgo(m.timestamp) === i; });
+      const physicalEntry = rec.physicalLogs.find(function (p) { return daysAgo(p.timestamp) === i; });
+      const stressEntry = rec.stressLogs.find(function (s) { return daysAgo(s.timestamp) === i; });
+      days.push({
+        date: key,
+        mood: moodEntry ? moodEntry.mood : null,
+        sleepHours: physicalEntry && typeof physicalEntry.sleepHours === "number" ? physicalEntry.sleepHours : null,
+        stressLevel: stressEntry ? stressEntry.level : null,
+      });
+    }
+
+    const recentJournal = rec.journalEntries
+      .filter(function (e) { return daysAgo(e.timestamp) <= 13; })
+      .slice(0, 10)
+      .map(function (e) {
+        return { date: e.timestamp.slice(0, 10), text: (e.text || "").slice(0, 300), emotion: e.emotion || null };
+      });
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const overdueTaskCount = rec.upcomingTasks.filter(function (t) {
+      return !t.done && t.due && t.due < todayKey;
+    }).length;
+
+    return { days: days, journalEntries: recentJournal, overdueTaskCount: overdueTaskCount };
+  }
+
   function renderBurnoutChip() {
     const chip = qs("#burnout-chip");
     const label = qs("#burnout-chip-label");
@@ -273,13 +311,26 @@
       return;
     }
 
-    const burnout = BurnoutScore.computeScore(thisWeek.signals);
+    // Instant local score first so the chip never sits blank; the AI
+    // upgrade below silently re-renders in place if/when it resolves.
+    paintBurnoutChip(BurnoutScore.computeScore(thisWeek.signals), thisWeek, chip, label, dot, arrow);
+
+    const rawHistory = buildRawHistoryForBurnout(record);
+    BurnoutScore.computeScoreAsync(thisWeek.signals, rawHistory).then(function (burnout) {
+      paintBurnoutChip(burnout, thisWeek, chip, label, dot, arrow);
+    });
+  }
+
+  function paintBurnoutChip(burnout, thisWeek, chip, label, dot, arrow) {
     chip.dataset.level = burnout.level;
     if (dot) dot.style.background = "var(" + BurnoutScore.getLevelColorVar(burnout.level) + ")";
     label.textContent =
       burnout.score + "/100 · " + burnout.level.charAt(0).toUpperCase() + burnout.level.slice(1) + " risk";
+    label.title = burnout.message;
 
     if (arrow) {
+      // Local/instant on purpose — a second AI call just for the arrow's
+      // direction would double the network cost of this one small chip.
       const lastWeek = computeBurnoutSignals(record, 7, 13);
       if (lastWeek.hasEnoughData) {
         const lastBurnout = BurnoutScore.computeScore(lastWeek.signals);
