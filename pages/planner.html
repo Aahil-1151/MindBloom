@@ -283,17 +283,17 @@
     <main class="page planner-page">
 
       <!-- CALENDAR -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="calendar card card--elevated" id="calendar-container"></div>
       </section>
 
       <!-- FOCUS SUGGESTION -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="focus-card card card--pillar-academic" id="focus-card"></div>
       </section>
 
       <!-- FOCUS TIMER -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="card focus-timer" id="focus-timer">
           <div class="focus-timer__header">
             <p class="focus-timer__mode" id="timer-mode-label">Focus session</p>
@@ -321,12 +321,12 @@
       </section>
 
       <!-- WORKLOAD METER -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="workload-meter card" id="workload-meter"></div>
       </section>
 
       <!-- TASK LIST -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="section__header planner-list-header">
           <h2 id="list-heading">Today</h2>
           <div class="view-toggle" id="view-toggle">
@@ -428,5 +428,8 @@
   <script src="../scripts/priority-engine.js"></script>
   <script src="../scripts/calendar.js"></script>
   <script src="../scripts/planner.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../scripts/core/scroll-reveal.js"></script>
 </body>
 </html>

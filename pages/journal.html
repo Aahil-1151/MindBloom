@@ -309,7 +309,7 @@
       </section>
 
       <!-- FILTERS + SEARCH -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <div class="journal-controls">
           <div class="filter-row" id="filter-row"></div>
           <input
@@ -323,7 +323,7 @@
       </section>
 
       <!-- ENTRIES -->
-      <section class="section">
+      <section class="section scroll-reveal">
         <ul class="entries-list" id="entries-list"></ul>
         <div class="empty-state" id="entries-empty" hidden>
           <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-edit"></use></svg></span>
@@ -366,5 +366,8 @@
   <script src="../scripts/emotion-analysis.js"></script>
   <script src="../scripts/reflection.js"></script>
   <script src="../scripts/journal.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../scripts/core/scroll-reveal.js"></script>
 </body>
 </html>

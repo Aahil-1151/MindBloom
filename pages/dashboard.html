@@ -331,7 +331,7 @@
         </section>
 
         <!-- QUICK ACTIONS — a tall side module next to the score on desktop -->
-        <section class="section dash-grid__quick">
+        <section class="section scroll-reveal dash-grid__quick">
           <div class="section__header">
             <h2>Quick Actions</h2>
           </div>
@@ -339,7 +339,7 @@
         </section>
 
         <!-- TODAY'S SUMMARY -->
-        <section class="section dash-grid__summary">
+        <section class="section scroll-reveal dash-grid__summary">
           <div class="section__header">
             <h2>Today's Summary</h2>
           </div>
@@ -348,7 +348,7 @@
 
         <!-- TIPS FOR YOU — derived from the last 7 days of logged sleep,
              water, stress, and mood; empty until there's real history. -->
-        <section class="section dash-grid__tips" id="tips-section">
+        <section class="section scroll-reveal dash-grid__tips" id="tips-section">
           <div class="section__header">
             <h2>Tips for You</h2>
           </div>
@@ -361,7 +361,7 @@
         </section>
 
         <!-- RECENT ACTIVITY -->
-        <section class="section dash-grid__activity">
+        <section class="section scroll-reveal dash-grid__activity">
           <div class="section__header">
             <h2>Recent Activity</h2>
           </div>
@@ -374,7 +374,7 @@
         </section>
 
         <!-- DAILY MOTIVATION -->
-        <section class="section dash-grid__motivation">
+        <section class="section scroll-reveal dash-grid__motivation">
           <div class="motivation-card card card--glass anim-fade-up">
             <div class="motivation-card__icon"><svg class="icon" aria-hidden="true"><use href="#icon-sparkle"></use></svg></div>
             <p class="motivation-card__quote" id="motivation-quote">Loading today's thought…</p>
@@ -386,7 +386,7 @@
         </section>
 
         <!-- UPCOMING TASKS -->
-        <section class="section dash-grid__tasks">
+        <section class="section scroll-reveal dash-grid__tasks">
           <div class="section__header">
             <h2>Upcoming Tasks</h2>
             <a href="planner.html" class="auth-link">See all</a>
@@ -442,5 +442,8 @@
       MindBloomDashboard.init();
     });
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../scripts/core/scroll-reveal.js"></script>
 </body>
 </html>
