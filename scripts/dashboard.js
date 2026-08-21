@@ -334,6 +334,24 @@
   }
 
   /* ======================================================================
+     MILESTONES — checked once per load; anything newly true gets a
+     congratulatory toast (existing #toast-root pattern, nothing new)
+     and is marked shown so it never re-toasts. The full earned/locked
+     list lives on analytics.html (scripts/analytics.js), not here.
+     ====================================================================== */
+  function checkMilestones() {
+    const newlyUnlocked = Milestones.getNewlyUnlocked(record);
+    newlyUnlocked.forEach(function (milestone, index) {
+      record = MindBloomData.markMilestoneUnlocked(milestone.id);
+      // Stagger so simultaneous unlocks don't overlap on top of each
+      // other — each toast's own display window is 2200ms (utils.js).
+      setTimeout(function () {
+        MindBloomUtils.showToast("Milestone unlocked: " + milestone.title, "success");
+      }, index * 2400);
+    });
+  }
+
+  /* ======================================================================
      RENDER: TODAY'S SUMMARY
      ====================================================================== */
   function renderSummary() {
@@ -568,6 +586,7 @@
     renderBurnoutChip();
     renderStreak();
     renderLevel();
+    checkMilestones();
     renderSummary();
     renderQuickActions();
     renderTips();

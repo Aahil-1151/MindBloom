@@ -22,6 +22,7 @@
     trustedContacts: "mindbloom_trusted_contacts",
     focusSessions: "mindbloom_focus_sessions",
     xpLog: "mindbloom_xp_log",
+    unlockedMilestones: "mindbloom_unlocked_milestones",
   };
 
   /* Fixed XP award per logged action, regardless of the data logged — a
@@ -80,6 +81,7 @@
       trustedContacts: readJSON(KEYS.trustedContacts, []),
       focusSessions: readJSON(KEYS.focusSessions, []),
       xpLog: readJSON(KEYS.xpLog, []),
+      unlockedMilestones: readJSON(KEYS.unlockedMilestones, []),
     };
   }
 
@@ -326,6 +328,20 @@
   }
 
   /* ======================================================================
+     MILESTONES (scripts/milestones.js) — this file only records which
+     milestone ids have already been shown/earned; milestones.js owns the
+     actual unlock conditions as pure checks over the record above.
+     ====================================================================== */
+  function markMilestoneUnlocked(id) {
+    const unlocked = readJSON(KEYS.unlockedMilestones, []);
+    if (unlocked.indexOf(id) === -1) {
+      unlocked.push(id);
+      writeJSON(KEYS.unlockedMilestones, unlocked);
+    }
+    return load();
+  }
+
+  /* ======================================================================
      DERIVED: TODAY'S SUMMARY (dashboard.js)
      ====================================================================== */
   function computeTodaySummary(record) {
@@ -567,6 +583,7 @@
     deleteTrustedContact: deleteTrustedContact,
     addFocusSession: addFocusSession,
     addXpEntry: addXpEntry,
+    markMilestoneUnlocked: markMilestoneUnlocked,
 
     isToday: isToday,
     formatTaskDue: formatTaskDue,

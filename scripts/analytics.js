@@ -306,6 +306,7 @@
       consistencyPercent: document.getElementById("consistency-percent"),
       summaryText: document.getElementById("summary-text"),
       periodLabel: document.getElementById("period-label"),
+      milestoneList: document.getElementById("milestone-list"),
     };
     MindBloomUtils.initShell("insights");
   }
@@ -366,6 +367,33 @@
       labels: habitStats.weekday.labels,
       datasets: [{ label: "Check-ins", data: habitStats.weekday.counts, color: t.secondary }],
       horizontal: true,
+    });
+  }
+
+  /* ----------------------------------------------------------------------
+     MILESTONES — earned + locked-with-hint, read through MindBloomData
+     (core/data-store.js) rather than this file's own direct localStorage
+     reads above, since scripts/milestones.js's checks expect that exact
+     record shape. Independent of the 7/30/90 range toggle.
+     ---------------------------------------------------------------------- */
+  function renderMilestones() {
+    const list = els.milestoneList;
+    if (!list) return;
+
+    const record = MindBloomData.load();
+    const milestones = Milestones.evaluate(record);
+
+    list.innerHTML = "";
+    milestones.forEach(function (m) {
+      list.appendChild(el(
+        "li",
+        "milestone-item" + (m.earned ? " milestone-item--earned" : ""),
+        '<span class="milestone-item__icon">' + MindBloomUtils.icon(m.earned ? "check" : "target") + "</span>" +
+          '<span class="milestone-item__body">' +
+          '<span class="milestone-item__title">' + m.title + "</span>" +
+          '<span class="milestone-item__message">' + (m.earned ? m.description : m.hint) + "</span>" +
+          "</span>"
+      ));
     });
   }
 
@@ -455,6 +483,7 @@
 
   function init() {
     cacheElements();
+    renderMilestones(); // independent of Chart.js, so it still renders if charts fail to load
 
     if (!ChartsFactory.isAvailable()) {
       showOfflineNotice();

@@ -402,6 +402,17 @@
         </div>
       </section>
 
+      <!-- MILESTONES — earned + locked-with-hint, computed from real
+           logged behavior (scripts/milestones.js), never a countdown. -->
+      <section class="section">
+        <div class="chart-card card">
+          <div class="chart-card__header">
+            <h2>Milestones</h2>
+          </div>
+          <ul class="milestone-list" id="milestone-list"></ul>
+        </div>
+      </section>
+
     </main>
 
       <nav class="nav-bar hide-desktop" id="bottom-nav">
@@ -429,11 +440,14 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
   <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/core/data-store.js"></script>
   <script src="../scripts/auth.js"></script>
   <script src="../scripts/charts.js"></script>
   <script src="../scripts/habit-analysis.js"></script>
   <script src="../scripts/burnout-score.js"></script>
   <script src="../scripts/weekly-summary.js"></script>
+  <script src="../scripts/xp-engine.js"></script>
+  <script src="../scripts/milestones.js"></script>
   <script src="../scripts/analytics.js"></script>
 </body>
 </html>
