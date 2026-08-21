@@ -313,6 +313,20 @@
             </div>
             <p class="wellbeing-score__message" id="wellbeing-score-message">Calculating your balance…</p>
             <div class="wellbeing-score__breakdown" id="wellbeing-breakdown"></div>
+
+            <!-- STREAK + LEVEL — lightweight gamification (scripts/xp-engine.js
+                 for the level curve, HabitAnalysis for the streak), kept as
+                 two small pills rather than a takeover of this card. -->
+            <div class="wellbeing-score__gamify">
+              <span class="streak-badge" id="streak-badge">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#icon-activity"></use></svg>
+                <span id="streak-badge-label">—</span>
+              </span>
+              <span class="level-badge" id="level-badge">
+                <svg class="icon icon--sm" aria-hidden="true"><use href="#icon-target"></use></svg>
+                <span id="level-badge-label">Level 0 · 0 XP</span>
+              </span>
+            </div>
           </div>
         </section>
 
@@ -419,6 +433,8 @@
   <script src="../scripts/core/data-store.js"></script>
   <script src="../scripts/auth.js"></script>
   <script src="../scripts/burnout-score.js"></script>
+  <script src="../scripts/habit-analysis.js"></script>
+  <script src="../scripts/xp-engine.js"></script>
   <script src="../scripts/dashboard.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {

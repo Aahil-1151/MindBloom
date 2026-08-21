@@ -294,6 +294,46 @@
   }
 
   /* ======================================================================
+     RENDER: STREAK + LEVEL — lightweight gamification. Streak counts
+     consecutive days with ANY logged activity (mood/physical/stress/
+     journal/focus, not per-category), reusing HabitAnalysis the same way
+     analytics.html's journal-only streak does. Level comes from
+     scripts/xp-engine.js off the cumulative XP core/data-store.js has
+     already been awarding as those same actions happen.
+     ====================================================================== */
+  function renderStreak() {
+    const label = qs("#streak-badge-label");
+    if (!label) return;
+
+    const activityDates = []
+      .concat(record.moodLogs.map(function (m) { return m.timestamp; }))
+      .concat(record.physicalLogs.map(function (p) { return p.timestamp; }))
+      .concat(record.stressLogs.map(function (s) { return s.timestamp; }))
+      .concat(record.journalEntries.map(function (e) { return e.timestamp; }))
+      .concat(record.focusSessions.map(function (f) { return f.timestamp; }));
+
+    const currentStreak = HabitAnalysis.getCurrentStreak(activityDates);
+
+    // A broken (or not-yet-started) streak reads as a neutral fresh
+    // start, never a loss — punishing honest gaps defeats the point of
+    // a wellbeing app.
+    label.textContent = currentStreak > 0
+      ? currentStreak + " day streak"
+      : "Restarting today";
+  }
+
+  function renderLevel() {
+    const label = qs("#level-badge-label");
+    if (!label) return;
+
+    const totalXp = record.xpLog.reduce(function (sum, entry) {
+      return sum + (entry.amount || 0);
+    }, 0);
+    const levelInfo = XPEngine.computeLevel(totalXp);
+    label.textContent = "Level " + levelInfo.level + " · " + levelInfo.totalXp + " XP";
+  }
+
+  /* ======================================================================
      RENDER: TODAY'S SUMMARY
      ====================================================================== */
   function renderSummary() {
@@ -526,6 +566,8 @@
     renderHeader();
     renderWellbeingScore();
     renderBurnoutChip();
+    renderStreak();
+    renderLevel();
     renderSummary();
     renderQuickActions();
     renderTips();

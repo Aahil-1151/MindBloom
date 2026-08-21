@@ -21,6 +21,22 @@
     moods: "mindbloom_moods",
     trustedContacts: "mindbloom_trusted_contacts",
     focusSessions: "mindbloom_focus_sessions",
+    xpLog: "mindbloom_xp_log",
+  };
+
+  /* Fixed XP award per logged action, regardless of the data logged — a
+     rough mood day earns the same XP as a great one, since this rewards
+     the act of checking in, never the content, so honest logging is
+     never penalized. Mirrors scripts/xp-engine.js's ACTION_XP table
+     (kept as a separate constant there, not imported here, so this
+     low-level storage layer stays as dependency-free as every other
+     function in this file — keep the two in sync if either changes). */
+  const ACTION_XP = {
+    mood: 10,
+    journal: 15,
+    task: 10,
+    physical: 10,
+    focus: 20,
   };
 
   /* Five moods, sweeping the app's mood color scale (--mood-rough ...
@@ -63,6 +79,7 @@
       moodLogs: readJSON(KEYS.moods, []),
       trustedContacts: readJSON(KEYS.trustedContacts, []),
       focusSessions: readJSON(KEYS.focusSessions, []),
+      xpLog: readJSON(KEYS.xpLog, []),
     };
   }
 
@@ -141,6 +158,7 @@
     );
     entries.unshift(record);
     writeJSON(KEYS.journal, entries);
+    addXpEntry("journal");
     return record;
   }
 
@@ -188,10 +206,15 @@
   }
 
   function toggleTask(id) {
+    let justCompleted = false;
     const tasks = readJSON(KEYS.tasks, []).map(function (t) {
-      return t.id === id ? Object.assign({}, t, { done: !t.done }) : t;
+      if (t.id !== id) return t;
+      const nowDone = !t.done;
+      if (nowDone) justCompleted = true; // only award XP on not-done -> done, not the reverse
+      return Object.assign({}, t, { done: nowDone });
     });
     writeJSON(KEYS.tasks, tasks);
+    if (justCompleted) addXpEntry("task");
     return load();
   }
 
@@ -244,6 +267,7 @@
       logs.unshift(Object.assign({ id: generateId(), timestamp: new Date().toISOString() }, patch));
     }
     writeJSON(KEYS.physical, logs);
+    addXpEntry("physical");
     return load();
   }
 
@@ -262,6 +286,7 @@
     const logs = readJSON(KEYS.moods, []);
     logs.unshift({ id: generateId(), timestamp: new Date().toISOString(), mood: mood });
     writeJSON(KEYS.moods, logs);
+    addXpEntry("mood");
     return load();
   }
 
@@ -279,6 +304,24 @@
       timestamp: new Date().toISOString(),
     });
     writeJSON(KEYS.focusSessions, logs);
+    addXpEntry("focus");
+    return load();
+  }
+
+  /* ======================================================================
+     XP (dashboard.js's level display, via scripts/xp-engine.js) — one
+     entry per meaningful logged action, appended by that action's own
+     function below rather than left for each call site to remember.
+     ====================================================================== */
+  function addXpEntry(action) {
+    const logs = readJSON(KEYS.xpLog, []);
+    logs.unshift({
+      id: generateId(),
+      action: action,
+      amount: ACTION_XP[action] || 0,
+      timestamp: new Date().toISOString(),
+    });
+    writeJSON(KEYS.xpLog, logs);
     return load();
   }
 
@@ -523,6 +566,7 @@
     addTrustedContact: addTrustedContact,
     deleteTrustedContact: deleteTrustedContact,
     addFocusSession: addFocusSession,
+    addXpEntry: addXpEntry,
 
     isToday: isToday,
     formatTaskDue: formatTaskDue,
