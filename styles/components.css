@@ -24,6 +24,31 @@
   box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
+/* HUD corner-brackets — the shared "viewfinder" mark that replaces a plain
+   border as the signal that something is interactive/focused. Hidden by
+   default, drawn in on hover/emphasis so cards stay calm at rest. */
+.card::before,
+.card::after {
+  content: "";
+  position: absolute;
+  width: var(--bracket-size);
+  height: var(--bracket-size);
+  border: var(--bracket-width) solid var(--color-glow);
+  opacity: 0;
+  transition: opacity var(--duration-base) var(--ease-signal);
+  pointer-events: none;
+}
+.card::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+.card::after  { bottom: -1px; right: -1px; border-left: none; border-top: none; }
+.card--interactive:hover::before,
+.card--interactive:hover::after {
+  opacity: 1;
+}
+.card--glow::before,
+.card--glow::after {
+  opacity: 0.85;
+}
+
 .card--elevated {
   box-shadow: var(--shadow-md);
   border-color: var(--color-border-subtle);
@@ -121,12 +146,19 @@
   transform: scale(0.97);
 }
 
-/* Primary — gradient fill with a soft cyan glow, refined hover-lift
-   instead of a chunky 3D press effect */
+/* Primary — gradient fill, chamfered corners (no plain rounded rectangle),
+   with a soft cyan glow and a refined hover-lift instead of a chunky 3D
+   press effect. The cut corners are this system's signature button shape. */
 .btn--primary {
   background: var(--gradient-primary);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  clip-path: polygon(
+    var(--chamfer-sm) 0, 100% 0,
+    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
+    0 100%, 0 var(--chamfer-sm)
+  );
 }
 .btn--primary:hover {
   box-shadow: var(--shadow-glow-primary);
@@ -157,11 +189,19 @@
   background: var(--color-bg-surface-alt);
 }
 
-/* Accent — coral, used for streak/celebration CTAs */
+/* Accent — coral, used for streak/celebration CTAs. Chamfered on the
+   opposite pair of corners from --primary so the two read as a matched
+   but distinct pair rather than a copy-paste. */
 .btn--accent {
   background: var(--color-accent);
   color: var(--color-text-inverse);
   box-shadow: var(--shadow-sm);
+  border-radius: 0;
+  clip-path: polygon(
+    0 0, calc(100% - var(--chamfer-sm)) 0,
+    100% var(--chamfer-sm), 100% 100%,
+    var(--chamfer-sm) 100%, 0 calc(100% - var(--chamfer-sm))
+  );
 }
 .btn--accent:hover {
   box-shadow: var(--shadow-glow-coral);
@@ -280,10 +320,11 @@
   transition: transform var(--duration-base) var(--ease-out-soft);
 }
 .toggle[aria-checked="true"] {
-  background: var(--color-primary);
+  background: var(--gradient-primary);
 }
 .toggle[aria-checked="true"]::after {
   transform: translateX(20px);
+  box-shadow: 0 0 0 3px rgba(95, 168, 114, 0.22), var(--shadow-xs);
 }
 
 /* Checkbox — task completion */
@@ -310,6 +351,14 @@
   border-radius: var(--radius-pill);
   background: var(--color-bg-sunken);
   outline: none;
+}
+/* The unconditional outline:none above (needed to drop the native track
+   ring some browsers draw at rest) also silently ate the global
+   :focus-visible ring — equal specificity, later in the cascade. Restore
+   it here with matching styling, at higher specificity so it survives. */
+.slider:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -378,10 +427,22 @@
   overflow: hidden;
 }
 .progress-bar__fill {
+  position: relative;
   height: 100%;
   border-radius: var(--radius-pill);
-  background: var(--color-primary);
+  background: var(--gradient-primary);
+  overflow: hidden;
   transition: width var(--duration-slow) var(--ease-out-soft);
+}
+/* Ambient signal sweep — a soft light pass drifting through the fill so
+   progress reads as "alive," not a static bar. */
+.progress-bar__fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.35) 50%, transparent 80%);
+  background-size: 200% 100%;
+  animation: signal-sweep 2600ms var(--ease-signal) infinite;
 }
 .progress-bar__fill--accent { background: var(--color-accent); }
 .progress-bar__fill--secondary { background: var(--color-secondary); }
@@ -397,7 +458,7 @@
 }
 .progress-ring__fill {
   fill: none;
-  stroke: var(--color-primary);
+  stroke: var(--color-primary-pressed); /* bloom-500 is only 1.64:1 on light surfaces, below the 3:1 non-text minimum for a meaningful data stroke */
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset var(--duration-slow) var(--ease-out-soft);
@@ -460,7 +521,7 @@
 }
 .chart__line {
   fill: none;
-  stroke: var(--color-primary);
+  stroke: var(--color-primary-pressed);
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
@@ -471,7 +532,7 @@
 }
 .chart__point {
   fill: var(--color-bg-surface);
-  stroke: var(--color-primary);
+  stroke: var(--color-primary-pressed);
   stroke-width: 2;
 }
 .chart__bar {
@@ -506,12 +567,17 @@
 .icon-badge {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-primary-tint);
   color: var(--color-primary);
+  border: 1px solid rgba(127, 163, 224, 0.24);
+  clip-path: polygon(
+    var(--chamfer-sm) 0, 100% 0,
+    100% calc(100% - var(--chamfer-sm)), calc(100% - var(--chamfer-sm)) 100%,
+    0 100%, 0 var(--chamfer-sm)
+  );
 }
 
 /* ---------------------------------------------------------------------
@@ -531,6 +597,17 @@
   padding-bottom: env(safe-area-inset-bottom);
   z-index: var(--z-nav);
 }
+/* Signal hairline — a faint aurora gradient thread along the shell's
+   nav/header seams, the same quiet accent everywhere the UI meets its
+   own edge. */
+.nav-bar::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient-aurora);
+  opacity: 0.5;
+}
 .nav-item {
   display: flex;
   flex-direction: column;
@@ -542,6 +619,10 @@
 }
 .nav-item[aria-current="page"] {
   color: var(--color-primary);
+}
+.nav-item[aria-current="page"] .icon {
+  color: var(--color-glow);
+  filter: drop-shadow(0 0 5px rgba(127, 163, 224, 0.7));
 }
 
 .top-header {
@@ -559,6 +640,14 @@
   border-bottom: 1px solid var(--glass-border);
   z-index: var(--z-header);
 }
+.top-header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px; left: 0; right: 0;
+  height: 1px;
+  background: var(--gradient-aurora);
+  opacity: 0.5;
+}
 
 /* ---------------------------------------------------------------------
    10. MODAL / BOTTOM SHEET / TOAST
@@ -566,10 +655,17 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(11, 12, 14, 0.5);
+  background: rgba(23, 20, 15, 0.5);
   display: flex;
   align-items: flex-end;
   z-index: var(--z-modal);
+}
+/* Same fix as .empty-state[hidden] / .auth-step[hidden] elsewhere in this
+   app: the overlay's own display:flex otherwise beats the browser's
+   default [hidden]{display:none}, so the modal would stay visible (and
+   block the page) even while "closed". */
+.modal-overlay[hidden] {
+  display: none;
 }
 .modal-sheet {
   width: 100%;
@@ -614,6 +710,14 @@
   gap: var(--space-3);
   padding: var(--space-10) var(--space-5);
   color: var(--color-text-secondary);
+}
+
+/* .empty-state's own display:flex (an author rule) otherwise wins over the
+   browser's default [hidden] { display: none } regardless of the hidden
+   attribute being present — same fix already applied to .auth-step[hidden]
+   / .tab-panel[hidden] / .onboarding-step[hidden] elsewhere in this app. */
+.empty-state[hidden] {
+  display: none;
 }
 
 .empty-state__icon {

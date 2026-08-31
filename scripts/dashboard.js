@@ -1,102 +1,59 @@
 /* ==========================================================================
    MindBloom — dashboard.js
    Home Dashboard controller. Renders Sidebar/Bottom-Nav active state,
-   Header, Wellbeing Score, Today's Summary, Quick Actions, Daily
-   Motivation, Recent Activity, and Upcoming Tasks — all from an in-memory
-   dummy dataset (DASHBOARD_DATA below). No backend or storage service is
-   required to see a fully working dashboard.
+   Header, Wellbeing Score, Today's Summary, Quick Actions, Tips for You,
+   Daily Motivation, Recent Activity, and Upcoming Tasks.
 
-   Swap point for later: replace the DASHBOARD_DATA block and the reads
-   inside render*() functions with calls to the real services
-   (moodService, academicService, insightsService, etc.) — the render
-   functions themselves already expect this exact shape, so the DOM code
-   does not need to change.
+   Data model: every section reads through MindBloomData (core/data-store.js)
+   — the same shared, per-user record that physical.html and journal.html
+   write to when someone logs a mood, sleep/water/activity check-in, a
+   stress check-in, or a journal entry. That means logging something on
+   another page shows up here immediately on the next load: Today's
+   Summary, Recent Activity, the wellbeing pillars, and the Tips card are
+   all *derived* from those logs, never hand-maintained here. Nothing is
+   pre-seeded — a new signup starts with every log empty and every section
+   in its honest empty state until the person actually logs something.
    ========================================================================== */
 
 (function (window) {
   "use strict";
 
   /* ======================================================================
-     DUMMY DATA — stands in for services/*.js + insightsService.js
+     STATIC APP DATA — chrome that isn't tied to any one user's history
      ====================================================================== */
+  const PILLARS_META = [
+    { key: "physical", label: "Physical", color: "var(--color-primary)" },
+    { key: "mental", label: "Mental", color: "var(--color-secondary)" },
+    { key: "emotional", label: "Emotional", color: "var(--color-celebrate)" },
+    { key: "academic", label: "Academic", color: "var(--color-accent)" },
+  ];
+
+  const QUICK_ACTIONS = [
+    { icon: "mood-good", label: "Log Mood", href: "physical.html#mood" },
+    { icon: "edit", label: "Journal", href: "journal.html" },
+    { icon: "wind", label: "Breathe", href: "physical.html#mental" },
+    { icon: "clock", label: "Focus", href: "planner.html" },
+  ];
+
+  const MOTIVATION_QUOTES = [
+    "Small steps, repeated daily, beat big leaps taken rarely.",
+    "You don't have to feel motivated to make progress today.",
+    "Rest is part of the work, not a break from it.",
+    "One honest check-in with yourself is worth ten ignored ones.",
+    "Progress in any one area lifts the rest — start anywhere.",
+    "You're allowed to have an average day and still be doing great.",
+  ];
+
   const DASHBOARD_DATA = {
-    user: {
-      name: "Alex",
-    },
-
-    pillars: [
-      { key: "physical", label: "Physical", score: 82, color: "var(--color-primary)" },
-      { key: "mental", label: "Mental", score: 68, color: "var(--color-secondary)" },
-      { key: "emotional", label: "Emotional", score: 90, color: "var(--color-celebrate)" },
-      { key: "academic", label: "Academic", score: 74, color: "var(--color-accent)" },
-    ],
-
-    todaySummary: [
-      { icon: "mood-good", value: "Good", label: "Mood today" },
-      { icon: "moon", value: "7.5h", label: "Sleep (goal 8h)" },
-      { icon: "droplet", value: "5 / 8", label: "Water cups" },
-      { icon: "check", value: "3 / 5", label: "Tasks done" },
-    ],
-
-    quickActions: [
-      { icon: "mood-good", label: "Log Mood", href: "physical.html#mood" },
-      { icon: "edit", label: "Journal", href: "journal.html" },
-      { icon: "wind", label: "Breathe", href: "physical.html#mental" },
-      { icon: "clock", label: "Focus", href: "planner.html" },
-    ],
-
-    motivationQuotes: [
-      "Small steps, repeated daily, beat big leaps taken rarely.",
-      "You don't have to feel motivated to make progress today.",
-      "Rest is part of the work, not a break from it.",
-      "One honest check-in with yourself is worth ten ignored ones.",
-      "Progress in any one area lifts the rest — start anywhere.",
-      "You're allowed to have an average day and still be doing great.",
-    ],
-
-    recentActivity: [
-      { icon: "mood-good", text: "You logged your mood as Good", time: "2h ago" },
-      { icon: "check", text: 'Completed "Finish chem lab report"', time: "4h ago" },
-      { icon: "edit", text: "Wrote a journal entry", time: "Yesterday" },
-      { icon: "droplet", text: "Logged 6 cups of water", time: "Yesterday" },
-      { icon: "wind", text: "Completed a 5-minute breathing session", time: "2 days ago" },
-    ],
-
-    upcomingTasks: [
-      {
-        id: "t1",
-        title: "Submit History essay",
-        subject: "History",
-        due: "Today, 11:59 PM",
-        priority: "high",
-        done: false,
-      },
-      {
-        id: "t2",
-        title: "Math problem set 4",
-        subject: "Math",
-        due: "Tomorrow",
-        priority: "medium",
-        done: false,
-      },
-      {
-        id: "t3",
-        title: "Read Chapter 6",
-        subject: "Biology",
-        due: "Friday",
-        priority: "low",
-        done: false,
-      },
-      {
-        id: "t4",
-        title: "Group project check-in",
-        subject: "Computer Science",
-        due: "Monday",
-        priority: "medium",
-        done: true,
-      },
-    ],
+    user: { name: "there" },
+    quickActions: QUICK_ACTIONS,
+    motivationQuotes: MOTIVATION_QUOTES,
   };
+
+  /* ======================================================================
+     SHARED DATA — loaded fresh at init from MindBloomData (core/data-store.js)
+     ====================================================================== */
+  let record = null;
 
   /* ======================================================================
      HELPERS
@@ -123,6 +80,20 @@
     });
   }
 
+  function buildTodaySummary() {
+    const summary = MindBloomData.computeTodaySummary(record);
+    return [
+      { icon: "mood-good", value: summary.mood || "Not logged", label: "Mood today" },
+      {
+        icon: "moon",
+        value: summary.sleepHours ? summary.sleepHours + "h" : "Not logged",
+        label: "Sleep (goal " + summary.sleepGoal + "h)",
+      },
+      { icon: "droplet", value: summary.waterCups + " / " + summary.waterGoal, label: "Water cups" },
+      { icon: "check", value: summary.tasksDone + " / " + summary.tasksTotal, label: "Tasks done" },
+    ];
+  }
+
   /* ======================================================================
      RENDER: HEADER
      ====================================================================== */
@@ -139,14 +110,21 @@
   /* ======================================================================
      RENDER: WELLBEING SCORE (circular ring + pillar breakdown)
      ====================================================================== */
-  function computeOverallScore(pillars) {
-    const total = pillars.reduce(function (sum, p) {
-      return sum + p.score;
+  function computeOverallScore(pillarScores) {
+    const tracked = PILLARS_META.map(function (p) {
+      return pillarScores[p.key];
+    }).filter(function (score) {
+      return typeof score === "number";
+    });
+    if (!tracked.length) return null;
+    const total = tracked.reduce(function (sum, s) {
+      return sum + s;
     }, 0);
-    return Math.round(total / pillars.length);
+    return Math.round(total / tracked.length);
   }
 
   function scoreMessage(score) {
+    if (score === null) return "Log a mood, task, or journal entry to start building your wellbeing score.";
     if (score >= 85) return "You're thriving across the board. Keep it up!";
     if (score >= 70) return "Solid balance today — one or two areas need attention.";
     if (score >= 50) return "A mixed day. Let's shore up the lower-scoring areas.";
@@ -154,7 +132,8 @@
   }
 
   function renderWellbeingScore() {
-    const score = computeOverallScore(DASHBOARD_DATA.pillars);
+    const pillars = MindBloomData.computePillars(record);
+    const score = computeOverallScore(pillars);
     const numberEl = qs("#wellbeing-score-number");
     const messageEl = qs("#wellbeing-score-message");
     const breakdownEl = qs("#wellbeing-breakdown");
@@ -162,34 +141,40 @@
 
     if (messageEl) messageEl.textContent = scoreMessage(score);
 
-    // Animate the ring fill
+    // Animate the ring fill (an untracked score just sits at an empty ring)
     const radius = 52;
     const circumference = 2 * Math.PI * radius;
+    const displayScore = score === null ? 0 : score;
     if (ringFill) {
       ringFill.style.strokeDasharray = circumference.toFixed(2);
       ringFill.style.strokeDashoffset = circumference.toFixed(2);
       // force reflow, then animate to target offset
       requestAnimationFrame(function () {
-        const offset = circumference * (1 - score / 100);
+        const offset = circumference * (1 - displayScore / 100);
         ringFill.style.transition = "stroke-dashoffset 900ms cubic-bezier(0.16,1,0.3,1)";
         ringFill.style.strokeDashoffset = offset.toFixed(2);
       });
     }
 
-    // Animate the number counting up
+    // Animate the number counting up (or show a placeholder when untracked)
     if (numberEl) {
-      let current = 0;
-      const step = Math.max(1, Math.round(score / 30));
-      const counter = setInterval(function () {
-        current = Math.min(score, current + step);
-        numberEl.textContent = current;
-        if (current >= score) clearInterval(counter);
-      }, 20);
+      if (score === null) {
+        numberEl.textContent = "--";
+      } else {
+        let current = 0;
+        const step = Math.max(1, Math.round(score / 30));
+        const counter = setInterval(function () {
+          current = Math.min(score, current + step);
+          numberEl.textContent = current;
+          if (current >= score) clearInterval(counter);
+        }, 20);
+      }
     }
 
     if (breakdownEl) {
       breakdownEl.innerHTML = "";
-      DASHBOARD_DATA.pillars.forEach(function (pillar) {
+      PILLARS_META.forEach(function (pillar) {
+        const pillarScore = pillars[pillar.key];
         const pill = el(
           "span",
           "wellbeing-pill",
@@ -198,11 +183,223 @@
             '"></span>' +
             pillar.label +
             " " +
-            pillar.score
+            (typeof pillarScore === "number" ? pillarScore : "—")
         );
         breakdownEl.appendChild(pill);
       });
     }
+  }
+
+  /* ======================================================================
+     RENDER: BURNOUT-RISK CHIP — a compact read of the same BurnoutScore
+     engine analytics.html's gauge uses, condensed to one dot + one line
+     so the AI-adjacent signal is visible from the home screen, not just
+     on the Insights page. Links through to analytics.html for the full
+     gauge/factor breakdown rather than duplicating it here.
+     ====================================================================== */
+  function daysAgo(timestamp) {
+    const startOfToday = new Date().setHours(0, 0, 0, 0);
+    const startOfThen = new Date(timestamp).setHours(0, 0, 0, 0);
+    return Math.round((startOfToday - startOfThen) / 86400000);
+  }
+
+  /**
+   * @param {object} rec - MindBloomData record
+   * @param {number} minDaysAgo - inclusive, 0 = today
+   * @param {number} maxDaysAgo - inclusive; (0,6) = this week, (7,13) = the week before
+   */
+  function computeBurnoutSignals(rec, minDaysAgo, maxDaysAgo) {
+    function inWindow(timestamp) {
+      const d = daysAgo(timestamp);
+      return d >= minDaysAgo && d <= maxDaysAgo;
+    }
+
+    const recentPhysical = rec.physicalLogs.filter(function (p) { return inWindow(p.timestamp); });
+    const recentMoods = rec.moodLogs.filter(function (m) { return inWindow(m.timestamp); });
+    const recentStress = rec.stressLogs.filter(function (s) { return inWindow(s.timestamp); });
+    const recentJournal = rec.journalEntries.filter(function (e) { return inWindow(e.timestamp); });
+    const openTasks = rec.upcomingTasks.filter(function (t) { return !t.done; });
+
+    const avgSleepHours = recentPhysical.length
+      ? recentPhysical.reduce(function (sum, p) { return sum + (p.sleepHours || 0); }, 0) / recentPhysical.length
+      : undefined;
+
+    const moodOrder = MindBloomData.MOOD_META.map(function (m) { return m.key; });
+    const avgMoodScore = recentMoods.length
+      ? recentMoods.reduce(function (sum, m) { return sum + (moodOrder.indexOf(m.mood) + 1); }, 0) / recentMoods.length
+      : undefined;
+
+    const avgWorkloadMinutesPerDay = openTasks.length
+      ? openTasks.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / 7
+      : undefined;
+
+    const negativeEmotions = ["stressed", "sad", "angry", "tired"];
+    const negativeCount =
+      recentJournal.filter(function (e) { return negativeEmotions.indexOf(e.emotion) !== -1; }).length +
+      recentStress.filter(function (s) { return s.level >= 4; }).length;
+    const totalNegativeSignals = recentJournal.length + recentStress.length;
+    const negativeEntryRatio = totalNegativeSignals ? negativeCount / totalNegativeSignals : undefined;
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const overdueTaskCount = openTasks.filter(function (t) {
+      return t.due && t.due < todayKey;
+    }).length;
+
+    return {
+      hasEnoughData: recentPhysical.length > 0 || recentMoods.length > 0 || recentJournal.length > 0,
+      signals: {
+        avgWorkloadMinutesPerDay: avgWorkloadMinutesPerDay,
+        avgMoodScore: avgMoodScore,
+        avgSleepHours: avgSleepHours,
+        negativeEntryRatio: negativeEntryRatio,
+        overdueTaskCount: overdueTaskCount,
+      },
+    };
+  }
+
+  /**
+   * Raw day-by-day history for BurnoutScore.computeScoreAsync's AI path
+   * (api/analyze.js) — the last 7 days of mood/sleep/stress plus a
+   * handful of recent journal entries, built from the real record shape
+   * (mirrors analytics.js's own buildRawHistory, which reads a
+   * different, pre-existing raw-localStorage shape and so can't be
+   * shared as-is).
+   */
+  function buildRawHistoryForBurnout(rec) {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const key = new Date(Date.now() - i * 86400000).toISOString().slice(0, 10);
+      const moodEntry = rec.moodLogs.find(function (m) { return daysAgo(m.timestamp) === i; });
+      const physicalEntry = rec.physicalLogs.find(function (p) { return daysAgo(p.timestamp) === i; });
+      const stressEntry = rec.stressLogs.find(function (s) { return daysAgo(s.timestamp) === i; });
+      days.push({
+        date: key,
+        mood: moodEntry ? moodEntry.mood : null,
+        sleepHours: physicalEntry && typeof physicalEntry.sleepHours === "number" ? physicalEntry.sleepHours : null,
+        stressLevel: stressEntry ? stressEntry.level : null,
+      });
+    }
+
+    const recentJournal = rec.journalEntries
+      .filter(function (e) { return daysAgo(e.timestamp) <= 13; })
+      .slice(0, 10)
+      .map(function (e) {
+        return { date: e.timestamp.slice(0, 10), text: (e.text || "").slice(0, 300), emotion: e.emotion || null };
+      });
+
+    const todayKey = new Date().toISOString().slice(0, 10);
+    const overdueTaskCount = rec.upcomingTasks.filter(function (t) {
+      return !t.done && t.due && t.due < todayKey;
+    }).length;
+
+    return { days: days, journalEntries: recentJournal, overdueTaskCount: overdueTaskCount };
+  }
+
+  function renderBurnoutChip() {
+    const chip = qs("#burnout-chip");
+    const label = qs("#burnout-chip-label");
+    const dot = qs(".burnout-chip__dot", chip);
+    const arrow = qs("#burnout-chip-arrow");
+    if (!chip || !label) return;
+
+    const thisWeek = computeBurnoutSignals(record, 0, 6);
+
+    if (!thisWeek.hasEnoughData) {
+      chip.dataset.level = "unknown";
+      label.textContent = "Log a few days to see burnout risk";
+      if (arrow) arrow.textContent = "";
+      return;
+    }
+
+    // Instant local score first so the chip never sits blank; the AI
+    // upgrade below silently re-renders in place if/when it resolves.
+    paintBurnoutChip(BurnoutScore.computeScore(thisWeek.signals), thisWeek, chip, label, dot, arrow);
+
+    const rawHistory = buildRawHistoryForBurnout(record);
+    BurnoutScore.computeScoreAsync(thisWeek.signals, rawHistory).then(function (burnout) {
+      paintBurnoutChip(burnout, thisWeek, chip, label, dot, arrow);
+    });
+  }
+
+  function paintBurnoutChip(burnout, thisWeek, chip, label, dot, arrow) {
+    chip.dataset.level = burnout.level;
+    if (dot) dot.style.background = "var(" + BurnoutScore.getLevelColorVar(burnout.level) + ")";
+    label.textContent =
+      burnout.score + "/100 · " + burnout.level.charAt(0).toUpperCase() + burnout.level.slice(1) + " risk";
+    label.title = burnout.message;
+
+    if (arrow) {
+      // Local/instant on purpose — a second AI call just for the arrow's
+      // direction would double the network cost of this one small chip.
+      const lastWeek = computeBurnoutSignals(record, 7, 13);
+      if (lastWeek.hasEnoughData) {
+        const lastBurnout = BurnoutScore.computeScore(lastWeek.signals);
+        const trend = BurnoutScore.describeTrend([lastBurnout.score, burnout.score]);
+        arrow.textContent = trend.direction === "up" ? "↑" : trend.direction === "down" ? "↓" : "";
+        arrow.style.color = trend.direction === "up" ? "var(--color-coral-500)" : "var(--color-bloom-500)";
+        arrow.title = trend.message;
+      } else {
+        arrow.textContent = "";
+      }
+    }
+  }
+
+  /* ======================================================================
+     RENDER: STREAK + LEVEL — lightweight gamification. Streak counts
+     consecutive days with ANY logged activity (mood/physical/stress/
+     journal/focus, not per-category), reusing HabitAnalysis the same way
+     analytics.html's journal-only streak does. Level comes from
+     scripts/xp-engine.js off the cumulative XP core/data-store.js has
+     already been awarding as those same actions happen.
+     ====================================================================== */
+  function renderStreak() {
+    const label = qs("#streak-badge-label");
+    if (!label) return;
+
+    const activityDates = []
+      .concat(record.moodLogs.map(function (m) { return m.timestamp; }))
+      .concat(record.physicalLogs.map(function (p) { return p.timestamp; }))
+      .concat(record.stressLogs.map(function (s) { return s.timestamp; }))
+      .concat(record.journalEntries.map(function (e) { return e.timestamp; }))
+      .concat(record.focusSessions.map(function (f) { return f.timestamp; }));
+
+    const currentStreak = HabitAnalysis.getCurrentStreak(activityDates);
+
+    // A broken (or not-yet-started) streak reads as a neutral fresh
+    // start, never a loss — punishing honest gaps defeats the point of
+    // a wellbeing app.
+    label.textContent = currentStreak > 0
+      ? currentStreak + " day streak"
+      : "Restarting today";
+  }
+
+  function renderLevel() {
+    const label = qs("#level-badge-label");
+    if (!label) return;
+
+    const totalXp = record.xpLog.reduce(function (sum, entry) {
+      return sum + (entry.amount || 0);
+    }, 0);
+    const levelInfo = XPEngine.computeLevel(totalXp);
+    label.textContent = "Level " + levelInfo.level + " · " + levelInfo.totalXp + " XP";
+  }
+
+  /* ======================================================================
+     MILESTONES — checked once per load; anything newly true gets a
+     congratulatory toast (existing #toast-root pattern, nothing new)
+     and is marked shown so it never re-toasts. The full earned/locked
+     list lives on analytics.html (scripts/analytics.js), not here.
+     ====================================================================== */
+  function checkMilestones() {
+    const newlyUnlocked = Milestones.getNewlyUnlocked(record);
+    newlyUnlocked.forEach(function (milestone, index) {
+      record = MindBloomData.markMilestoneUnlocked(milestone.id);
+      // Stagger so simultaneous unlocks don't overlap on top of each
+      // other — each toast's own display window is 2200ms (utils.js).
+      setTimeout(function () {
+        MindBloomUtils.showToast("Milestone unlocked: " + milestone.title, "success");
+      }, index * 2400);
+    });
   }
 
   /* ======================================================================
@@ -213,7 +410,7 @@
     if (!grid) return;
     grid.innerHTML = "";
 
-    DASHBOARD_DATA.todaySummary.forEach(function (stat, index) {
+    buildTodaySummary().forEach(function (stat, index) {
       const card = el(
         "div",
         "card summary-stat anim-stagger",
@@ -255,6 +452,38 @@
   }
 
   /* ======================================================================
+     RENDER: TIPS FOR YOU — short, data-driven nudges derived from the
+     last 7 days of logs (see MindBloomData.computeTips). Nothing shows
+     until there's real history to reason about.
+     ====================================================================== */
+  function renderTips() {
+    const list = qs("#tips-list");
+    const emptyState = qs("#tips-empty");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const tips = MindBloomData.computeTips(record);
+    const isEmpty = !tips.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    tips.forEach(function (tip, index) {
+      const item = el(
+        "li",
+        "tip-item tip-item--" + tip.level + " anim-stagger",
+        '<span class="tip-item__icon">' + MindBloomUtils.icon(tip.icon) + "</span>" +
+          '<span class="tip-item__body">' +
+          '<span class="tip-item__title">' + tip.title + "</span>" +
+          '<span class="tip-item__message">' + tip.message + "</span>" +
+          "</span>"
+      );
+      item.style.setProperty("--delay", index * 60 + "ms");
+      list.appendChild(item);
+    });
+  }
+
+  /* ======================================================================
      RENDER: DAILY MOTIVATION
      ====================================================================== */
   function pickQuote(excludeIndex) {
@@ -288,14 +517,23 @@
   }
 
   /* ======================================================================
-     RENDER: RECENT ACTIVITY
+     RENDER: RECENT ACTIVITY — a merged, most-recent-first feed built from
+     every log type (mood/physical/stress/journal/tasks), not a separately
+     stored list.
      ====================================================================== */
   function renderActivity() {
     const list = qs("#activity-list");
+    const emptyState = qs("#activity-empty");
     if (!list) return;
     list.innerHTML = "";
 
-    DASHBOARD_DATA.recentActivity.forEach(function (item, index) {
+    const activity = MindBloomData.computeRecentActivity(record, 6);
+    const isEmpty = !activity.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    activity.forEach(function (item, index) {
       const li = el(
         "li",
         "activity-item anim-stagger",
@@ -309,15 +547,22 @@
   }
 
   /* ======================================================================
-     RENDER: UPCOMING TASKS (interactive — toggling persists in memory
-     for this session and re-renders the wellbeing score's academic pillar)
+     RENDER: UPCOMING TASKS (interactive — toggling persists through
+     MindBloomData.toggleTask and re-renders the summary + activity feed)
      ====================================================================== */
   function renderTasks() {
     const list = qs("#task-list");
+    const emptyState = qs("#task-empty");
     if (!list) return;
     list.innerHTML = "";
 
-    DASHBOARD_DATA.upcomingTasks.forEach(function (task, index) {
+    const isEmpty = !record.upcomingTasks.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    const sorted = MindBloomData.sortTasksForDisplay(record.upcomingTasks).slice(0, 6);
+    sorted.forEach(function (task, index) {
       const li = el("li", "task-item anim-stagger" + (task.done ? " task-item--done" : ""));
       li.style.setProperty("--delay", index * 50 + "ms");
 
@@ -329,20 +574,29 @@
       if (task.done) checkbox.innerHTML = MindBloomUtils.icon("check", "icon--sm");
 
       checkbox.addEventListener("click", function () {
-        task.done = !task.done;
+        record = MindBloomData.toggleTask(task.id);
+        const toggled = record.upcomingTasks.find(function (t) {
+          return t.id === task.id;
+        });
         renderTasks();
         renderSummary();
+        renderActivity();
+        renderWellbeingScore();
         MindBloomUtils.showToast(
-          task.done ? "Nice work — task complete!" : "Marked as not done yet.",
-          task.done ? "success" : null
+          toggled && toggled.done ? "Nice work — task complete!" : "Marked as not done yet.",
+          toggled && toggled.done ? "success" : null
         );
       });
+
+      const metaParts = [];
+      if (task.subject) metaParts.push(task.subject);
+      metaParts.push(MindBloomData.formatTaskDue(task.due));
 
       const body = el(
         "div",
         "task-item__body",
         '<div class="task-item__title">' + task.title + "</div>" +
-          '<div class="task-item__meta">' + task.subject + " • " + task.due + "</div>"
+          '<div class="task-item__meta">' + metaParts.join(" • ") + "</div>"
       );
 
       const priority = el(
@@ -376,16 +630,27 @@
      INIT
      ====================================================================== */
   function init() {
+    record = MindBloomData.load();
     applyRealUserIfSignedIn();
     renderHeader();
     renderWellbeingScore();
+    renderBurnoutChip();
+    renderStreak();
+    renderLevel();
+    checkMilestones();
     renderSummary();
     renderQuickActions();
+    renderTips();
     renderMotivation();
     renderActivity();
     renderTasks();
     MindBloomUtils.initShell("home");
   }
 
-  window.MindBloomDashboard = { init: init, DASHBOARD_DATA: DASHBOARD_DATA };
+  window.MindBloomDashboard = {
+    init: init,
+    get record() {
+      return record;
+    },
+  };
 })(window);

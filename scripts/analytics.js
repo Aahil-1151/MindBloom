@@ -79,6 +79,51 @@
   };
 
   /* ----------------------------------------------------------------------
+     RAW HISTORY — for api/analyze.js (BurnoutScore.computeScoreAsync /
+     WeeklySummary's gemini path), which reasons over actual day-by-day
+     data and journal text rather than the pre-aggregated signals object
+     below. Built once per buildDataBundle call and reused for both the
+     burnout call and (via the returned bundle) the weekly summary call.
+     ---------------------------------------------------------------------- */
+  function buildRawHistory(dates, journalEntries, tasks, moodSeries, sleepSeries) {
+    const rangeStart = dates[0];
+
+    const days = dates.map(function (date, index) {
+      return {
+        date: toDateKey(date),
+        mood: moodSeries[index],
+        sleepHours: sleepSeries[index],
+      };
+    });
+
+    const recentJournal = journalEntries
+      .filter(function (e) { return new Date(e.createdAt) >= rangeStart; })
+      .slice(0, 10)
+      .map(function (e) {
+        return {
+          date: toDateKey(new Date(e.createdAt)),
+          text: (e.text || "").slice(0, 300),
+          sentiment: e.sentimentLabel || null,
+        };
+      });
+
+    const overdueTaskCount = tasks.filter(function (t) {
+      return t.status !== "done" && new Date(t.dueDate) < new Date();
+    }).length;
+    const dueSoonTaskCount = tasks.filter(function (t) {
+      const diffDays = (new Date(t.dueDate) - new Date()) / 86400000;
+      return t.status !== "done" && diffDays >= 0 && diffDays <= 3;
+    }).length;
+
+    return {
+      days: days,
+      journalEntries: recentJournal,
+      overdueTaskCount: overdueTaskCount,
+      dueSoonTaskCount: dueSoonTaskCount,
+    };
+  }
+
+  /* ----------------------------------------------------------------------
      BUILD THE DATA BUNDLE FOR THE SELECTED RANGE
      ---------------------------------------------------------------------- */
   function buildDataBundle(days) {
@@ -174,13 +219,18 @@
       ? tasksInRange.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / days
       : 65;
 
-    const burnout = BurnoutScore.computeScore({
+    const rawHistory = buildRawHistory(dates, journalEntries, tasks, moodSeries, sleepSeries);
+
+    // Instant local score first — the AI upgrade (see refreshAll) runs
+    // separately afterward so it never blocks the rest of this page.
+    const burnoutSignals = {
       avgWorkloadMinutesPerDay: avgWorkloadMinutes,
       avgMoodScore: avgMood,
       avgSleepHours: avgSleep,
       negativeEntryRatio: negativeRatio,
       overdueTaskCount: overdueCount,
-    });
+    };
+    const burnout = BurnoutScore.computeScore(burnoutSignals);
 
     // Top recurring theme across journal entries (for the weekly summary line)
     const themeCounts = {};
@@ -205,7 +255,88 @@
       avgSleep: avgSleep,
       taskCompletionRate: taskCompletion.done / Math.max(1, taskCompletion.done + taskCompletion.pending),
       topTheme: topTheme,
+      rawHistory: rawHistory,
+      burnoutSignals: burnoutSignals,
     };
+  }
+
+  /* ----------------------------------------------------------------------
+     BURNOUT TREND — direction over time, not just today's snapshot.
+     Mirrors buildDataBundle's burnout-signal derivation (real journal/task
+     data, the same deterministic demo-fallback for sleep/mood gaps) but
+     applied to several past 7-day windows instead of just the currently
+     selected range, so "this week" here always matches what the gauge
+     above shows on a 7-day range. Kept as its own pass rather than
+     threaded through buildDataBundle so the range toggle (7/30/90) can
+     keep driving the snapshot score independently of this weekly series.
+     ---------------------------------------------------------------------- */
+  function computeBurnoutForWeek(weekEndDate, journalEntries, tasks) {
+    const weekDates = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(weekEndDate);
+      d.setDate(d.getDate() - i);
+      weekDates.push(d);
+    }
+    const weekStart = weekDates[0];
+
+    const moodSum = weekDates.reduce(function (sum, date) {
+      const key = toDateKey(date);
+      const entriesToday = journalEntries.filter(function (e) {
+        return toDateKey(new Date(e.createdAt)) === key;
+      });
+      if (entriesToday.length) {
+        return sum + entriesToday.reduce(function (s, e) {
+          return s + (SENTIMENT_TO_SCORE[e.sentimentLabel] || 3);
+        }, 0) / entriesToday.length;
+      }
+      return sum + seededWave(dayOfYear(date), 3.4, 0.9, 6);
+    }, 0);
+    const avgMood = moodSum / weekDates.length;
+
+    const avgSleep = weekDates.reduce(function (sum, date) {
+      return sum + seededWave(dayOfYear(date) + 3, 7.1, 1.1, 5);
+    }, 0) / weekDates.length;
+
+    const weekEntries = journalEntries.filter(function (e) {
+      const d = new Date(e.createdAt);
+      return d >= weekStart && d <= weekEndDate;
+    });
+    const negativeCount = weekEntries.filter(function (e) {
+      return ["sadness", "stress", "anger", "fear", "crisis"].indexOf(e.sentimentLabel) !== -1;
+    }).length;
+    const negativeRatio = weekEntries.length > 0 ? negativeCount / weekEntries.length : 0.2;
+
+    const weekTasks = tasks.filter(function (t) {
+      const d = new Date(t.dueDate);
+      return d >= weekStart && d <= weekEndDate;
+    });
+    const overdueCount = weekTasks.filter(function (t) {
+      return t.status !== "done" && new Date(t.dueDate) < new Date();
+    }).length;
+    const avgWorkloadMinutes = weekTasks.length > 0
+      ? weekTasks.reduce(function (sum, t) { return sum + (t.estimatedMinutes || 30); }, 0) / 7
+      : 65;
+
+    return BurnoutScore.computeScore({
+      avgWorkloadMinutesPerDay: avgWorkloadMinutes,
+      avgMoodScore: avgMood,
+      avgSleepHours: avgSleep,
+      negativeEntryRatio: negativeRatio,
+      overdueTaskCount: overdueCount,
+    });
+  }
+
+  function computeBurnoutHistory(weeksBack) {
+    const journalEntries = readJournalEntries();
+    const tasks = readTasks();
+    const points = [];
+    for (let w = weeksBack - 1; w >= 0; w--) {
+      const weekEndDate = new Date();
+      weekEndDate.setDate(weekEndDate.getDate() - w * 7);
+      const result = computeBurnoutForWeek(weekEndDate, journalEntries, tasks);
+      points.push({ label: w === 0 ? "This week" : w + "w ago", score: result.score });
+    }
+    return points;
   }
 
   /* ----------------------------------------------------------------------
@@ -220,11 +351,14 @@
       burnoutLevel: document.getElementById("burnout-level"),
       burnoutMessage: document.getElementById("burnout-message"),
       burnoutFactors: document.getElementById("burnout-factors"),
+      burnoutTrendArrow: document.getElementById("burnout-trend-arrow"),
+      burnoutTrendText: document.getElementById("burnout-trend-text"),
       streakCurrent: document.getElementById("streak-current"),
       streakLongest: document.getElementById("streak-longest"),
       consistencyPercent: document.getElementById("consistency-percent"),
       summaryText: document.getElementById("summary-text"),
       periodLabel: document.getElementById("period-label"),
+      milestoneList: document.getElementById("milestone-list"),
     };
     MindBloomUtils.initShell("insights");
   }
@@ -250,6 +384,31 @@
     });
   }
 
+  function renderBurnoutTrend() {
+    const points = computeBurnoutHistory(4);
+    const scores = points.map(function (p) { return p.score; });
+    const trend = BurnoutScore.describeTrend(scores);
+    const t = ChartsFactory.theme();
+
+    if (els.burnoutTrendArrow) {
+      els.burnoutTrendArrow.textContent = trend.direction === "up" ? "↑" : trend.direction === "down" ? "↓" : "→";
+      els.burnoutTrendArrow.style.color =
+        trend.direction === "up" ? t.accent : trend.direction === "down" ? t.primary : t.textSecondary;
+    }
+    if (els.burnoutTrendText) els.burnoutTrendText.textContent = trend.message;
+
+    // Deliberately not pinned to the gauge's 0-100 scale — the sparkline's
+    // job is to make the shape of the change legible (the arrow/message
+    // already state the absolute score), and a fixed 0-100 range flattens
+    // most real trends into an almost-straight line.
+    ChartsFactory.createLineChart("chart-burnout-trend", {
+      labels: points.map(function (p) { return p.label; }),
+      data: scores,
+      label: "Burnout risk",
+      color: t.accent,
+    });
+  }
+
   function renderHabits(habitStats) {
     els.streakCurrent.textContent = habitStats.currentStreak;
     els.streakLongest.textContent = habitStats.longestStreak;
@@ -260,6 +419,33 @@
       labels: habitStats.weekday.labels,
       datasets: [{ label: "Check-ins", data: habitStats.weekday.counts, color: t.secondary }],
       horizontal: true,
+    });
+  }
+
+  /* ----------------------------------------------------------------------
+     MILESTONES — earned + locked-with-hint, read through MindBloomData
+     (core/data-store.js) rather than this file's own direct localStorage
+     reads above, since scripts/milestones.js's checks expect that exact
+     record shape. Independent of the 7/30/90 range toggle.
+     ---------------------------------------------------------------------- */
+  function renderMilestones() {
+    const list = els.milestoneList;
+    if (!list) return;
+
+    const record = MindBloomData.load();
+    const milestones = Milestones.evaluate(record);
+
+    list.innerHTML = "";
+    milestones.forEach(function (m) {
+      list.appendChild(el(
+        "li",
+        "milestone-item" + (m.earned ? " milestone-item--earned" : ""),
+        '<span class="milestone-item__icon">' + MindBloomUtils.icon(m.earned ? "check" : "target") + "</span>" +
+          '<span class="milestone-item__body">' +
+          '<span class="milestone-item__title">' + m.title + "</span>" +
+          '<span class="milestone-item__message">' + (m.earned ? m.description : m.hint) + "</span>" +
+          "</span>"
+      ));
     });
   }
 
@@ -274,6 +460,7 @@
       burnoutLevel: bundle.burnout.level,
       consistencyPercent: bundle.habitStats.consistencyPercent,
       topTheme: bundle.topTheme,
+      rawHistory: bundle.rawHistory,
     });
     els.summaryText.textContent = summary;
   }
@@ -325,8 +512,21 @@
 
     renderCharts(bundle);
     renderBurnout(bundle.burnout);
+    renderBurnoutTrend();
     renderHabits(bundle.habitStats);
+    upgradeBurnoutWithAI(bundle, currentRangeDays);
     await renderSummary(bundle, periodLabel);
+  }
+
+  // Fire-and-forget: re-renders the gauge with the richer AI read if/when it
+  // resolves. computeScoreAsync already falls back to the local score
+  // internally on any failure, so there is nothing to catch here — and if
+  // the user has since switched ranges, the stale result is simply dropped.
+  function upgradeBurnoutWithAI(bundle, requestedRangeDays) {
+    BurnoutScore.computeScoreAsync(bundle.burnoutSignals, bundle.rawHistory).then(function (upgraded) {
+      if (currentRangeDays !== requestedRangeDays) return;
+      renderBurnout(upgraded);
+    });
   }
 
   function wireRangeToggle() {
@@ -348,6 +548,7 @@
 
   function init() {
     cacheElements();
+    renderMilestones(); // independent of Chart.js, so it still renders if charts fail to load
 
     if (!ChartsFactory.isAvailable()) {
       showOfflineNotice();

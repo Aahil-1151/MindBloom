@@ -1,11 +1,13 @@
 /* ==========================================================================
-   MindBloom — settings.css
-   Styles for settings.html: profile card, toggle rows, data management,
-   and the logout/version footer.
+   MindBloom — pages/settings.css
+   Settings: profile card, and grouped toggle/action rows.
    ========================================================================== */
 
 .settings-page {
-  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 520px;
   margin-inline: auto;
 }
 
@@ -13,7 +15,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  padding: var(--space-5);
 }
 
 .avatar--lg {
@@ -29,7 +30,7 @@
 }
 
 .settings-profile__email {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
 }
 
@@ -38,12 +39,11 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-4);
 }
 
 .settings-row__label {
-  font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
 }
 
 .settings-row__hint {
@@ -56,16 +56,5 @@
   text-align: center;
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  margin-top: var(--space-4);
-}
-
-.toast-root {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: var(--z-toast);
-}
-
-.toast-root .toast {
-  pointer-events: auto;
+  margin-top: var(--space-3);
 }

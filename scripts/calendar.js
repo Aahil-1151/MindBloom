@@ -1,184 +1,120 @@
 /* ==========================================================================
    MindBloom — calendar.js
-   A self-contained, reusable month-grid calendar component. It never reads
-   or writes storage — it only renders a month for a given year/month, marks
-   days that have tasks (via a tasksByDate map it's handed), and reports
-   navigation/selection back through callbacks. planner.js owns all data;
-   this module owns only the grid.
-
-   Usage:
-     const calendar = MindBloomCalendar.create(containerEl, {
-       initialDate: new Date(),
-       tasksByDate: { "2026-07-10": [...tasks] },
-       onSelectDate: (dateKey) => { ... },
-       onMonthChange: (year, month) => { ... },
-     });
-     calendar.render();
-     calendar.setTasksByDate(newMap); // call after tasks change elsewhere
+   A small, dependency-free month-grid calendar renderer used by
+   planner.html. Builds entirely fresh DOM into a container each render —
+   no state of its own, the caller (planner.js) owns the current month /
+   selected date and re-renders on change.
    ========================================================================== */
 
-(function (window) {
+(function (window, document) {
   "use strict";
 
-  const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
-  const MONTH_LABELS = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
+  const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const toDateKey = window.MindBloomUtils.toDateKey;
-
-  function isSameDay(a, b) {
-    return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
-    );
+  function toDateKey(year, month, day) {
+    const mm = String(month + 1).padStart(2, "0");
+    const dd = String(day).padStart(2, "0");
+    return year + "-" + mm + "-" + dd;
   }
 
-  const el = window.MindBloomUtils.el;
+  /**
+   * @param {HTMLElement} container
+   * @param {object} opts
+   * @param {Date} opts.monthDate - any date within the month to display
+   * @param {string} opts.selectedKey - the currently-selected "YYYY-MM-DD"
+   * @param {Object<string,number>} opts.markedCounts - dateKey -> task count, for dots
+   * @param {(dateKey:string)=>void} opts.onSelect
+   * @param {(newMonthDate:Date)=>void} opts.onMonthChange
+   */
+  function render(container, opts) {
+    if (!container) return;
+    const monthDate = opts.monthDate;
+    const year = monthDate.getFullYear();
+    const month = monthDate.getMonth();
+    const now = new Date();
+    const todayKey = toDateKey(now.getFullYear(), now.getMonth(), now.getDate());
 
-  function createCalendar(container, options) {
-    const settings = Object.assign(
-      {
-        initialDate: new Date(),
-        tasksByDate: {},
-        onSelectDate: function () {},
-        onMonthChange: function () {},
-      },
-      options
-    );
+    const startOffset = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-    let viewYear = settings.initialDate.getFullYear();
-    let viewMonth = settings.initialDate.getMonth();
-    let selectedDate = new Date(settings.initialDate);
-    let tasksByDate = settings.tasksByDate;
+    const header = document.createElement("div");
+    header.className = "calendar__header";
 
-    function buildHeader() {
-      const header = el("div", "calendar__header");
+    const prevBtn = document.createElement("button");
+    prevBtn.type = "button";
+    prevBtn.className = "btn btn--icon";
+    prevBtn.setAttribute("aria-label", "Previous month");
+    prevBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg>';
+    prevBtn.addEventListener("click", function () {
+      opts.onMonthChange(new Date(year, month - 1, 1));
+    });
 
-      const prevBtn = el("button", "btn btn--icon btn--sm calendar__nav", "‹");
-      prevBtn.type = "button";
-      prevBtn.setAttribute("aria-label", "Previous month");
-      prevBtn.addEventListener("click", function () {
-        viewMonth -= 1;
-        if (viewMonth < 0) {
-          viewMonth = 11;
-          viewYear -= 1;
-        }
-        settings.onMonthChange(viewYear, viewMonth);
-        render();
-      });
+    const nextBtn = document.createElement("button");
+    nextBtn.type = "button";
+    nextBtn.className = "btn btn--icon";
+    nextBtn.setAttribute("aria-label", "Next month");
+    nextBtn.innerHTML =
+      '<svg class="icon" aria-hidden="true" style="transform:rotate(180deg)"><use href="#icon-chevron-left"></use></svg>';
+    nextBtn.addEventListener("click", function () {
+      opts.onMonthChange(new Date(year, month + 1, 1));
+    });
 
-      const label = el(
-        "span",
-        "calendar__month-label",
-        MONTH_LABELS[viewMonth] + " " + viewYear
-      );
+    const label = document.createElement("span");
+    label.className = "calendar__month-label";
+    label.textContent = monthDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 
-      const nextBtn = el("button", "btn btn--icon btn--sm calendar__nav", "›");
-      nextBtn.type = "button";
-      nextBtn.setAttribute("aria-label", "Next month");
-      nextBtn.addEventListener("click", function () {
-        viewMonth += 1;
-        if (viewMonth > 11) {
-          viewMonth = 0;
-          viewYear += 1;
-        }
-        settings.onMonthChange(viewYear, viewMonth);
-        render();
-      });
+    header.appendChild(prevBtn);
+    header.appendChild(label);
+    header.appendChild(nextBtn);
 
-      header.appendChild(prevBtn);
-      header.appendChild(label);
-      header.appendChild(nextBtn);
-      return header;
+    const weekdaysRow = document.createElement("div");
+    weekdaysRow.className = "calendar__weekdays";
+    WEEKDAYS.forEach(function (wd) {
+      const cell = document.createElement("span");
+      cell.className = "calendar__weekday";
+      cell.textContent = wd;
+      weekdaysRow.appendChild(cell);
+    });
+
+    const grid = document.createElement("div");
+    grid.className = "calendar__grid";
+
+    for (let i = 0; i < startOffset; i++) {
+      const empty = document.createElement("div");
+      empty.className = "calendar__cell calendar__cell--empty";
+      grid.appendChild(empty);
     }
 
-    function buildWeekdayRow() {
-      const row = el("div", "calendar__weekdays");
-      WEEKDAY_LABELS.forEach(function (label) {
-        row.appendChild(el("span", "calendar__weekday", label));
-      });
-      return row;
-    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = toDateKey(year, month, day);
+      const cell = document.createElement("button");
+      cell.type = "button";
+      let cls = "calendar__cell";
+      if (dateKey === todayKey) cls += " calendar__cell--today";
+      if (dateKey === opts.selectedKey) cls += " calendar__cell--selected";
+      cell.className = cls;
+      cell.textContent = String(day);
+      cell.setAttribute("aria-label", monthDate.toLocaleDateString(undefined, { month: "long" }) + " " + day);
 
-    function buildGrid() {
-      const grid = el("div", "calendar__grid");
-
-      const firstOfMonth = new Date(viewYear, viewMonth, 1);
-      const startOffset = firstOfMonth.getDay(); // 0 = Sunday
-      const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-      const today = new Date();
-
-      for (let i = 0; i < startOffset; i++) {
-        grid.appendChild(el("span", "calendar__cell calendar__cell--empty"));
+      const count = (opts.markedCounts || {})[dateKey] || 0;
+      if (count > 0) {
+        const dot = document.createElement("span");
+        dot.className = "calendar__dot" + (count > 1 ? " calendar__dot--multi" : "");
+        cell.appendChild(dot);
       }
 
-      for (let day = 1; day <= daysInMonth; day++) {
-        const cellDate = new Date(viewYear, viewMonth, day);
-        const dateKey = toDateKey(cellDate);
-        const tasksForDay = tasksByDate[dateKey] || [];
-        const pendingCount = tasksForDay.filter(function (t) {
-          return t.status !== "done";
-        }).length;
+      cell.addEventListener("click", function () {
+        opts.onSelect(dateKey);
+      });
 
-        const cell = el("button", "calendar__cell");
-        cell.type = "button";
-        cell.textContent = String(day);
-        cell.dataset.date = dateKey;
-
-        if (isSameDay(cellDate, today)) cell.classList.add("calendar__cell--today");
-        if (isSameDay(cellDate, selectedDate)) cell.classList.add("calendar__cell--selected");
-
-        if (pendingCount > 0) {
-          const dot = el("span", "calendar__dot");
-          if (pendingCount > 1) dot.classList.add("calendar__dot--multi");
-          cell.appendChild(dot);
-        }
-
-        cell.addEventListener("click", function () {
-          selectedDate = cellDate;
-          settings.onSelectDate(dateKey);
-          render();
-        });
-
-        grid.appendChild(cell);
-      }
-
-      return grid;
+      grid.appendChild(cell);
     }
 
-    function render() {
-      container.innerHTML = "";
-      container.appendChild(buildHeader());
-      container.appendChild(buildWeekdayRow());
-      container.appendChild(buildGrid());
-    }
-
-    return {
-      render: render,
-
-      /** Call after tasks change elsewhere so the dots stay accurate. */
-      setTasksByDate(newMap) {
-        tasksByDate = newMap || {};
-        render();
-      },
-
-      /** Programmatically jump to and select a specific date. */
-      goToDate(date) {
-        viewYear = date.getFullYear();
-        viewMonth = date.getMonth();
-        selectedDate = new Date(date);
-        render();
-      },
-
-      /** @returns {string} the currently selected date as "YYYY-MM-DD" */
-      getSelectedDateKey() {
-        return toDateKey(selectedDate);
-      },
-    };
+    container.innerHTML = "";
+    container.appendChild(header);
+    container.appendChild(weekdaysRow);
+    container.appendChild(grid);
   }
 
-  window.MindBloomCalendar = { create: createCalendar, toDateKey: toDateKey };
-})(window);
+  window.Calendar = { render: render, toDateKey: toDateKey };
+})(window, document);

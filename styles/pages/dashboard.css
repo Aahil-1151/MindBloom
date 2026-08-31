@@ -1,26 +1,67 @@
 /* ==========================================================================
-   MindBloom — dashboard.css
-   Styles specific to the Home Dashboard: header, wellbeing score, summary
-   grid, quick actions, motivation card, activity list, upcoming tasks.
-   Shared app-shell/sidebar layout now lives in styles/shell.css.
+   MindBloom — pages/dashboard.css
+   Home dashboard: a named CSS-grid (dash-grid__*) so the wellbeing score
+   and quick actions sit side-by-side on desktop and stack in a sensible
+   reading order on mobile, plus every card's internal layout.
    ========================================================================== */
 
+.dashboard-page {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+.dash-grid__score,
+.dash-grid__quick,
+.dash-grid__summary,
+.dash-grid__tips,
+.dash-grid__activity,
+.dash-grid__motivation,
+.dash-grid__tasks {
+  grid-column: 1;
+}
+
+@media (min-width: 900px) {
+  .dashboard-page {
+    grid-template-columns: 2fr 1fr;
+  }
+  .dash-grid__score  { grid-column: 1; grid-row: 1; }
+  .dash-grid__quick  { grid-column: 2; grid-row: 1 / span 2; }
+  .dash-grid__summary{ grid-column: 1; grid-row: 2; }
+  .dash-grid__tips     { grid-column: 1; grid-row: 3; }
+  .dash-grid__motivation{ grid-column: 2; grid-row: 3; }
+  .dash-grid__activity{ grid-column: 1; grid-row: 4; }
+  .dash-grid__tasks  { grid-column: 2; grid-row: 4; }
+}
+
+.section__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.section__header h2 {
+  font-size: var(--fs-title);
+}
+
 /* ---------------------------------------------------------------------
-   3. HEADER
+   HEADER
    --------------------------------------------------------------------- */
 .dashboard-header {
-  position: sticky;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+  padding-inline: var(--space-5);
 }
 
 .dashboard-header__eyebrow {
   font-size: var(--fs-xs);
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
 }
 
 .dashboard-header__title {
-  font-size: var(--fs-md);
-  font-weight: var(--fw-semibold);
+  font-size: var(--fs-heading);
 }
 
 .dashboard-header__actions {
@@ -30,55 +71,49 @@
 }
 
 .avatar {
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-circle);
-  background: var(--color-primary);
+  background: var(--gradient-primary);
   color: var(--color-text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: var(--fw-semibold);
-  font-size: var(--fs-sm);
 }
 
 /* ---------------------------------------------------------------------
-   4. WELLBEING SCORE
+   WELLBEING SCORE
    --------------------------------------------------------------------- */
 .wellbeing-score-card {
-  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-6);
   flex-wrap: wrap;
-  overflow: hidden;
-}
-
-.wellbeing-score-card::before {
-  content: "";
-  position: absolute;
-  top: -60%;
-  right: -20%;
-  width: 260px;
-  height: 260px;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%);
-  pointer-events: none;
 }
 
 .wellbeing-score__ring-wrap {
   position: relative;
-  flex-shrink: 0;
   width: 128px;
   height: 128px;
+  flex-shrink: 0;
 }
 
-.wellbeing-score__ring {
-  width: 100%;
-  height: 100%;
+.progress-ring {
+  transform: rotate(-90deg);
 }
 
-.progress-ring__fill#wellbeing-ring-fill {
+.progress-ring__track {
+  fill: none;
+  stroke: var(--color-border-subtle);
+  stroke-width: 10;
+}
+
+.progress-ring__fill {
+  fill: none;
   stroke: var(--color-primary);
+  stroke-width: 10;
+  stroke-linecap: round;
 }
 
 .wellbeing-score__value {
@@ -92,8 +127,6 @@
 
 .wellbeing-score__value .stat-number {
   font-size: var(--fs-2xl);
-  color: var(--color-text-primary);
-  line-height: 1;
 }
 
 .wellbeing-score__unit {
@@ -103,17 +136,66 @@
 
 .wellbeing-score__details {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 
-.wellbeing-score__heading {
-  font-size: var(--fs-md);
+.wellbeing-score__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
   margin-bottom: var(--space-1);
 }
 
-.wellbeing-score__message {
-  font-size: var(--fs-sm);
+.wellbeing-score__header-row .wellbeing-score__heading {
+  margin-bottom: 0;
+}
+
+.wellbeing-score__heading {
+  font-size: var(--fs-title);
+  margin-bottom: var(--space-1);
+}
+
+/* Burnout-risk chip — compact link into analytics.html's full gauge, dot
+   colored via BurnoutScore.getLevelColorVar so it reads as the same
+   signal as the risk gauge there, just condensed. */
+.burnout-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-bg-surface-alt);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
   color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition: background-color var(--duration-fast) var(--ease-standard);
+}
+
+.burnout-chip:hover {
+  background: var(--color-bg-sunken);
+}
+
+.burnout-chip__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-circle);
+  background: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* Week-over-week direction (BurnoutScore.describeTrend) — empty unless
+   there's a prior week to compare against. */
+.burnout-chip__arrow {
+  font-weight: var(--fw-bold);
+  line-height: 1;
+}
+
+.wellbeing-score__message {
+  color: var(--color-text-secondary);
+  font-size: var(--fs-sm);
   margin-bottom: var(--space-3);
 }
 
@@ -126,12 +208,12 @@
 .wellbeing-pill {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-pill);
-  font-size: var(--fs-2xs);
-  font-weight: var(--fw-semibold);
   background: var(--color-bg-surface-alt);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
 }
 
 .wellbeing-pill__dot {
@@ -140,22 +222,84 @@
   border-radius: var(--radius-circle);
 }
 
+/* Streak + level — lightweight gamification, kept to two small pills
+   rather than a takeover of the wellbeing score card. */
+.wellbeing-score__gamify {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--color-primary-tint);
+  color: var(--color-primary-pressed);
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+.level-badge .icon,
+.streak-badge .icon {
+  width: 14px;
+  height: 14px;
+}
+
 /* ---------------------------------------------------------------------
-   5. SECTION HEADERS
+   QUICK ACTIONS
    --------------------------------------------------------------------- */
-.section__header {
+.quick-actions-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-3);
+}
+
+.quick-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-3);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-subtle);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--duration-fast) var(--ease-bounce), box-shadow var(--duration-base) var(--ease-standard);
+}
+
+.quick-action:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.quick-action:active {
+  transform: scale(0.96);
+}
+
+.quick-action__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-tint);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
+  justify-content: center;
 }
 
-.section__header h2 {
-  font-size: var(--fs-md);
+.quick-action__label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  text-align: center;
 }
 
 /* ---------------------------------------------------------------------
-   6. TODAY'S SUMMARY GRID
+   TODAY'S SUMMARY
    --------------------------------------------------------------------- */
 .summary-grid {
   display: grid;
@@ -163,28 +307,34 @@
   gap: var(--space-3);
 }
 
+@media (min-width: 560px) {
+  .summary-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 .summary-stat {
   padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
 }
 
 .summary-stat__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .summary-stat__icon {
-  display: inline-flex;
-  color: var(--color-primary);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--color-glow-tint);
+  color: var(--color-glow);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.summary-stat__icon .icon {
-  width: 22px;
-  height: 22px;
-}
+.summary-stat__icon .icon { width: 18px; height: 18px; }
 
 .summary-stat__value {
   font-family: var(--font-mono);
@@ -198,74 +348,108 @@
 }
 
 /* ---------------------------------------------------------------------
-   7. QUICK ACTIONS
+   TIPS
    --------------------------------------------------------------------- */
-.quick-actions-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-3);
-}
-
-.quick-action {
+.tips-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
   gap: var(--space-2);
-  padding: var(--space-4) var(--space-2);
-  border-radius: var(--radius-lg);
+}
+
+.tip-item {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
-  box-shadow: var(--shadow-xs);
-  cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-bounce),
-              box-shadow var(--duration-base) var(--ease-standard);
+  border-left: 3px solid var(--color-border-default);
 }
 
-.quick-action:hover {
-  box-shadow: var(--shadow-sm);
-}
+.tip-item--warning { border-left-color: var(--color-coral-500); }
+.tip-item--positive { border-left-color: var(--color-primary); }
+.tip-item--info { border-left-color: var(--color-glow); }
 
-.quick-action:active {
-  transform: scale(0.94);
-}
-
-.quick-action__icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--color-primary-tint);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-primary-pressed);
-}
-
-.quick-action__label {
-  font-size: var(--fs-2xs);
-  font-weight: var(--fw-medium);
+.tip-item__icon {
+  flex-shrink: 0;
   color: var(--color-text-secondary);
-  text-align: center;
+}
+
+.tip-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tip-item__title {
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-sm);
+}
+
+.tip-item__message {
+  font-size: var(--fs-xs);
+  color: var(--color-text-secondary);
 }
 
 /* ---------------------------------------------------------------------
-   8. DAILY MOTIVATION
+   RECENT ACTIVITY
+   --------------------------------------------------------------------- */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
+  font-size: var(--fs-sm);
+}
+
+.activity-item:last-child { border-bottom: none; }
+
+.activity-item__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.activity-item__icon .icon { width: 16px; height: 16px; }
+
+.activity-item__text { flex: 1; }
+
+.activity-item__time {
+  font-size: var(--fs-2xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   MOTIVATION
    --------------------------------------------------------------------- */
 .motivation-card {
-  padding: var(--space-6);
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
 }
 
 .motivation-card__icon {
-  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--gradient-glow);
+  color: var(--color-text-inverse);
+  display: flex;
+  align-items: center;
   justify-content: center;
-  width: 100%;
-  color: var(--color-glow);
-  margin-bottom: var(--space-2);
-}
-
-.motivation-card__icon .icon {
-  width: 28px;
-  height: 28px;
 }
 
 .motivation-card__quote {
@@ -273,8 +457,7 @@
   font-size: var(--fs-md);
   font-weight: var(--fw-medium);
   line-height: var(--lh-snug);
-  color: var(--color-text-primary);
-  margin-bottom: var(--space-4);
+  flex: 1;
 }
 
 .motivation-card__footer {
@@ -289,50 +472,7 @@
 }
 
 /* ---------------------------------------------------------------------
-   9. RECENT ACTIVITY
-   --------------------------------------------------------------------- */
-.activity-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-}
-
-.activity-item__icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-circle);
-  background: var(--color-bg-surface-alt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-}
-
-.activity-item__text {
-  flex: 1;
-  font-size: var(--fs-sm);
-  color: var(--color-text-primary);
-}
-
-.activity-item__time {
-  font-size: var(--fs-2xs);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-}
-
-/* ---------------------------------------------------------------------
-   10. UPCOMING TASKS
+   UPCOMING TASKS
    --------------------------------------------------------------------- */
 .task-list {
   display: flex;
@@ -344,40 +484,25 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
-  transition: opacity var(--duration-base) var(--ease-standard);
 }
 
-.task-item--done {
-  opacity: 0.55;
-}
+.task-item--done { opacity: 0.55; }
+.task-item--done .task-item__title { text-decoration: line-through; }
 
-.task-item--done .task-item__title {
-  text-decoration: line-through;
-}
-
-.task-item__checkbox {
-  flex-shrink: 0;
-}
-
-.task-item__body {
-  flex: 1;
-  min-width: 0;
-}
+.task-item__body { flex: 1; min-width: 0; }
 
 .task-item__title {
-  font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
-  color: var(--color-text-primary);
+  font-size: var(--fs-sm);
 }
 
 .task-item__meta {
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  margin-top: 2px;
 }
 
 .task-item__priority {
@@ -388,24 +513,6 @@
   border-radius: var(--radius-pill);
 }
 
-.task-item__priority--high   { background: var(--color-coral-50); color: var(--color-coral-700); }
-.task-item__priority--medium { background: var(--color-gold-50);  color: var(--color-gold-700); }
-.task-item__priority--low    { background: var(--color-bloom-50); color: var(--color-bloom-700); }
-
-/* ---------------------------------------------------------------------
-   11. RESPONSIVE
-   --------------------------------------------------------------------- */
-@media (min-width: 480px) {
-  .summary-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-@media (min-width: 768px) {
-  .dashboard-page { max-width: 760px; margin-inline: auto; }
-  .summary-grid { grid-template-columns: repeat(4, 1fr); }
-  .wellbeing-score-card { flex-wrap: nowrap; }
-}
-
-@media (max-width: 479px) {
-  .quick-actions-row { grid-template-columns: repeat(4, 1fr); gap: var(--space-2); }
-  .quick-action__label { font-size: 10px; }
-}
+.task-item__priority--high   { background: var(--color-accent-tint); color: var(--color-coral-700); }
+.task-item__priority--medium { background: var(--color-celebrate-tint); color: var(--color-gold-700); }
+.task-item__priority--low    { background: var(--color-primary-tint); color: var(--color-primary-pressed); }

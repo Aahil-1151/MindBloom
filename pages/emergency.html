@@ -1,4 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link rel="stylesheet" href="../styles/fonts.css" />
+  <title>Emergency Help — MindBloom</title>
+
+  <link rel="stylesheet" href="../styles/variables.css" />
+  <link rel="stylesheet" href="../styles/global.css" />
+  <link rel="stylesheet" href="../styles/animations.css" />
+  <link rel="stylesheet" href="../styles/components.css" />
+  <link rel="stylesheet" href="../styles/shell.css" />
+  <link rel="stylesheet" href="../styles/responsive.css" />
+  <link rel="stylesheet" href="../styles/pages/emergency.css" />
+</head>
+<body>
+  <!-- Icon sprite (inlined so <use> works reliably under file:// as well as http://) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
 
   <!-- ==========================================================================
        MindBloom — icons.svg  ·  "AURORA SIGNAL" original icon language
@@ -213,4 +231,156 @@
     <path d="M7.7 13.8C9 15.5 10.6 16.3 12 16.3S15 15.5 16.3 13.8" stroke-linecap="round"/>
   </symbol>
 
-</svg>
+  </svg>
+
+
+  <div id="app" class="emergency-shell">
+
+    <aside class="sidebar hide-mobile" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="auth-brand__mark"><svg class="icon" aria-hidden="true"><use href="#icon-leaf"></use></svg></div>
+        <span class="sidebar__brand-name">MindBloom</span>
+      </div>
+
+      <nav class="sidebar__nav">
+        <a href="dashboard.html" class="sidebar__link" data-nav="home">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg></span> Home
+        </a>
+        <a href="physical.html" class="sidebar__link" data-nav="wellbeing">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg></span> Wellbeing
+        </a>
+        <a href="planner.html" class="sidebar__link" data-nav="academic">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-cap"></use></svg></span> Academic
+        </a>
+        <a href="chat.html" class="sidebar__link" data-nav="bloom">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg></span> Bloom AI
+        </a>
+        <a href="analytics.html" class="sidebar__link" data-nav="insights">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-chart"></use></svg></span> Insights
+        </a>
+        <a href="settings.html" class="sidebar__link" data-nav="settings">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-settings"></use></svg></span> Settings
+        </a>
+        <a href="emergency.html" class="sidebar__link" data-nav="emergency">
+          <span class="sidebar__icon"><svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg></span> Emergency
+        </a>
+      </nav>
+
+      <button class="sidebar__logout" id="sidebar-logout">
+        <svg class="icon" aria-hidden="true"><use href="#icon-logout"></use></svg> Log out
+      </button>
+    </aside>
+
+    <div class="main-area">
+
+      <header class="top-header">
+        <h1 class="page-header__title">Emergency Help</h1>
+      </header>
+
+      <main class="page emergency-page">
+
+        <section class="section">
+          <div class="section__header"><h2>Crisis lines</h2></div>
+          <div class="card card--pillar-mental emergency-crisis-card">
+            <p class="emergency-crisis-card__intro">If you're in immediate danger, call 911. Otherwise, these are free, confidential, and available right now.</p>
+
+            <div class="emergency-crisis-line">
+              <span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg></span>
+              <div>
+                <p class="emergency-crisis-line__title">988 Suicide &amp; Crisis Lifeline</p>
+                <p class="emergency-crisis-line__hint">Call or text 988, anytime, for any kind of crisis.</p>
+              </div>
+              <a class="btn btn--secondary btn--sm" href="tel:988">Call</a>
+            </div>
+
+            <div class="emergency-crisis-line">
+              <span class="icon-badge"><svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg></span>
+              <div>
+                <p class="emergency-crisis-line__title">Crisis Text Line</p>
+                <p class="emergency-crisis-line__hint">Text HOME to 741741 to reach a counselor by text.</p>
+              </div>
+              <a class="btn btn--secondary btn--sm" href="sms:741741&body=HOME">Text</a>
+            </div>
+          </div>
+        </section>
+
+        <section class="section scroll-reveal">
+          <div class="section__header">
+            <h2>Trusted contacts</h2>
+            <button type="button" class="btn btn--icon" id="add-contact-btn" aria-label="Add trusted contact"><svg class="icon" aria-hidden="true"><use href="#icon-plus"></use></svg></button>
+          </div>
+
+          <ul class="emergency-contact-list" id="contact-list"></ul>
+          <div class="empty-state" id="contact-empty" hidden>
+            <span class="empty-state__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#icon-users"></use></svg></span>
+            <h3>No trusted contacts yet</h3>
+            <p>Add people you'd want to reach out to — a parent, friend, or advisor — so they're one tap away.</p>
+          </div>
+        </section>
+
+      </main>
+
+      <nav class="nav-bar hide-desktop" id="bottom-nav">
+        <a href="dashboard.html" class="nav-item" data-nav="home">
+          <svg class="icon" aria-hidden="true"><use href="#icon-home"></use></svg><span>Home</span>
+        </a>
+        <a href="physical.html" class="nav-item" data-nav="wellbeing">
+          <svg class="icon" aria-hidden="true"><use href="#icon-heart"></use></svg><span>Wellbeing</span>
+        </a>
+        <a href="planner.html" class="nav-item" data-nav="academic">
+          <svg class="icon" aria-hidden="true"><use href="#icon-cap"></use></svg><span>Academic</span>
+        </a>
+        <a href="chat.html" class="nav-item" data-nav="bloom">
+          <svg class="icon" aria-hidden="true"><use href="#icon-chat"></use></svg><span>Bloom</span>
+        </a>
+        <a href="analytics.html" class="nav-item" data-nav="insights">
+          <svg class="icon" aria-hidden="true"><use href="#icon-chart"></use></svg><span>Insights</span>
+        </a>
+        <a href="emergency.html" class="nav-item" data-nav="emergency">
+          <svg class="icon" aria-hidden="true"><use href="#icon-medical"></use></svg><span>Help</span>
+        </a>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ADD CONTACT MODAL -->
+  <div class="modal-overlay" id="contact-modal-overlay" hidden>
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+      <div class="modal-sheet__handle"></div>
+      <h2 id="contact-modal-title">Add trusted contact</h2>
+
+      <form id="contact-form" class="stack emergency-form">
+        <div class="field" data-field="name">
+          <label class="field__label" for="contact-name">Name</label>
+          <input class="input" type="text" id="contact-name" name="name" placeholder="e.g. Mom" required />
+        </div>
+
+        <div class="field" data-field="relationship">
+          <label class="field__label" for="contact-relationship">Relationship</label>
+          <input class="input" type="text" id="contact-relationship" name="relationship" placeholder="e.g. Parent, friend, advisor" />
+        </div>
+
+        <div class="field" data-field="phone">
+          <label class="field__label" for="contact-phone">Phone number</label>
+          <input class="input" type="tel" id="contact-phone" name="phone" placeholder="e.g. (555) 123-4567" required />
+        </div>
+
+        <div class="emergency-form__actions">
+          <button type="button" class="btn btn--ghost" id="contact-modal-cancel">Cancel</button>
+          <button type="submit" class="btn btn--primary">Save contact</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toast-root" class="toast-root"></div>
+
+  <script src="../scripts/core/utils.js"></script>
+  <script src="../scripts/core/data-store.js"></script>
+  <script src="../scripts/auth.js"></script>
+  <script src="../scripts/emergency.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="../scripts/core/scroll-reveal.js"></script>
+</body>
+</html>

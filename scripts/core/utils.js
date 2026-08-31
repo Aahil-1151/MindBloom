@@ -1,50 +1,109 @@
 /* ==========================================================================
    MindBloom — core/utils.js
-   Shared, dependency-free helpers used across every page. Consolidates
-   what used to be copy-pasted in dashboard.js, journal.js, planner.js,
-   analytics.js, calendar.js, task-manager.js, habit-analysis.js, and
-   conversation-ui.js. Load this before any page controller.
+   Shared, dependency-free helpers used by nearly every page controller:
+   element creation, the icon-sprite helper, toasts, theme persistence,
+   the shared mood picker, shell/nav wiring (active state + logout + the
+   signed-out redirect guard), and a Date -> "YYYY-MM-DD" key formatter.
+   Load this before any other MindBloom script.
    ========================================================================== */
 
 (function (window, document) {
   "use strict";
 
-  /** Create a DOM element with an optional class and innerHTML in one call. */
+  const THEME_KEY = "mindbloom_theme";
+
+  /* ======================================================================
+     DOM
+     ====================================================================== */
   function el(tag, className, html) {
     const node = document.createElement(tag);
     if (className) node.className = className;
-    if (html !== undefined) node.innerHTML = html;
+    if (html !== undefined && html !== null) node.innerHTML = html;
     return node;
   }
 
-  /** Normalize any Date/string into a plain "YYYY-MM-DD" key. */
-  function toDateKey(value) {
-    const date = value instanceof Date ? value : new Date(value);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return year + "-" + month + "-" + day;
+  /* Every page inlines the same "AURORA SIGNAL" <symbol> sprite at the top
+     of <body>, so referencing #icon-<name> via <use> always resolves. */
+  function icon(name, extraClass) {
+    return (
+      '<svg class="icon' +
+      (extraClass ? " " + extraClass : "") +
+      '" aria-hidden="true"><use href="#icon-' +
+      name +
+      '"></use></svg>'
+    );
   }
 
-  /** Show a toast in the page's #toast-root (every page includes this element). */
+  /* ======================================================================
+     TOASTS — mounts into the page's #toast-root (see global.css .toast-root
+     and components.css .toast / .toast--success / .toast--error).
+     ====================================================================== */
   function showToast(message, type) {
     const root = document.getElementById("toast-root");
     if (!root) return;
-    const toast = el("div", "toast anim-toast-in" + (type ? " toast--" + type : ""), message);
+
+    const toast = el("div", "toast" + (type ? " toast--" + type : ""), null);
+    toast.setAttribute("role", "status");
+    toast.textContent = message;
     root.appendChild(toast);
+
+    requestAnimationFrame(function () {
+      toast.classList.add("anim-fade-in");
+    });
+
     setTimeout(function () {
-      toast.remove();
-    }, 2200);
+      toast.style.transition = "opacity 200ms ease, transform 200ms ease";
+      toast.style.opacity = "0";
+      toast.style.transform = "translate(-50%, -6px)";
+      setTimeout(function () {
+        toast.remove();
+      }, 220);
+    }, 2600);
   }
 
-  /**
-   * Wires the shared sidebar + bottom-nav shell that appears on every
-   * authenticated page: marks the active nav item and hooks up logout.
-   * @param {string} activeKey - matches a data-nav attribute in the shell markup
-   */
-  function initShell(activeKey) {
+  /* ======================================================================
+     THEME — data-theme="dark"|"light" on <html>, persisted in localStorage.
+     Applied as early as possible (script runs before body paints on pages
+     that load utils.js in <head>, or immediately on DOMContentLoaded when
+     loaded at the end of <body> — either way this runs before other
+     controllers touch the DOM).
+     ====================================================================== */
+  function getTheme() {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "dark" || stored === "light") return stored;
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+
+  function setTheme(theme) {
+    localStorage.setItem(THEME_KEY, theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+
+  (function applyStoredThemeEarly() {
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "dark" || stored === "light") {
+      document.documentElement.setAttribute("data-theme", stored);
+    }
+  })();
+
+  /* ======================================================================
+     SHELL — marks the active sidebar/bottom-nav item (elements carrying
+     [data-nav]), wires #sidebar-logout, and guards signed-in-only pages:
+     if AuthService is loaded and there's no session, bounce to login.html
+     before the page's own init has a chance to render anything sensitive.
+     ====================================================================== */
+  function initShell(navKey) {
+    if (window.AuthService && typeof window.AuthService.isAuthenticated === "function") {
+      if (!window.AuthService.isAuthenticated()) {
+        window.location.href = "login.html";
+        return false;
+      }
+    }
+
     document.querySelectorAll("[data-nav]").forEach(function (link) {
-      if (link.dataset.nav === activeKey) {
+      if (link.dataset.nav === navKey) {
         link.setAttribute("aria-current", "page");
       } else {
         link.removeAttribute("aria-current");
@@ -61,81 +120,55 @@
       });
     }
 
-    // Redirect to login if there's no session — every shell page requires auth.
-    if (window.AuthService && typeof window.AuthService.isAuthenticated === "function") {
-      if (!window.AuthService.isAuthenticated()) {
-        window.location.href = "login.html";
-      }
-    }
+    return true;
   }
 
-  /** Applies the saved theme (light/dark) as early as possible to avoid a flash. */
-  function applySavedTheme() {
-    const saved = localStorage.getItem("mindbloom_theme");
-    if (saved === "dark" || saved === "light") {
-      document.documentElement.setAttribute("data-theme", saved);
-    }
+  /* ======================================================================
+     MOOD PICKER — shared by physical.html (check-in) and journal.html
+     (composer + filter row), rendered from MindBloomData.MOOD_META so the
+     five moods only need to be defined once (see core/data-store.js).
+     ====================================================================== */
+  function renderMoodPicker(container, selectedMood, onSelect) {
+    if (!container) return;
+    container.innerHTML = "";
+    container.classList.add("mood-picker");
+
+    const moods = (window.MindBloomData && window.MindBloomData.MOOD_META) || [];
+    moods.forEach(function (mood) {
+      const btn = el("button", "mood-option", icon("mood-" + mood.key));
+      btn.type = "button";
+      btn.dataset.mood = mood.key;
+      btn.setAttribute("aria-pressed", String(mood.key === selectedMood));
+      btn.setAttribute("aria-label", mood.label);
+      btn.addEventListener("click", function () {
+        container.querySelectorAll(".mood-option").forEach(function (b) {
+          b.setAttribute("aria-pressed", "false");
+        });
+        btn.setAttribute("aria-pressed", "true");
+        onSelect(mood.key);
+      });
+      container.appendChild(btn);
+    });
   }
 
-  function setTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem("mindbloom_theme", theme);
-  }
-
-  function getTheme() {
-    return (
-      document.documentElement.getAttribute("data-theme") ||
-      (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
-    );
-  }
-
-  /**
-   * Renders an <svg> referencing a symbol from assets/icons/icons.svg.
-   * @param {string} name - icon name without the "icon-" prefix, e.g. "home"
-   * @param {string} extraClass - additional classes appended to "icon"
-   */
-  function icon(name, extraClass) {
-    const cls = "icon" + (extraClass ? " " + extraClass : "");
-    return (
-      '<svg class="' + cls + '" aria-hidden="true">' +
-      '<use href="../assets/icons/icons.svg#icon-' + name + '"></use>' +
-      "</svg>"
-    );
+  /* ======================================================================
+     DATES
+     ====================================================================== */
+  function toDateKey(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
   }
 
   window.MindBloomUtils = {
     el: el,
-    toDateKey: toDateKey,
-    showToast: showToast,
-    initShell: initShell,
-    applySavedTheme: applySavedTheme,
-    setTheme: setTheme,
-    getTheme: getTheme,
     icon: icon,
+    showToast: showToast,
+    getTheme: getTheme,
+    setTheme: setTheme,
+    initShell: initShell,
+    renderMoodPicker: renderMoodPicker,
+    toDateKey: toDateKey,
   };
-
-  // Apply theme immediately on script load, before first paint of content.
-  applySavedTheme();
-
-  // Actively remove any service worker + cache left over from earlier
-  // testing (a service worker registered mid-development will otherwise
-  // keep serving stale, cached versions of the app and can surface as
-  // "no internet connection" errors once file paths change). Service
-  // worker registration is intentionally NOT re-added here — that's a
-  // deliberate, opt-in step for when the app is actually ready to ship
-  // as a PWA, not something that should run silently during development.
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.getRegistrations().then(function (registrations) {
-      registrations.forEach(function (registration) {
-        registration.unregister();
-      });
-    });
-  }
-  if (window.caches && typeof caches.keys === "function") {
-    caches.keys().then(function (keys) {
-      keys.forEach(function (key) {
-        caches.delete(key);
-      });
-    });
-  }
 })(window, document);

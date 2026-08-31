@@ -1,56 +1,57 @@
 /* ==========================================================================
-   MindBloom — physical.css
-   Styles for the Wellbeing hub (physical.html): segmented tab control,
-   physical logging steppers, breathing exercise, stress slider, and mood
-   log/history.
+   MindBloom — pages/physical.css
+   Wellbeing hub: segmented Physical / Mental / Mood tabs — steppers,
+   a breathing exercise + stress slider, and the mood picker + history.
    ========================================================================== */
 
 .wellbeing-page {
-  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 560px;
   margin-inline: auto;
 }
 
 /* ---------------------------------------------------------------------
-   1. SEGMENTED TAB CONTROL
+   TABS
    --------------------------------------------------------------------- */
 .segmented-control {
   display: flex;
-  background: var(--color-bg-surface-alt);
-  border-radius: var(--radius-pill);
   padding: 4px;
-  margin-bottom: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-surface-alt);
+  gap: 2px;
 }
 
 .segmented-control__tab {
   flex: 1;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-md);
   font-size: var(--fs-sm);
   font-weight: var(--fw-medium);
   color: var(--color-text-secondary);
-  transition: background-color var(--duration-fast) var(--ease-standard),
-              color var(--duration-fast) var(--ease-standard);
+  transition: background-color var(--duration-fast) var(--ease-standard), color var(--duration-fast) var(--ease-standard);
 }
 
 .segmented-control__tab[aria-selected="true"] {
   background: var(--color-bg-surface);
   color: var(--color-text-primary);
-  font-weight: var(--fw-semibold);
   box-shadow: var(--shadow-xs);
 }
 
-.tab-panel[hidden] {
-  display: none;
+.tab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 /* ---------------------------------------------------------------------
-   2. PHYSICAL TAB — steppers
+   PHYSICAL — steppers
    --------------------------------------------------------------------- */
 .wellbeing-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-3);
-  margin-bottom: var(--space-5);
 }
 
 .wellbeing-stat-card {
@@ -58,55 +59,52 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-5);
   text-align: center;
+  padding: var(--space-5) var(--space-3);
 }
 
 .wellbeing-stat-card__icon {
-  display: inline-flex;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-tint);
   color: var(--color-primary);
-}
-
-.wellbeing-stat-card__icon .icon {
-  width: 28px;
-  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wellbeing-stat-card__label {
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   color: var(--color-text-secondary);
 }
 
 .stepper {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .stepper__btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-circle);
-  background: var(--color-primary-tint);
-  color: var(--color-primary-pressed);
-  font-size: var(--fs-lg);
-  font-weight: var(--fw-bold);
+  background: var(--color-bg-surface-alt);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: transform var(--duration-fast) var(--ease-bounce);
 }
-
-.stepper__btn:active {
-  transform: scale(0.9);
-}
+.stepper__btn:active { transform: scale(0.9); }
 
 .stepper__value {
-  font-family: var(--font-mono);
-  font-weight: var(--fw-semibold);
-  font-size: var(--fs-lg);
   min-width: 64px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
 }
-
 .stepper__value small {
   font-size: var(--fs-xs);
   color: var(--color-text-muted);
@@ -114,7 +112,7 @@
 }
 
 /* ---------------------------------------------------------------------
-   3. MENTAL TAB — breathing + stress
+   MENTAL — breathing + stress
    --------------------------------------------------------------------- */
 .breathing-card {
   display: flex;
@@ -122,28 +120,27 @@
   align-items: center;
   gap: var(--space-5);
   padding: var(--space-8) var(--space-5);
-  margin-bottom: var(--space-4);
 }
 
 .breathing-card__label {
-  font-size: var(--fs-sm);
-  color: var(--color-text-secondary);
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
   text-align: center;
 }
 
 .breathing-circle {
-  width: 96px;
-  height: 96px;
+  width: 120px;
+  height: 120px;
   border-radius: var(--radius-circle);
-  background: var(--color-primary);
+  background: var(--gradient-glow);
+  box-shadow: var(--shadow-glow-primary);
+  transform: scale(1);
 }
 
 .stress-card {
-  padding: var(--space-5);
-}
-
-.stress-card .slider {
-  margin-block: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .stress-card__labels {
@@ -151,57 +148,45 @@
   justify-content: space-between;
   font-size: var(--fs-2xs);
   color: var(--color-text-muted);
-  margin-bottom: var(--space-4);
 }
 
 /* ---------------------------------------------------------------------
-   4. MOOD TAB
+   MOOD
    --------------------------------------------------------------------- */
 .mood-log-card {
-  padding: var(--space-5);
-  margin-bottom: var(--space-5);
-}
-
-.mood-log-card .mood-picker {
-  margin-block: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .mood-history-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .mood-history-item {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3);
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
+.mood-history-item:last-child { border-bottom: none; }
 
 .mood-history-item__emoji {
-  font-size: var(--fs-md);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-circle);
+  background: var(--color-bg-surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
+.mood-history-item__emoji .icon { width: 18px; height: 18px; }
 
 .mood-history-item__date {
-  flex: 1;
   font-size: var(--fs-sm);
   color: var(--color-text-secondary);
-}
-
-/* ---------------------------------------------------------------------
-   5. TOAST ROOT
-   --------------------------------------------------------------------- */
-.toast-root {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: var(--z-toast);
-}
-
-.toast-root .toast {
-  pointer-events: auto;
 }

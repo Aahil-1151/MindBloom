@@ -1,298 +1,255 @@
 /* ==========================================================================
    MindBloom — physical.js
-   Controller for physical.html (the Wellbeing hub: Physical / Mental /
-   Mood tabs). Uses the same localStorage-first, Firebase-ready pattern as
-   the rest of the app. Supports deep-linking via URL hash
-   (physical.html#mood, physical.html#mental) since Dashboard's quick
-   actions link directly into a specific tab.
+   Wellbeing hub controller (physical.html): the Physical tab logs today's
+   sleep/water/activity, the Mental tab runs a guided breathing exercise
+   and a stress check-in slider, and the Mood tab logs how you're feeling
+   right now plus your mood history. Every "Save" / "Log" action writes
+   through MindBloomData (core/data-store.js) — the same shared, per-user
+   record the dashboard reads — so it shows up there immediately too.
    ========================================================================== */
 
 (function (window, document) {
   "use strict";
 
+  function qs(selector, scope) {
+    return (scope || document).querySelector(selector);
+  }
+
   const el = MindBloomUtils.el;
-  const showToast = MindBloomUtils.showToast;
-  const toDateKey = MindBloomUtils.toDateKey;
+  let record = null;
 
-  const PHYSICAL_KEY = "mindbloom_physical_logs";
-  const MENTAL_KEY = "mindbloom_mental_checkins";
-  const MOOD_KEY = "mindbloom_moods";
-
-  const MOOD_OPTIONS = [
-    { key: "rough", emoji: "mood-rough", label: "Rough" },
-    { key: "low", emoji: "mood-low", label: "Low" },
-    { key: "okay", emoji: "mood-okay", label: "Okay" },
-    { key: "good", emoji: "mood-good", label: "Good" },
-    { key: "great", emoji: "mood-great", label: "Great" },
-  ];
-
-  let els = {};
-  let physicalState = { sleep: 7.5, water: 0, activity: 0 };
-  let selectedMood = null;
-  let breathingActive = false;
-  let breathingTimer = null;
-
-  /* ----------------------------------------------------------------------
-     STORAGE HELPERS (small + local to this page, same read/write pattern
-     used by every other *-storage.js in the app)
-     ---------------------------------------------------------------------- */
-  function readAll(key) {
-    try {
-      const raw = localStorage.getItem(key);
-      return raw ? JSON.parse(raw) : [];
-    } catch (err) {
-      return [];
-    }
-  }
-
-  function writeAll(key, value) {
-    localStorage.setItem(key, JSON.stringify(value));
-  }
-
-  function upsertTodayLog(key, fields) {
-    const all = readAll(key);
-    const todayKey = toDateKey(new Date());
-    const index = all.findIndex(function (entry) {
-      return entry.date === todayKey;
-    });
-
-    if (index !== -1) {
-      all[index] = Object.assign({}, all[index], fields);
-    } else {
-      all.push(Object.assign({ id: "log_" + Date.now(), date: todayKey, createdAt: new Date().toISOString() }, fields));
-    }
-    writeAll(key, all);
-  }
-
-  function addEntry(key, fields) {
-    const all = readAll(key);
-    all.push(Object.assign({ id: "entry_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6), createdAt: new Date().toISOString() }, fields));
-    writeAll(key, all);
-  }
-
-  /* ----------------------------------------------------------------------
-     TAB SWITCHING (with hash deep-linking)
-     ---------------------------------------------------------------------- */
-  function switchTab(tabKey) {
+  /* ======================================================================
+     TAB SWITCHING
+     ====================================================================== */
+  function activateTab(tabKey) {
     document.querySelectorAll(".segmented-control__tab").forEach(function (tab) {
-      const active = tab.dataset.tab === tabKey;
-      tab.setAttribute("aria-selected", String(active));
+      tab.setAttribute("aria-selected", String(tab.dataset.tab === tabKey));
     });
     document.querySelectorAll(".tab-panel").forEach(function (panel) {
       panel.hidden = panel.id !== "tab-" + tabKey;
     });
-    if (tabKey !== "mental" && breathingActive) {
-      stopBreathing();
-    }
   }
 
   function wireTabs() {
     document.querySelectorAll(".segmented-control__tab").forEach(function (tab) {
       tab.addEventListener("click", function () {
-        switchTab(tab.dataset.tab);
-        history.replaceState(null, "", "#" + tab.dataset.tab);
+        activateTab(tab.dataset.tab);
       });
     });
+
+    // Deep-link support for the dashboard's Quick Actions ("Log Mood" ->
+    // #mood, "Breathe" -> #mental).
+    const hash = (window.location.hash || "").replace("#", "");
+    if (hash === "mood" || hash === "mental") {
+      activateTab(hash);
+    }
   }
 
-  /* ----------------------------------------------------------------------
-     PHYSICAL TAB
-     ---------------------------------------------------------------------- */
-  function renderPhysicalValues() {
-    document.getElementById("sleep-value").innerHTML = physicalState.sleep + "<small>h</small>";
-    document.getElementById("water-value").innerHTML = physicalState.water + "<small>cups</small>";
-    document.getElementById("activity-value").innerHTML = physicalState.activity + "<small>min</small>";
+  /* ======================================================================
+     PHYSICAL TAB — sleep / water / activity steppers
+     ====================================================================== */
+  const STEPPER_LIMITS = {
+    sleep: { min: 0, max: 14 },
+    water: { min: 0, max: 20 },
+    activity: { min: 0, max: 300 },
+  };
+
+  const STEPPER_SUFFIX = { sleep: "h", water: "cups", activity: "min" };
+
+  let physicalState = { sleep: 8, water: 0, activity: 0 };
+
+  function formatStepperValue(key, value) {
+    const display = key === "sleep" ? (Math.round(value * 10) / 10).toString() : String(Math.round(value));
+    return display + "<small>" + STEPPER_SUFFIX[key] + "</small>";
   }
 
-  function wirePhysicalSteppers() {
+  function renderSteppers() {
+    const sleepEl = qs("#sleep-value");
+    const waterEl = qs("#water-value");
+    const activityEl = qs("#activity-value");
+    if (sleepEl) sleepEl.innerHTML = formatStepperValue("sleep", physicalState.sleep);
+    if (waterEl) waterEl.innerHTML = formatStepperValue("water", physicalState.water);
+    if (activityEl) activityEl.innerHTML = formatStepperValue("activity", physicalState.activity);
+  }
+
+  function wireSteppers() {
     document.querySelectorAll("[data-stepper]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        const field = btn.dataset.stepper;
-        const delta = Number(btn.dataset.delta);
-        const next = physicalState[field] + delta;
-
-        if (field === "sleep") physicalState.sleep = Math.max(0, Math.min(14, next));
-        else physicalState[field] = Math.max(0, next);
-
-        renderPhysicalValues();
+        const key = btn.dataset.stepper;
+        const delta = parseFloat(btn.dataset.delta);
+        const limits = STEPPER_LIMITS[key];
+        physicalState[key] = Math.min(limits.max, Math.max(limits.min, physicalState[key] + delta));
+        renderSteppers();
       });
     });
 
-    document.getElementById("save-physical").addEventListener("click", function () {
-      upsertTodayLog(PHYSICAL_KEY, {
-        sleepHours: physicalState.sleep,
-        waterCups: physicalState.water,
-        activityMinutes: physicalState.activity,
+    const saveBtn = qs("#save-physical");
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        record = MindBloomData.logPhysical({
+          sleepHours: physicalState.sleep,
+          waterCups: physicalState.water,
+          activityMinutes: physicalState.activity,
+        });
+        MindBloomUtils.showToast("Today's check-in saved!", "success");
       });
-      showToast("Today's log saved");
-    });
+    }
   }
 
-  function loadTodayPhysical() {
-    const todayKey = toDateKey(new Date());
-    const existing = readAll(PHYSICAL_KEY).find(function (e) {
-      return e.date === todayKey;
+  function prefillPhysicalFromToday() {
+    const todays = record.physicalLogs.find(function (p) {
+      return MindBloomData.isToday(p.timestamp);
     });
-    if (existing) {
+    if (todays) {
       physicalState = {
-        sleep: existing.sleepHours,
-        water: existing.waterCups,
-        activity: existing.activityMinutes,
+        sleep: typeof todays.sleepHours === "number" ? todays.sleepHours : 8,
+        water: todays.waterCups || 0,
+        activity: todays.activityMinutes || 0,
       };
     }
-    renderPhysicalValues();
+    renderSteppers();
   }
 
-  /* ----------------------------------------------------------------------
-     MENTAL TAB — breathing exercise
-     ---------------------------------------------------------------------- */
-  function startBreathing() {
-    breathingActive = true;
-    els.breathingCircle.classList.add("anim-breathe");
-    els.breathingLabel.textContent = "Breathe in… and out… follow the circle";
-    els.breathingToggle.textContent = "Stop";
-  }
+  /* ======================================================================
+     MENTAL TAB — breathing exercise + stress check-in
+     ====================================================================== */
+  const BREATH_PHASES = [
+    { label: "Breathe in…", duration: 4000, scale: 1.35 },
+    { label: "Hold…", duration: 4000, scale: 1.35 },
+    { label: "Breathe out…", duration: 4000, scale: 1 },
+  ];
 
-  function stopBreathing() {
-    breathingActive = false;
-    els.breathingCircle.classList.remove("anim-breathe");
-    els.breathingLabel.textContent = "Tap start for a guided breath";
-    els.breathingToggle.textContent = "Start breathing";
-    if (breathingTimer) clearTimeout(breathingTimer);
+  let breathingActive = false;
+  let breathingTimer = null;
+
+  function stepBreathing(phaseIndex) {
+    if (!breathingActive) return;
+    const phase = BREATH_PHASES[phaseIndex % BREATH_PHASES.length];
+    const labelEl = qs("#breathing-label");
+    const circleEl = qs("#breathing-circle");
+    if (labelEl) labelEl.textContent = phase.label;
+    if (circleEl) {
+      circleEl.style.transition = "transform " + phase.duration + "ms ease-in-out";
+      circleEl.style.transform = "scale(" + phase.scale + ")";
+    }
+    breathingTimer = setTimeout(function () {
+      stepBreathing(phaseIndex + 1);
+    }, phase.duration);
   }
 
   function wireBreathing() {
-    els.breathingToggle.addEventListener("click", function () {
+    const toggleBtn = qs("#breathing-toggle");
+    const labelEl = qs("#breathing-label");
+    const circleEl = qs("#breathing-circle");
+    if (!toggleBtn) return;
+
+    toggleBtn.addEventListener("click", function () {
+      breathingActive = !breathingActive;
       if (breathingActive) {
-        stopBreathing();
+        toggleBtn.textContent = "Stop";
+        stepBreathing(0);
       } else {
-        startBreathing();
-        breathingTimer = setTimeout(function () {
-          stopBreathing();
-          addEntry(MENTAL_KEY, { type: "breathing", durationSeconds: 60 });
-          showToast("Nice work — breathing session logged");
-        }, 60000);
+        toggleBtn.textContent = "Start breathing";
+        if (breathingTimer) clearTimeout(breathingTimer);
+        if (labelEl) labelEl.textContent = "Tap start for a guided breath";
+        if (circleEl) {
+          circleEl.style.transition = "transform 400ms ease-out";
+          circleEl.style.transform = "scale(1)";
+        }
       }
     });
   }
 
-  /* ----------------------------------------------------------------------
-     MENTAL TAB — stress check-in
-     ---------------------------------------------------------------------- */
   const STRESS_LABELS = { 1: "Calm", 2: "Mild", 3: "Moderate", 4: "High", 5: "Overwhelmed" };
 
-  function wireStressSlider() {
-    els.stressSlider.addEventListener("input", function () {
-      els.stressValueLabel.textContent = STRESS_LABELS[els.stressSlider.value];
+  function wireStress() {
+    const slider = qs("#stress-slider");
+    const valueLabel = qs("#stress-value-label");
+    const saveBtn = qs("#save-stress");
+    if (!slider) return;
+
+    slider.addEventListener("input", function () {
+      if (valueLabel) valueLabel.textContent = STRESS_LABELS[slider.value] || "Moderate";
     });
 
-    document.getElementById("save-stress").addEventListener("click", function () {
-      addEntry(MENTAL_KEY, { type: "check-in", stressLevel: Number(els.stressSlider.value) });
-      showToast("Stress check-in logged");
-    });
-  }
-
-  /* ----------------------------------------------------------------------
-     MOOD TAB
-     ---------------------------------------------------------------------- */
-  function renderMoodPicker() {
-    els.moodPicker.innerHTML = "";
-    MOOD_OPTIONS.forEach(function (mood) {
-      const button = el("button", "mood-option", MindBloomUtils.icon(mood.emoji));
-      button.type = "button";
-      button.dataset.mood = mood.key;
-      button.setAttribute("aria-pressed", String(selectedMood === mood.key));
-      button.setAttribute("aria-label", mood.label);
-      button.addEventListener("click", function () {
-        selectedMood = mood.key;
-        document.getElementById("save-mood").disabled = false;
-        renderMoodPicker();
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        record = MindBloomData.logStress(Number(slider.value));
+        MindBloomUtils.showToast("Stress check-in logged.", "success");
       });
-      els.moodPicker.appendChild(button);
-    });
+    }
   }
 
-  function formatMoodDate(iso) {
-    return new Date(iso).toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
+  /* ======================================================================
+     MOOD TAB — mood picker + history
+     ====================================================================== */
+  let selectedMood = null;
+
+  function renderMoodTab() {
+    const picker = qs("#mood-log-picker");
+    const saveBtn = qs("#save-mood");
+
+    MindBloomUtils.renderMoodPicker(picker, selectedMood, function (mood) {
+      selectedMood = mood;
+      if (saveBtn) saveBtn.disabled = false;
     });
+
+    if (saveBtn) {
+      saveBtn.disabled = !selectedMood;
+      saveBtn.onclick = function () {
+        if (!selectedMood) return;
+        record = MindBloomData.logMood(selectedMood);
+        MindBloomUtils.showToast("Mood logged — thanks for checking in.", "success");
+        renderMoodHistory();
+      };
+    }
   }
 
   function renderMoodHistory() {
-    const moods = readAll(MOOD_KEY).slice().reverse().slice(0, 10);
-    const list = document.getElementById("mood-history-list");
-    const empty = document.getElementById("mood-empty");
+    const list = qs("#mood-history-list");
+    const emptyState = qs("#mood-empty");
+    if (!list) return;
     list.innerHTML = "";
 
-    if (moods.length === 0) {
-      empty.hidden = false;
-      return;
-    }
-    empty.hidden = true;
+    const logs = record.moodLogs.slice(0, 30);
+    const isEmpty = !logs.length;
+    if (emptyState) emptyState.hidden = !isEmpty;
+    list.hidden = isEmpty;
+    if (isEmpty) return;
 
-    moods.forEach(function (entry) {
-      const option = MOOD_OPTIONS.find(function (m) {
-        return m.key === entry.mood;
-      });
-      list.appendChild(
-        el(
-          "li",
-          "mood-history-item",
-          '<span class="mood-history-item__emoji">' + MindBloomUtils.icon(option ? option.emoji : "mood-good") + "</span>" +
-            '<span class="mood-history-item__date">' + formatMoodDate(entry.createdAt) + "</span>"
-        )
+    logs.forEach(function (log, index) {
+      const meta = MindBloomData.moodMeta(log.mood);
+      const li = el(
+        "li",
+        "mood-history-item anim-stagger",
+        '<span class="mood-history-item__emoji">' + MindBloomUtils.icon("mood-" + log.mood) + "</span>" +
+          '<span class="mood-history-item__date">' +
+          (meta ? meta.label : log.mood) +
+          " · " +
+          MindBloomData.formatRelativeTime(log.timestamp) +
+          "</span>"
       );
+      li.style.setProperty("--delay", index * 40 + "ms");
+      list.appendChild(li);
     });
   }
 
-  function wireMoodSave() {
-    document.getElementById("save-mood").addEventListener("click", function () {
-      if (!selectedMood) return;
-      addEntry(MOOD_KEY, { mood: selectedMood });
-      selectedMood = null;
-      document.getElementById("save-mood").disabled = true;
-      renderMoodPicker();
-      renderMoodHistory();
-      showToast("Mood logged");
-    });
-  }
-
-  /* ----------------------------------------------------------------------
+  /* ======================================================================
      INIT
-     ---------------------------------------------------------------------- */
-  function cacheElements() {
-    els = {
-      breathingCircle: document.getElementById("breathing-circle"),
-      breathingLabel: document.getElementById("breathing-label"),
-      breathingToggle: document.getElementById("breathing-toggle"),
-      stressSlider: document.getElementById("stress-slider"),
-      stressValueLabel: document.getElementById("stress-value-label"),
-      moodPicker: document.getElementById("mood-log-picker"),
-    };
+     ====================================================================== */
+  function init() {
+    record = MindBloomData.load();
+    wireTabs();
+    prefillPhysicalFromToday();
+    wireSteppers();
+    wireBreathing();
+    wireStress();
+    renderMoodTab();
+    renderMoodHistory();
     MindBloomUtils.initShell("wellbeing");
   }
 
-  function init() {
-    cacheElements();
-    wireTabs();
-    wirePhysicalSteppers();
-    wireBreathing();
-    wireStressSlider();
-    wireMoodSave();
-
-    loadTodayPhysical();
-    renderMoodPicker();
-    renderMoodHistory();
-
-    const hashTab = window.location.hash.replace("#", "");
-    if (["physical", "mental", "mood"].indexOf(hashTab) !== -1) {
-      switchTab(hashTab);
-    }
-  }
+  window.MindBloomPhysical = { init: init };
 
   document.addEventListener("DOMContentLoaded", init);
 })(window, document);

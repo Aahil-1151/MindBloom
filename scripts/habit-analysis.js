@@ -15,7 +15,9 @@
   const toDateKey = window.MindBloomUtils.toDateKey;
 
   function uniqueSortedDates(dateStrings) {
-    const unique = Array.from(new Set(dateStrings.map(toDateKey)));
+    const unique = Array.from(new Set(dateStrings.map(function (d) {
+      return toDateKey(d instanceof Date ? d : new Date(d));
+    })));
     return unique.sort(function (a, b) {
       return new Date(a) - new Date(b);
     });

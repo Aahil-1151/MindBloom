@@ -1,0 +1,36 @@
+/* ==========================================================================
+   MindBloom — fonts.css
+   Manrope and JetBrains Mono stay self-hosted (files live in
+   assets/fonts/, no external CDN dependency for those two). Fraunces
+   (the new display face, swapped in for the old "Unbounded") is loaded
+   from Google Fonts instead, since no local woff2 exists for it in this
+   checkout — drop a matching variable woff2 into assets/fonts/ and
+   replace this @import with a local @font-face to go fully offline.
+   Load this before variables.css.
+
+   Type system: Fraunces (hero/display — warm, editorial serif) + Manrope
+   (body/UI — clean and highly legible) + JetBrains Mono (numbers/data —
+   technical, precise, built for the dashboard's metrics).
+   ========================================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..700&display=swap");
+
+/* Manrope — variable font, weight axis 200–800. Used for --font-body. */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("../assets/fonts/manrope-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/manrope-latin-wght-normal.woff2") format("woff2");
+}
+
+/* JetBrains Mono — variable font, weight axis 100–800. Used for --font-mono. */
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("../assets/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2-variations"),
+       url("../assets/fonts/jetbrains-mono-latin-wght-normal.woff2") format("woff2");
+}

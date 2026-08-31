@@ -1,305 +1,267 @@
 /* ==========================================================================
    MindBloom — journal.js
-   Page controller for journal.html. This is the only file that talks to
-   the data layer (journal-storage.js) and the AI layers
-   (emotion-analysis.js, reflection.js), and it owns all DOM rendering for
-   this page (no separate UI module was requested for this module).
-   Attaches its own DOMContentLoaded listener — journal.html has no inline
-   scripts.
+   Journal page controller: the composer (prompt + textarea + optional
+   mood tag), the filter/search row, and the entries list. Saving an entry
+   runs it through EmotionAnalysis + Reflection for a short "Bloom" note,
+   then persists it via JournalStorage -> MindBloomData (core/data-store.js)
+   — the same shared record the dashboard reads, so a saved entry (and its
+   mood, if one was picked) shows up in Recent Activity and the mood
+   history immediately.
    ========================================================================== */
 
 (function (window, document) {
   "use strict";
 
-  let els = {};
-  let selectedMood = null;
-  let activeFilter = "all";
+  function qs(selector, scope) {
+    return (scope || document).querySelector(selector);
+  }
+
+  const el = MindBloomUtils.el;
+
+  const PROMPTS = [
+    "What's taking up the most space in your head right now?",
+    "What went better than expected today?",
+    "What's one thing you're avoiding, and why?",
+    "Who or what made today easier?",
+    "If today had a headline, what would it say?",
+    "What do you need more of this week?",
+    "What's something small you're proud of today?",
+    "What would you tell a friend who had the day you just had?",
+  ];
+
+  let promptIndex = new Date().getDate() % PROMPTS.length;
+  let composerMood = null;
+  let moodFilter = "all";
   let searchQuery = "";
 
-  const MOOD_OPTIONS = [
-    { key: "rough", emoji: "mood-rough", label: "Rough" },
-    { key: "low", emoji: "mood-low", label: "Low" },
-    { key: "okay", emoji: "mood-okay", label: "Okay" },
-    { key: "good", emoji: "mood-good", label: "Good" },
-    { key: "great", emoji: "mood-great", label: "Great" },
-  ];
-
-  const FILTER_OPTIONS = [
-    { key: "all", label: "All" },
-    { key: "great", label: "Great" },
-    { key: "good", label: "Good" },
-    { key: "okay", label: "Okay" },
-    { key: "low", label: "Low" },
-    { key: "rough", label: "Rough" },
-  ];
-
-  /* ----------------------------------------------------------------------
-     DOM helpers
-     ---------------------------------------------------------------------- */
-  const el = MindBloomUtils.el;
-  const showToast = MindBloomUtils.showToast;
-
-  function cacheElements() {
-    els = {
-      promptText: document.getElementById("prompt-text"),
-      refreshPrompt: document.getElementById("refresh-prompt"),
-      moodPicker: document.getElementById("composer-mood-picker"),
-      textarea: document.getElementById("journal-textarea"),
-      saveBtn: document.getElementById("journal-save"),
-      composerStatus: document.getElementById("composer-status"),
-      filterRow: document.getElementById("filter-row"),
-      searchInput: document.getElementById("journal-search"),
-      entriesList: document.getElementById("entries-list"),
-      emptyState: document.getElementById("entries-empty"),
-    };
-    MindBloomUtils.initShell("journal");
+  /* ======================================================================
+     COMPOSER
+     ====================================================================== */
+  function renderPrompt() {
+    const promptEl = qs("#prompt-text");
+    if (promptEl) promptEl.textContent = PROMPTS[promptIndex];
   }
 
-  function formatDate(isoString) {
-    return new Date(isoString).toLocaleDateString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
+  function wirePromptRefresh() {
+    const btn = qs("#refresh-prompt");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      let next = Math.floor(Math.random() * PROMPTS.length);
+      if (PROMPTS.length > 1) {
+        while (next === promptIndex) next = Math.floor(Math.random() * PROMPTS.length);
+      }
+      promptIndex = next;
+      renderPrompt();
     });
   }
 
-  function truncate(text, max) {
-    if (text.length <= max) return text;
-    return text.slice(0, max).trim() + "…";
+  function updateComposerStatus() {
+    const statusEl = qs("#composer-status");
+    const textarea = qs("#journal-textarea");
+    if (!statusEl || !textarea) return;
+    const words = textarea.value.trim() ? textarea.value.trim().split(/\s+/).length : 0;
+    statusEl.textContent = words ? words + (words === 1 ? " word" : " words") : "";
   }
 
-  function themeLabel(theme) {
-    const labels = {
-      academic: { icon: "cap", text: "School" },
-      friends: { icon: "users", text: "Friends" },
-      family: { icon: "home", text: "Family" },
-      sleep: { icon: "moon", text: "Sleep" },
-      health: { icon: "medical", text: "Health" },
-      relationship: { icon: "heart", text: "Relationship" },
-      future: { icon: "chart", text: "Future" },
-    };
-    const entry = labels[theme];
-    if (!entry) return theme;
-    return MindBloomUtils.icon(entry.icon, "icon--sm") + " " + entry.text;
-  }
-
-  /* ----------------------------------------------------------------------
-     COMPOSER: prompt suggestion + mood picker
-     ---------------------------------------------------------------------- */
-  async function loadNewPrompt() {
-    els.promptText.textContent = "Thinking of a prompt…";
-    const prompt = await Reflection.getPrompt();
-    els.promptText.textContent = prompt;
-  }
-
-  function renderMoodPicker() {
-    els.moodPicker.innerHTML = "";
-    MOOD_OPTIONS.forEach(function (mood) {
-      const button = el("button", "mood-option", MindBloomUtils.icon(mood.emoji));
-      button.type = "button";
-      button.dataset.mood = mood.key;
-      button.setAttribute("aria-pressed", String(selectedMood === mood.key));
-      button.setAttribute("aria-label", mood.label);
-      button.addEventListener("click", function () {
-        selectedMood = selectedMood === mood.key ? null : mood.key;
-        renderMoodPicker();
-      });
-      els.moodPicker.appendChild(button);
+  function renderComposerMoodPicker() {
+    const picker = qs("#composer-mood-picker");
+    MindBloomUtils.renderMoodPicker(picker, composerMood, function (mood) {
+      composerMood = mood;
     });
   }
 
-  /* ----------------------------------------------------------------------
-     ENTRY LIST RENDERING
-     ---------------------------------------------------------------------- */
-  function getFilteredEntries() {
-    let entries = JournalStorage.getRecent(1000); // newest first
+  function wireComposer() {
+    const textarea = qs("#journal-textarea");
+    const saveBtn = qs("#journal-save");
 
-    if (activeFilter !== "all") {
-      entries = entries.filter(function (entry) {
-        return EmotionAnalysis.mapToMoodBucket(entry.sentimentLabel) === activeFilter;
-      });
+    if (textarea) {
+      textarea.addEventListener("input", updateComposerStatus);
     }
 
-    if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      entries = entries.filter(function (entry) {
-        return entry.text.toLowerCase().indexOf(q) !== -1;
+    if (saveBtn) {
+      saveBtn.addEventListener("click", function () {
+        const text = (textarea.value || "").trim();
+        if (!text) {
+          MindBloomUtils.showToast("Write something before saving.", "error");
+          return;
+        }
+
+        const analysis = EmotionAnalysis.analyze(text);
+        const reflection = Reflection.generate(text, analysis);
+        JournalStorage.add({
+          text: text,
+          mood: composerMood,
+          emotion: analysis.emotion,
+          reflection: reflection,
+        });
+
+        textarea.value = "";
+        composerMood = null;
+        renderComposerMoodPicker();
+        updateComposerStatus();
+        MindBloomUtils.showToast("Entry saved.", "success");
+        renderEntries();
       });
     }
-
-    return entries;
   }
 
-  function renderFilterRow() {
-    els.filterRow.innerHTML = "";
-    FILTER_OPTIONS.forEach(function (filter) {
+  /* ======================================================================
+     FILTERS + SEARCH
+     ====================================================================== */
+  const FILTERS = [{ key: "all", label: "All" }].concat(
+    MindBloomData.MOOD_META.map(function (m) {
+      return { key: m.key, label: m.label };
+    })
+  );
+
+  function renderFilters() {
+    const row = qs("#filter-row");
+    if (!row) return;
+    row.innerHTML = "";
+
+    FILTERS.forEach(function (filter) {
       const chip = el("button", "chip chip--selectable", filter.label);
       chip.type = "button";
-      chip.setAttribute("aria-pressed", String(activeFilter === filter.key));
+      chip.setAttribute("aria-pressed", String(filter.key === moodFilter));
       chip.addEventListener("click", function () {
-        activeFilter = filter.key;
-        renderFilterRow();
+        moodFilter = filter.key;
+        row.querySelectorAll(".chip").forEach(function (c) {
+          c.setAttribute("aria-pressed", "false");
+        });
+        chip.setAttribute("aria-pressed", "true");
         renderEntries();
       });
-      els.filterRow.appendChild(chip);
-    });
-  }
-
-  function buildEntryCard(entry, index) {
-    const bucket = EmotionAnalysis.mapToMoodBucket(entry.sentimentLabel);
-
-    const card = el("li", "journal-entry card card--mood anim-stagger");
-    card.dataset.mood = bucket;
-    card.style.setProperty("--delay", index * 40 + "ms");
-
-    const header = el(
-      "div",
-      "journal-entry__header",
-      '<span class="journal-entry__emoji">' + MindBloomUtils.icon(entry.sentimentEmoji) + "</span>" +
-        '<span class="journal-entry__date">' + formatDate(entry.createdAt) + "</span>"
-    );
-
-    const deleteBtn = el("button", "btn btn--icon btn--sm journal-entry__delete", MindBloomUtils.icon("trash", "icon--sm"));
-    deleteBtn.type = "button";
-    deleteBtn.setAttribute("aria-label", "Delete entry");
-    deleteBtn.addEventListener("click", function () {
-      if (window.confirm("Delete this journal entry? This can't be undone.")) {
-        JournalStorage.remove(entry.id);
-        renderEntries();
-        showToast("Entry deleted");
-      }
-    });
-    header.appendChild(deleteBtn);
-
-    const isLong = entry.text.length > 220;
-    const body = el(
-      "p",
-      "journal-entry__text",
-      isLong ? truncate(entry.text, 220) : entry.text
-    );
-
-    if (isLong) {
-      const toggle = el("button", "auth-link journal-entry__toggle", "Read more");
-      toggle.type = "button";
-      let expanded = false;
-      toggle.addEventListener("click", function () {
-        expanded = !expanded;
-        body.textContent = expanded ? entry.text : truncate(entry.text, 220);
-        toggle.textContent = expanded ? "Show less" : "Read more";
-      });
-      card.appendChild(header);
-      card.appendChild(body);
-      card.appendChild(toggle);
-    } else {
-      card.appendChild(header);
-      card.appendChild(body);
-    }
-
-    if (entry.themes && entry.themes.length > 0) {
-      const themeRow = el("div", "journal-entry__themes");
-      entry.themes.forEach(function (theme) {
-        themeRow.appendChild(el("span", "chip chip--secondary", themeLabel(theme)));
-      });
-      card.appendChild(themeRow);
-    }
-
-    if (entry.reflection) {
-      const reflectionBox = el(
-        "div",
-        "journal-reflection",
-        '<span class="journal-reflection__icon">' + MindBloomUtils.icon('leaf', 'icon--sm') + '</span>' +
-          '<p class="journal-reflection__text">' + entry.reflection + "</p>"
-      );
-      card.appendChild(reflectionBox);
-    }
-
-    return card;
-  }
-
-  function renderEntries() {
-    const entries = getFilteredEntries();
-    els.entriesList.innerHTML = "";
-
-    if (entries.length === 0) {
-      els.emptyState.hidden = false;
-      return;
-    }
-
-    els.emptyState.hidden = true;
-    entries.forEach(function (entry, index) {
-      els.entriesList.appendChild(buildEntryCard(entry, index));
-    });
-  }
-
-  /* ----------------------------------------------------------------------
-     SAVE FLOW
-     ---------------------------------------------------------------------- */
-  async function handleSave() {
-    const text = els.textarea.value.trim();
-    if (!text) return;
-
-    els.saveBtn.disabled = true;
-    els.composerStatus.textContent = "Reading your entry…";
-
-    const analysis = await EmotionAnalysis.analyze(text);
-    const recentEntries = JournalStorage.getRecent(30);
-    const reflection = await Reflection.getReflection(analysis, text, recentEntries);
-
-    JournalStorage.add({
-      text: text,
-      mood: selectedMood,
-      sentimentLabel: analysis.label,
-      sentimentEmoji: analysis.emoji,
-      themes: analysis.themes,
-      reflection: reflection,
-    });
-
-    els.textarea.value = "";
-    selectedMood = null;
-    renderMoodPicker();
-    renderEntries();
-    await loadNewPrompt();
-
-    els.composerStatus.textContent = "";
-    els.saveBtn.disabled = false;
-    showToast(analysis.isCrisis ? "Entry saved. Please see the note below it." : "Entry saved");
-  }
-
-  /* ----------------------------------------------------------------------
-     WIRING
-     ---------------------------------------------------------------------- */
-  function wireComposer() {
-    els.saveBtn.addEventListener("click", handleSave);
-    els.refreshPrompt.addEventListener("click", loadNewPrompt);
-
-    els.textarea.addEventListener("input", function () {
-      els.saveBtn.disabled = els.textarea.value.trim().length === 0;
+      row.appendChild(chip);
     });
   }
 
   function wireSearch() {
-    let debounceTimer = null;
-    els.searchInput.addEventListener("input", function () {
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(function () {
-        searchQuery = els.searchInput.value;
-        renderEntries();
-      }, 200);
+    const input = qs("#journal-search");
+    if (!input) return;
+    input.addEventListener("input", function () {
+      searchQuery = input.value;
+      renderEntries();
     });
   }
 
-  async function init() {
-    cacheElements();
-    renderMoodPicker();
-    renderFilterRow();
-    renderEntries();
-    wireComposer();
-    wireSearch();
-    els.saveBtn.disabled = true;
-    await loadNewPrompt();
+  /* ======================================================================
+     ENTRIES LIST
+     ====================================================================== */
+  function truncate(text, max) {
+    if (text.length <= max) return { short: text, isLong: false };
+    return { short: text.slice(0, max).trim() + "…", isLong: true };
   }
+
+  function renderEntries() {
+    const list = qs("#entries-list");
+    const emptyState = qs("#entries-empty");
+    if (!list) return;
+    list.innerHTML = "";
+
+    const all = JournalStorage.getAll();
+    const filtered = JournalStorage.search(JournalStorage.filterByMood(all, moodFilter), searchQuery);
+
+    const isEmpty = !filtered.length;
+    if (emptyState) {
+      emptyState.hidden = !isEmpty;
+      const heading = emptyState.querySelector("h3");
+      const body = emptyState.querySelector("p");
+      if (isEmpty && all.length) {
+        if (heading) heading.textContent = "No entries match";
+        if (body) body.textContent = "Try a different mood filter or search term.";
+      } else if (isEmpty) {
+        if (heading) heading.textContent = "No entries yet";
+        if (body) body.textContent = "Write your first entry above — Bloom will reflect it back to you.";
+      }
+    }
+    list.hidden = isEmpty;
+    if (isEmpty) return;
+
+    filtered.forEach(function (entry, index) {
+      const meta = entry.mood ? MindBloomData.moodMeta(entry.mood) : null;
+      const truncated = truncate(entry.text, 220);
+      const short = truncated.short;
+      const isLong = truncated.isLong;
+
+      const li = el(
+        "li",
+        "journal-entry card card--mood anim-stagger",
+        '<div class="journal-entry__header">' +
+          '<span class="journal-entry__emoji">' +
+          MindBloomUtils.icon(meta ? "mood-" + meta.key : "edit") +
+          "</span>" +
+          '<span class="journal-entry__date">' +
+          MindBloomData.formatRelativeTime(entry.timestamp) +
+          "</span>" +
+          '<button type="button" class="btn btn--icon journal-entry__delete" aria-label="Delete entry">' +
+          MindBloomUtils.icon("trash", "icon--sm") +
+          "</button>" +
+          "</div>" +
+          '<p class="journal-entry__text" data-full="' +
+          encodeURIComponent(entry.text) +
+          '">' +
+          (isLong ? short : entry.text) +
+          "</p>" +
+          (isLong ? '<button type="button" class="journal-entry__toggle auth-link">Show more</button>' : "") +
+          (entry.emotion && entry.emotion !== "neutral"
+            ? '<div class="journal-entry__themes"><span class="chip chip--secondary">' +
+              entry.emotion.charAt(0).toUpperCase() +
+              entry.emotion.slice(1) +
+              "</span></div>"
+            : "") +
+          (entry.reflection
+            ? '<div class="journal-reflection">' +
+              '<span class="journal-reflection__icon">' +
+              MindBloomUtils.icon("sparkle") +
+              "</span>" +
+              '<p class="journal-reflection__text">' +
+              entry.reflection +
+              "</p>" +
+              "</div>"
+            : "")
+      );
+      li.style.setProperty("--delay", index * 40 + "ms");
+      if (meta) li.dataset.mood = meta.key;
+
+      const deleteBtn = li.querySelector(".journal-entry__delete");
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", function () {
+          JournalStorage.remove(entry.id);
+          MindBloomUtils.showToast("Entry deleted.", null);
+          renderEntries();
+        });
+      }
+
+      const toggleBtn = li.querySelector(".journal-entry__toggle");
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          const textEl = li.querySelector(".journal-entry__text");
+          const expanded = toggleBtn.textContent === "Show less";
+          if (textEl) textEl.textContent = expanded ? short : entry.text;
+          toggleBtn.textContent = expanded ? "Show more" : "Show less";
+        });
+      }
+
+      list.appendChild(li);
+    });
+  }
+
+  /* ======================================================================
+     INIT
+     ====================================================================== */
+  function init() {
+    renderPrompt();
+    wirePromptRefresh();
+    renderComposerMoodPicker();
+    wireComposer();
+    updateComposerStatus();
+    renderFilters();
+    wireSearch();
+    renderEntries();
+    MindBloomUtils.initShell("wellbeing");
+  }
+
+  window.MindBloomJournal = { init: init };
 
   document.addEventListener("DOMContentLoaded", init);
 })(window, document);

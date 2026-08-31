@@ -131,8 +131,19 @@
 .hide-desktop { display: initial; }
 
 @media (min-width: 768px) {
-  .hide-mobile { display: initial; }
+  /* .hide-mobile is only ever used on .sidebar, which needs a flex layout
+     (its nav uses flex:1 to stretch/push the logout button to the bottom).
+     "display: initial" resets to the CSS-wide initial value (inline), not
+     the element's own intended display — that silently broke the sidebar's
+     flex layout, so it collapsed to its content height instead of filling
+     the screen. Restore the specific display value it actually needs. */
+  .hide-mobile { display: flex; }
   .hide-desktop { display: none; }
+
+  /* The fixed top header spans the full viewport by default (left:0), which
+     makes it overlap the sidebar's brand logo once the sidebar is visible
+     at this breakpoint. Offset it to start where the sidebar ends. */
+  .top-header { left: var(--sidebar-width); }
 }
 
 /* ---------------------------------------------------------------------

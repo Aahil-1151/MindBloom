@@ -1,22 +1,14 @@
 /* ==========================================================================
-   MindBloom — onboarding.css
-   Styles specific to onboarding.html, layered on top of auth.css (shares
-   the same centered card + blob background treatment).
+   MindBloom — pages/onboarding.css
+   Loaded alongside auth.css on onboarding.html (3-step flow) and 404.html
+   (reuses .onboarding-center / .onboarding-mark for its centered message).
    ========================================================================== */
-
-.onboarding-mark {
-  margin-inline: auto;
-}
-
-.onboarding-center {
-  text-align: center;
-}
 
 .onboarding-dots {
   display: flex;
   justify-content: center;
   gap: var(--space-2);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-6);
 }
 
 .onboarding-dot {
@@ -24,8 +16,7 @@
   height: 8px;
   border-radius: var(--radius-circle);
   background: var(--color-border-default);
-  transition: background-color var(--duration-base) var(--ease-standard),
-              width var(--duration-base) var(--ease-standard);
+  transition: background-color var(--duration-base) var(--ease-standard), width var(--duration-base) var(--ease-standard);
 }
 
 .onboarding-dot--active {
@@ -34,28 +25,38 @@
   border-radius: var(--radius-pill);
 }
 
+.onboarding-step {
+  display: flex;
+  flex-direction: column;
+}
 .onboarding-step[hidden] {
-  display: none;
+  display: none !important;
+}
+
+.onboarding-center {
+  text-align: center;
+}
+
+.onboarding-mark {
+  margin-inline: auto;
+  margin-bottom: var(--space-4);
 }
 
 .onboarding-goals {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-block: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .onboarding-goal {
-  font-size: var(--fs-sm);
-  padding: var(--space-3) var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .onboarding-actions {
   display: flex;
+  justify-content: space-between;
   gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-
-.onboarding-actions .btn--primary {
-  flex: 1;
 }
